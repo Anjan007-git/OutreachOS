@@ -449,7 +449,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div>
               <div className="text-xs font-bold text-slate-800">Database & System Storage</div>
               <div className="text-[11px] text-slate-500">
-                Download a raw copy of db.json or reset all mock and user records to start completely fresh.
+                Download a raw JSON database backup or reset all outreach records to start completely fresh.
               </div>
             </div>
             <div className="flex items-center space-x-2">

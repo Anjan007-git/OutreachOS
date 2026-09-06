@@ -36,6 +36,9 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  // Health Check
+  getHealth: () => fetchJson<{ success: boolean; environment: string; database: string; version: string; timestamp: string }>('/api/health'),
+
   // Auth & Connection
   getAuthStatus: () =>
     fetchJson<{

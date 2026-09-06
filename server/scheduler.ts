@@ -100,8 +100,8 @@ export function isDuplicateSend(contactEmail: string, campaignId?: string): bool
  * - Delay between consecutive sends
  * - Valid Gmail connection & access token
  */
-export async function processOutboundQueue(): Promise<void> {
-  if (isRunning) return;
+export async function processOutboundQueue(): Promise<{ processed: number; reason?: string }> {
+  if (isRunning) return { processed: 0, reason: 'Already running' };
   isRunning = true;
 
   try {
@@ -110,11 +110,11 @@ export async function processOutboundQueue(): Promise<void> {
     const primaryAccount = gmailAccounts.find((a) => a.isConnected && a.accessToken);
 
     if (!primaryAccount || !primaryAccount.accessToken || (primaryAccount as any).needsReauth) {
-      return; // No connected Gmail account with active token or awaiting re-authorization
+      return { processed: 0, reason: 'No active Gmail connection' };
     }
 
     if (!settings.automation.automaticSending) {
-      return; // Automated queue sending paused by user
+      return { processed: 0, reason: 'Automated sending disabled' };
     }
 
     const scheduled = db.get('scheduled_messages');
@@ -127,19 +127,19 @@ export async function processOutboundQueue(): Promise<void> {
       return scheduledTime <= now;
     });
 
-    if (readyMessages.length === 0) return;
+    if (readyMessages.length === 0) return { processed: 0, reason: 'Queue empty' };
 
     // Check server-side daily sending limit & user role permission
     const perm = checkSendingPermission(primaryAccount.email);
     if (!perm.allowed) {
-      return; // Daily sending limit reached for non-admin user
+      return { processed: 0, reason: perm.reason || 'Daily sending limit reached' };
     }
 
     // Check delay between emails
     const requiredDelayMinutes = settings.automation.delayMinutes || 10;
     const minutesSinceLast = getMinutesSinceLastSend();
     if (minutesSinceLast < requiredDelayMinutes) {
-      return; // Must wait for delay cooldown
+      return { processed: 0, reason: `Delay cooldown: ${Math.round(requiredDelayMinutes - minutesSinceLast)}m remaining` };
     }
 
     // Pick the first queued message
@@ -278,6 +278,7 @@ export async function processOutboundQueue(): Promise<void> {
           ]);
         }
       }
+      return { processed: 1 };
     } catch (sendErr: any) {
       const errMsg = sendErr.message || 'Unknown send error';
       console.error('Failed to send queued email:', errMsg);
@@ -320,9 +321,11 @@ export async function processOutboundQueue(): Promise<void> {
         'Email Send Failed',
         `Failed to send email to ${msg.recipientEmail}: ${errMsg}`
       );
+      return { processed: 0, reason: errMsg };
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Outbound queue processing error:', err);
+    return { processed: 0, reason: err.message || 'Processing error' };
   } finally {
     isRunning = false;
   }

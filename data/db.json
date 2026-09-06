@@ -22,7 +22,7 @@
       "email": "anjanp93722@gmail.com",
       "displayName": "Anjan Prajapati",
       "accessToken": "ya29.a0AdMD6EgDWLn7YsiNCob7ECOBdvW0ZxmxlY08VLovyA2tkmjNTdEbqDvGgTUprJawZ_vam_JoRe8d_2HPR_3eMv5rDkiz25ktWfRnbyiErLoDgcKbQF9XFMwik99RKXUjzugPnWls0OZXK9SCQiqC7r9h_0jsCwwPbnSGozFIdRXJXGrF-tjJUzXJMTuZG3Di-lTReg8aCgYKARESARASFQHGX2MijdFrxkOB9qhId9NCIzCT2Q0206",
-      "needsReauth": false,
+      "needsReauth": true,
       "lastSyncTime": "2026-09-05T20:32:13.246Z"
     }
   ],
@@ -31,7 +31,64 @@
   "follow_ups": [],
   "follow_up_instances": [],
   "notifications": [],
-  "audit_logs": [],
+  "audit_logs": [
+    {
+      "id": "log-1788684167442-9or3",
+      "action": "CONTACT_DELETED",
+      "details": "Deleted contact ID: c-1788684167019",
+      "timestamp": "2026-09-06T08:42:47.442Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log-1788684167020-i3hn",
+      "action": "CONTACT_CREATED",
+      "details": "Added contact: Sundar Pichai (sundar@google.com)",
+      "timestamp": "2026-09-06T08:42:47.020Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log-1788684113341-9fyf",
+      "action": "CONTACT_DELETED",
+      "details": "Deleted contact ID: c-1788684113069",
+      "timestamp": "2026-09-06T08:41:53.341Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log-1788684113069-voes",
+      "action": "CONTACT_CREATED",
+      "details": "Added contact: Satya Nadella (satya@microsoft.com)",
+      "timestamp": "2026-09-06T08:41:53.069Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log-1788684071934-wcri",
+      "action": "CONTACT_DELETED",
+      "details": "Deleted contact ID: c-1788684071836",
+      "timestamp": "2026-09-06T08:41:11.934Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log-1788684071837-ynxe",
+      "action": "CONTACT_CREATED",
+      "details": "Added contact: Satya Nadella (satya@microsoft.com)",
+      "timestamp": "2026-09-06T08:41:11.837Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log-1788684064571-f41f",
+      "action": "CONTACT_DELETED",
+      "details": "Deleted contact ID: c-1788684064550",
+      "timestamp": "2026-09-06T08:41:04.571Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log-1788684064551-mhvg",
+      "action": "CONTACT_CREATED",
+      "details": "Added contact: Satya Nadella (satya@microsoft.com)",
+      "timestamp": "2026-09-06T08:41:04.551Z",
+      "status": "SUCCESS"
+    }
+  ],
   "settings": {
     "profile": {
       "name": "Anjan Prajapati",
