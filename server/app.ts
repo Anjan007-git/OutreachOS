@@ -30,6 +30,20 @@ export function normalizeUrl(req: any): string {
   let rawUrl = (req && req.url) || '/';
   const headers = (req && req.headers) || {};
 
+  // Bypass normalization entirely for Vite internal routes and frontend assets
+  const pathWithoutQuery = rawUrl.split('?')[0];
+  if (
+    rawUrl.startsWith('/@') ||
+    rawUrl.startsWith('/src/') ||
+    rawUrl.startsWith('/node_modules/') ||
+    rawUrl.startsWith('/assets/') ||
+    rawUrl === '/' ||
+    rawUrl === '/index.html' ||
+    /\.(tsx?|jsx?|css|svg|png|jpg|jpeg|gif|ico|woff2?|ttf|eot|map|json)$/i.test(pathWithoutQuery)
+  ) {
+    return rawUrl;
+  }
+
   // If rawUrl is generic (root / or just the serverless entrypoint /api or /api/index),
   // inspect proxy headers for the real original client URI
   const isGeneric =
@@ -95,9 +109,17 @@ export function normalizeUrl(req: any): string {
   // Normalize multiple slashes (e.g. //api///contacts -> /api/contacts)
   pathname = pathname.replace(/\/{2,}/g, '/');
 
-  // Ensure leading /api prefix unless it is root /
+  // Ensure leading /api prefix for API routes
   if (!pathname.startsWith('/api') && pathname !== '/' && pathname !== '') {
-    pathname = '/api' + (pathname.startsWith('/') ? pathname : '/' + pathname);
+    if (
+      !pathname.startsWith('/@') &&
+      !pathname.startsWith('/src/') &&
+      !pathname.startsWith('/node_modules/') &&
+      !pathname.startsWith('/assets/') &&
+      !/\.(tsx?|jsx?|css|svg|png|jpg|jpeg|gif|ico|woff2?|ttf|eot|map|json|html)$/i.test(pathname)
+    ) {
+      pathname = '/api' + (pathname.startsWith('/') ? pathname : '/' + pathname);
+    }
   }
 
   return pathname + (queryString ? '?' + queryString : '');
