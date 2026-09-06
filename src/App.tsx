@@ -199,12 +199,36 @@ export default function App() {
       ]);
 
       setGmailStatus(authStatus);
-      if (statsData) setStats(statsData);
-      setContacts(Array.isArray(contactsData) ? contactsData : []);
-      setCampaigns(Array.isArray(campaignsData) ? campaignsData : []);
-      setScheduledMessages(Array.isArray(schedData) ? schedData : []);
-      setSentMessages(Array.isArray(sentData) ? sentData : []);
-      setResponses(Array.isArray(respData) ? respData : []);
+      const safeContacts = Array.isArray(contactsData) ? contactsData : [];
+      const safeCampaigns = Array.isArray(campaignsData) ? campaignsData : [];
+      const safeSched = Array.isArray(schedData) ? schedData : [];
+      const safeSent = Array.isArray(sentData) ? sentData : [];
+      const safeResp = Array.isArray(respData) ? respData : [];
+
+      if (statsData) {
+        setStats(statsData);
+      } else {
+        setStats({
+          totalContacts: safeContacts.length,
+          scheduledCount: safeSched.length,
+          sentToday: 0,
+          totalSent: safeSent.length,
+          repliesCount: safeResp.length,
+          followUpsCount: 0,
+          failedCount: 0,
+          activeCampaigns: safeCampaigns.filter((c: any) => c.status === 'ACTIVE').length,
+          replyRatePercentage: safeSent.length > 0 ? Math.round((safeResp.length / safeSent.length) * 100) : 0,
+          recentActivities: [],
+          sentOverTime: [],
+          outreachBreakdown: [],
+          topCountries: [],
+        });
+      }
+      setContacts(safeContacts);
+      setCampaigns(safeCampaigns);
+      setScheduledMessages(safeSched);
+      setSentMessages(safeSent);
+      setResponses(safeResp);
       setFollowUpRules(Array.isArray(fuData?.rules) ? fuData.rules : []);
       setFollowUpInstances(Array.isArray(fuData?.instances) ? fuData.instances : []);
       setTemplates(Array.isArray(tplData) ? tplData : []);

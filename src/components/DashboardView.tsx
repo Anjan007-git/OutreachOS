@@ -30,13 +30,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   recentResponses = [],
   upcomingScheduled = [],
 }) => {
-  if (!stats) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
+  const effectiveStats: DashboardStats = stats || {
+    totalContacts: 0,
+    scheduledCount: upcomingScheduled.length,
+    sentToday: 0,
+    totalSent: 0,
+    repliesCount: recentResponses.length,
+    followUpsCount: 0,
+    failedCount: 0,
+    activeCampaigns: 0,
+    replyRatePercentage: 0,
+    recentActivities: [],
+    sentOverTime: [
+      { date: 'Mon', sent: 0, replies: 0 },
+      { date: 'Tue', sent: 0, replies: 0 },
+      { date: 'Wed', sent: 0, replies: 0 },
+      { date: 'Thu', sent: 0, replies: 0 },
+      { date: 'Fri', sent: 0, replies: 0 },
+      { date: 'Sat', sent: 0, replies: 0 },
+      { date: 'Sun', sent: 0, replies: 0 },
+    ],
+    outreachBreakdown: [],
+    topCountries: [],
+  };
 
   // Use genuine incoming responses and upcoming scheduled queue items (no mock/sample fallback)
   const displayResponses = recentResponses.slice(0, 5);
@@ -98,7 +114,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return `${diffDays}d ago`;
   };
 
-  const maxChartSent = Math.max(...(stats.sentOverTime || []).map((d) => Math.max(d.sent, d.replies, 1)), 5);
+  const chartData = (effectiveStats.sentOverTime && effectiveStats.sentOverTime.length > 0)
+    ? effectiveStats.sentOverTime
+    : [
+        { date: 'Mon', sent: 0, replies: 0 },
+        { date: 'Tue', sent: 0, replies: 0 },
+        { date: 'Wed', sent: 0, replies: 0 },
+        { date: 'Thu', sent: 0, replies: 0 },
+        { date: 'Fri', sent: 0, replies: 0 },
+        { date: 'Sat', sent: 0, replies: 0 },
+        { date: 'Sun', sent: 0, replies: 0 },
+      ];
+
+  const maxChartSent = Math.max(...chartData.map((d) => Math.max(d.sent, d.replies, 1)), 5);
 
   return (
     <div className="space-y-6">
@@ -111,9 +139,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 transition-all cursor-pointer group"
         >
           <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Total Contacts</div>
-          <div className="text-2xl font-bold text-slate-900 tracking-tight">{stats.totalContacts.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-slate-900 tracking-tight">{effectiveStats.totalContacts.toLocaleString()}</div>
           <div className="text-xs text-slate-500 mt-2 font-medium flex items-center justify-between">
-            <span>{stats.totalContacts > 0 ? `${stats.totalContacts} saved contacts` : '0 saved contacts'}</span>
+            <span>{effectiveStats.totalContacts > 0 ? `${effectiveStats.totalContacts} saved contacts` : '0 saved contacts'}</span>
             <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
@@ -125,9 +153,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 transition-all cursor-pointer group"
         >
           <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Active Campaigns</div>
-          <div className="text-2xl font-bold text-slate-900 tracking-tight">{stats.activeCampaigns}</div>
+          <div className="text-2xl font-bold text-slate-900 tracking-tight">{effectiveStats.activeCampaigns}</div>
           <div className="text-xs text-indigo-600 mt-2 font-medium flex items-center justify-between">
-            <span>{stats.activeCampaigns > 0 ? `${stats.activeCampaigns} automated runs` : 'Ready to start'}</span>
+            <span>{effectiveStats.activeCampaigns > 0 ? `${effectiveStats.activeCampaigns} automated runs` : 'Ready to start'}</span>
             <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
@@ -139,7 +167,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 transition-all cursor-pointer group"
         >
           <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Reply Rate</div>
-          <div className="text-2xl font-bold text-slate-900 tracking-tight">{stats.replyRatePercentage}%</div>
+          <div className="text-2xl font-bold text-slate-900 tracking-tight">{effectiveStats.replyRatePercentage}%</div>
           <div className="text-xs text-slate-500 mt-2 font-medium flex items-center justify-between">
             <span>Avg. 3 days response</span>
             <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -153,7 +181,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 transition-all cursor-pointer group"
         >
           <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Total Sent</div>
-          <div className="text-2xl font-bold text-slate-900 tracking-tight">{stats.totalSent.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-slate-900 tracking-tight">{effectiveStats.totalSent.toLocaleString()}</div>
           <div className="text-xs text-slate-500 mt-2 font-medium flex items-center justify-between">
             <span>Total outreaches</span>
             <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -169,7 +197,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         >
           <div>
             <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Outbound Queue</div>
-            <div className="text-lg font-bold text-slate-900">{stats.scheduledCount} queued</div>
+            <div className="text-lg font-bold text-slate-900">{effectiveStats.scheduledCount} queued</div>
           </div>
           <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
             <Clock className="w-4 h-4" />
@@ -182,7 +210,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         >
           <div>
             <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sent Today</div>
-            <div className="text-lg font-bold text-slate-900">{stats.sentToday} emails</div>
+            <div className="text-lg font-bold text-slate-900">{effectiveStats.sentToday} emails</div>
           </div>
           <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
             <Send className="w-4 h-4" />
@@ -195,7 +223,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         >
           <div>
             <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Follow-ups Active</div>
-            <div className="text-lg font-bold text-slate-900">{stats.followUpsCount} cadence</div>
+            <div className="text-lg font-bold text-slate-900">{effectiveStats.followUpsCount} cadence</div>
           </div>
           <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
             <Repeat className="w-4 h-4" />
@@ -209,10 +237,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div>
             <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Safety Status</div>
             <div className="text-lg font-bold text-slate-900">
-              {stats.failedCount > 0 ? `${stats.failedCount} failed` : 'Zero Duplicates'}
+              {effectiveStats.failedCount > 0 ? `${effectiveStats.failedCount} failed` : 'Zero Duplicates'}
             </div>
           </div>
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${stats.failedCount > 0 ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${effectiveStats.failedCount > 0 ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
             <CheckCheck className="w-4 h-4" />
           </div>
         </div>
@@ -309,7 +337,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             <div className="h-44 flex items-end justify-between gap-3 pt-6 border-b border-slate-100 pb-2">
-              {(stats.sentOverTime || []).map((item, idx) => {
+              {chartData.map((item, idx) => {
                 const sentHeight = (item.sent / maxChartSent) * 100;
                 const replyHeight = (item.replies / maxChartSent) * 100;
                 return (
@@ -341,7 +369,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
-              <span>Overall reply rate: <strong className="text-purple-600 font-semibold">{stats.replyRatePercentage}%</strong></span>
+              <span>Overall reply rate: <strong className="text-purple-600 font-semibold">{effectiveStats.replyRatePercentage}%</strong></span>
               <button
                 onClick={() => onNavigate('responses')}
                 className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center space-x-1 cursor-pointer"
@@ -429,7 +457,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             {/* Category Breakdown */}
             <div className="space-y-3 mb-5">
-              {(stats.outreachBreakdown || []).map((item, idx) => (
+              {(effectiveStats.outreachBreakdown || []).map((item, idx) => (
                 <div key={idx}>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-medium text-slate-700 flex items-center space-x-1.5">
@@ -446,7 +474,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <div
                       className="h-full bg-indigo-600 rounded-full transition-all"
                       style={{
-                        width: `${Math.min(100, Math.max(10, (item.count / (stats.totalContacts || 1)) * 100))}%`,
+                        width: `${Math.min(100, Math.max(10, (item.count / (effectiveStats.totalContacts || 1)) * 100))}%`,
                       }}
                     />
                   </div>
@@ -461,7 +489,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span>Target Geographies</span>
               </span>
               <div className="flex flex-wrap gap-1.5">
-                {(stats.topCountries || []).map((c, idx) => (
+                {(effectiveStats.topCountries || []).map((c, idx) => (
                   <span
                     key={idx}
                     className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/60"

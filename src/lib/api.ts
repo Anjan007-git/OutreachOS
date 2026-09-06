@@ -15,24 +15,33 @@ import {
 } from '../types';
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-    ...options,
-  });
+  const controller = new AbortController();
+  const timeoutMs = 12000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (!res.ok) {
-    let errorMsg = `Request failed (${res.status})`;
-    try {
-      const err = await res.json();
-      errorMsg = err.error || errorMsg;
-    } catch {}
-    throw new Error(errorMsg);
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      signal: options?.signal || controller.signal,
+      ...options,
+    });
+
+    if (!res.ok) {
+      let errorMsg = `Request failed (${res.status})`;
+      try {
+        const err = await res.json();
+        errorMsg = err.error || errorMsg;
+      } catch {}
+      throw new Error(errorMsg);
+    }
+
+    return await res.json();
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return res.json();
 }
 
 export const api = {

@@ -30,59 +30,76 @@ export function normalizeUrl(req: any): string {
   let rawUrl = (req && req.url) || '/';
   const headers = (req && req.headers) || {};
 
-  // 1. Check Vercel edge / proxy routing headers for the original matched path
-  const matchedPathHeader =
-    headers['x-matched-path'] ||
-    headers['x-forwarded-uri'] ||
-    headers['x-original-url'] ||
-    headers['x-invoke-path'] ||
-    headers['x-rewrite-url'];
+  // If rawUrl is generic (root / or just the serverless entrypoint /api or /api/index),
+  // inspect proxy headers for the real original client URI
+  const isGeneric =
+    rawUrl === '/' ||
+    rawUrl === '/api' ||
+    rawUrl === '/api/' ||
+    rawUrl === '/api/index' ||
+    rawUrl === '/api/index/' ||
+    rawUrl.startsWith('/api/index?') ||
+    rawUrl.startsWith('/api?');
 
-  if (typeof matchedPathHeader === 'string' && matchedPathHeader.startsWith('/api/')) {
-    rawUrl = matchedPathHeader;
-  } else if (typeof headers['x-now-route-matches'] === 'string') {
-    // E.g. '1=contacts' or '1=contacts%2Fstats'
-    const match = headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
-    if (match && match[1]) {
-      const decoded = decodeURIComponent(match[1]);
-      const search = rawUrl.includes('?') ? rawUrl.substring(rawUrl.indexOf('?')) : '';
-      rawUrl = '/api/' + decoded.replace(/^\/+/, '') + search;
+  if (isGeneric) {
+    const candidateHeader =
+      headers['x-forwarded-uri'] ||
+      headers['x-original-url'] ||
+      headers['x-invoke-path'] ||
+      headers['x-rewrite-url'];
+
+    if (
+      typeof candidateHeader === 'string' &&
+      candidateHeader.startsWith('/api/') &&
+      candidateHeader !== '/api/index' &&
+      candidateHeader !== '/api/' &&
+      candidateHeader !== '/api'
+    ) {
+      rawUrl = candidateHeader;
+    } else if (typeof headers['x-now-route-matches'] === 'string') {
+      const match = headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
+      if (match && match[1]) {
+        const decoded = decodeURIComponent(match[1]);
+        const search = rawUrl.includes('?') ? rawUrl.substring(rawUrl.indexOf('?')) : '';
+        rawUrl = '/api/' + decoded.replace(/^\/+/, '') + search;
+      }
     }
   }
 
-  // 2. Parse query parameters to extract rewritten ?path=... if present
-  let urlObj: URL;
-  try {
-    urlObj = new URL(rawUrl, 'http://localhost');
-  } catch {
-    urlObj = new URL('/api', 'http://localhost');
+  // Separate pathname from query string safely
+  let pathname = rawUrl;
+  let queryString = '';
+  const qIdx = rawUrl.indexOf('?');
+  if (qIdx !== -1) {
+    pathname = rawUrl.substring(0, qIdx);
+    queryString = rawUrl.substring(qIdx + 1);
   }
 
-  let pathname = urlObj.pathname;
-  const pathParam = (req && req.query && req.query.path) || urlObj.searchParams.get('path');
-
-  if (pathParam) {
+  // Check if ?path= was passed in query (e.g. from legacy rewrite rules)
+  const searchParams = new URLSearchParams(queryString);
+  const pathParam = (req && req.query && req.query.path) || searchParams.get('path');
+  if (pathParam && (pathname === '/api' || pathname === '/api/' || pathname === '/api/index' || pathname === '/' || pathname === '')) {
     const subpath = Array.isArray(pathParam) ? pathParam.join('/') : String(pathParam);
-    if (subpath && !pathname.endsWith('/' + subpath) && !pathname.includes('/' + subpath + '/')) {
-      pathname = '/api/' + subpath.replace(/^\/+/, '');
-      urlObj.searchParams.delete('path');
-    }
+    pathname = '/api/' + subpath.replace(/^\/+/, '');
+    searchParams.delete('path');
+    queryString = searchParams.toString();
   }
 
-  // 3. Normalize duplicate or misplaced prefixes
+  // Normalize duplicate or misplaced prefixes
   pathname = pathname
     .replace(/^\/api\/api(?=\/|$)/, '/api')
+    .replace(/^\/api\/index\//, '/api/')
     .replace(/^\/api\/index(?=\/|$)/, '/api')
-    .replace(/^\/api\/\[\.\.\.path\](?=\/|$)/, '/api')
-    .replace(/^\/index(?=\/|$)/, '')
-    .replace(/^\/\[\.\.\.path\](?=\/|$)/, '');
+    .replace(/^\/index(?=\/|$)/, '');
 
-  // 4. Ensure it has /api prefix for Express /api mount, or handle root /
+  // Normalize multiple slashes (e.g. //api///contacts -> /api/contacts)
+  pathname = pathname.replace(/\/{2,}/g, '/');
+
+  // Ensure leading /api prefix unless it is root /
   if (!pathname.startsWith('/api') && pathname !== '/' && pathname !== '') {
     pathname = '/api' + (pathname.startsWith('/') ? pathname : '/' + pathname);
   }
 
-  const queryString = urlObj.searchParams.toString();
   return pathname + (queryString ? '?' + queryString : '');
 }
 
@@ -1334,13 +1351,12 @@ export function createApp(): express.Application {
     });
   });
 
-  // Mount API router on BOTH '/api' and '/'
-  // This guarantees that whether Vercel rewrites to / or retains /api, all routes match!
+  // Mount API router strictly on '/api' (normalizeUrl guarantees requests start with /api)
   app.use('/api', apiRouter);
-  app.use('/', apiRouter);
 
-  // Fallback 404 handler for genuinely unknown API routes
-  app.use((req, res) => {
+  // Fallback 404 handler for genuinely unknown API routes ONLY
+  // This allows non-API routes (frontend HTML, JS, CSS, static assets) to pass through to Vite
+  app.use('/api', (req, res) => {
     console.warn(`[API 404 NOT FOUND] ${req.method} url=${req.url} originalUrl=${req.originalUrl} path=${req.path}`);
     res.status(404).json({
       success: false,
