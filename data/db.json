@@ -1,0 +1,75 @@
+{
+  "_fresh_clean_v2": true,
+  "users": [
+    {
+      "id": "user-1",
+      "email": "anjanp93722@gmail.com",
+      "name": "Anjan Prajapati",
+      "role": "ADMIN"
+    }
+  ],
+  "contacts": [],
+  "campaigns": [],
+  "campaign_recipients": [],
+  "messages": [],
+  "scheduled_messages": [],
+  "sent_messages": [],
+  "attachments": [],
+  "templates": [],
+  "gmail_accounts": [
+    {
+      "isConnected": true,
+      "email": "anjanp93722@gmail.com",
+      "displayName": "Anjan Prajapati",
+      "accessToken": "ya29.a0AdMD6EgDWLn7YsiNCob7ECOBdvW0ZxmxlY08VLovyA2tkmjNTdEbqDvGgTUprJawZ_vam_JoRe8d_2HPR_3eMv5rDkiz25ktWfRnbyiErLoDgcKbQF9XFMwik99RKXUjzugPnWls0OZXK9SCQiqC7r9h_0jsCwwPbnSGozFIdRXJXGrF-tjJUzXJMTuZG3Di-lTReg8aCgYKARESARASFQHGX2MijdFrxkOB9qhId9NCIzCT2Q0206",
+      "needsReauth": false,
+      "lastSyncTime": "2026-09-05T20:32:13.246Z"
+    }
+  ],
+  "email_threads": [],
+  "incoming_messages": [],
+  "follow_ups": [],
+  "follow_up_instances": [],
+  "notifications": [],
+  "audit_logs": [],
+  "settings": {
+    "profile": {
+      "name": "Anjan Prajapati",
+      "title": "Senior Cloud & Systems Engineer",
+      "email": "anjanp93722@gmail.com",
+      "phone": "+91 98765 43210",
+      "linkedin": "https://linkedin.com/in/anjanprajapati",
+      "github": "https://github.com/anjanprajapati",
+      "portfolio": "https://anjanprajapati.dev",
+      "education": "B.Tech in Computer Science and Engineering",
+      "skills": "Distributed Systems, Cloud Computing (GCP/AWS), Kubernetes, Go, TypeScript, Node.js, Terraform",
+      "targetRoles": "Cloud Engineer, Staff DevOps Engineer, Site Reliability Engineer",
+      "targetCountries": "Ireland, United Kingdom, Netherlands, Germany, United States"
+    },
+    "email": {
+      "defaultSignature": "\n\nBest regards,\nAnjan Prajapati\nSenior Cloud & Systems Engineer\nEmail: anjanp93722@gmail.com | Phone: +91 98765 43210\nLinkedIn: linkedin.com/in/anjanprajapati | GitHub: github.com/anjanprajapati"
+    },
+    "automation": {
+      "dailyLimit": 10,
+      "delayMinutes": 10,
+      "timezone": "Asia/Kolkata",
+      "automaticSending": true,
+      "automaticFollowUp": true
+    },
+    "ai": {
+      "aiAssistance": true,
+      "personalization": true,
+      "replyClassification": true
+    },
+    "defaultSignature": "\n\nBest regards,\nAnjan Prajapati\nSenior Cloud & Systems Engineer\nEmail: anjanp93722@gmail.com | Phone: +91 98765 43210\nLinkedIn: linkedin.com/in/anjanprajapati | GitHub: github.com/anjanprajapati",
+    "sendingLimits": {
+      "maxEmailsPerDay": 10,
+      "delaySecondsBetweenSends": 600,
+      "timezone": "Asia/Kolkata"
+    },
+    "aiSettings": {
+      "autoCategorizeReplies": true,
+      "suggestFollowUpReminders": true
+    }
+  }
+}
