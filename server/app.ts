@@ -26,32 +26,72 @@ import {
 } from './scheduler.js';
 import { Contact, Campaign, ScheduledMessage, SentMessage, StoredFile, Template, FollowUpRule } from '../src/types.js';
 
+export function normalizeUrl(req: any): string {
+  let rawUrl = (req && req.url) || '/';
+  const headers = (req && req.headers) || {};
+
+  // 1. Check Vercel edge / proxy routing headers for the original matched path
+  const matchedPathHeader =
+    headers['x-matched-path'] ||
+    headers['x-forwarded-uri'] ||
+    headers['x-original-url'] ||
+    headers['x-invoke-path'] ||
+    headers['x-rewrite-url'];
+
+  if (typeof matchedPathHeader === 'string' && matchedPathHeader.startsWith('/api/')) {
+    rawUrl = matchedPathHeader;
+  } else if (typeof headers['x-now-route-matches'] === 'string') {
+    // E.g. '1=contacts' or '1=contacts%2Fstats'
+    const match = headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
+    if (match && match[1]) {
+      const decoded = decodeURIComponent(match[1]);
+      const search = rawUrl.includes('?') ? rawUrl.substring(rawUrl.indexOf('?')) : '';
+      rawUrl = '/api/' + decoded.replace(/^\/+/, '') + search;
+    }
+  }
+
+  // 2. Parse query parameters to extract rewritten ?path=... if present
+  let urlObj: URL;
+  try {
+    urlObj = new URL(rawUrl, 'http://localhost');
+  } catch {
+    urlObj = new URL('/api', 'http://localhost');
+  }
+
+  let pathname = urlObj.pathname;
+  const pathParam = (req && req.query && req.query.path) || urlObj.searchParams.get('path');
+
+  if (pathParam) {
+    const subpath = Array.isArray(pathParam) ? pathParam.join('/') : String(pathParam);
+    if (subpath && !pathname.endsWith('/' + subpath) && !pathname.includes('/' + subpath + '/')) {
+      pathname = '/api/' + subpath.replace(/^\/+/, '');
+      urlObj.searchParams.delete('path');
+    }
+  }
+
+  // 3. Normalize duplicate or misplaced prefixes
+  pathname = pathname
+    .replace(/^\/api\/api(?=\/|$)/, '/api')
+    .replace(/^\/api\/index(?=\/|$)/, '/api')
+    .replace(/^\/api\/\[\.\.\.path\](?=\/|$)/, '/api')
+    .replace(/^\/index(?=\/|$)/, '')
+    .replace(/^\/\[\.\.\.path\](?=\/|$)/, '');
+
+  // 4. Ensure it has /api prefix for Express /api mount, or handle root /
+  if (!pathname.startsWith('/api') && pathname !== '/' && pathname !== '') {
+    pathname = '/api' + (pathname.startsWith('/') ? pathname : '/' + pathname);
+  }
+
+  const queryString = urlObj.searchParams.toString();
+  return pathname + (queryString ? '?' + queryString : '');
+}
+
 export function createApp(): express.Application {
   const app = express();
 
   // URL normalization middleware for Vercel serverless functions and local dev
   app.use((req, res, next) => {
-    let url = req.url || '/';
-
-    // 1. If Vercel rewrote with query parameter ?path=...
-    const query = req.query as Record<string, any> | undefined;
-    if (query && query.path) {
-      const subpath = Array.isArray(query.path) ? query.path.join('/') : String(query.path);
-      const urlPath = url.split('?')[0];
-      if (!urlPath.endsWith('/' + subpath) && !urlPath.includes('/' + subpath + '/')) {
-        const qIdx = url.indexOf('?');
-        const search = qIdx !== -1 ? url.substring(qIdx) : '';
-        url = `/api/${subpath.replace(/^\/+/, '')}${search}`;
-      }
-    }
-
-    // 2. Normalize duplicate prefixes (e.g. /api/api/*, /api/index/*)
-    url = url
-      .replace(/^\/api\/api(?=\/|$)/, '/api')
-      .replace(/^\/api\/index(?=\/|$)/, '/api')
-      .replace(/^\/index(?=\/|$)/, '');
-
-    req.url = url;
+    req.url = normalizeUrl(req);
     next();
   });
 
@@ -1269,14 +1309,45 @@ export function createApp(): express.Application {
   apiRouter.get('/db/download', handleDbDownload);
   apiRouter.get('/admin/export-db', handleDbDownload);
 
+  // Root API information endpoint (so GET /api and GET / return status instead of 404)
+  apiRouter.get('/', (req, res) => {
+    res.status(200).json({
+      success: true,
+      message: 'OutreachOS API is operational',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      routes: [
+        '/api/health',
+        '/api/auth/status',
+        '/api/contacts',
+        '/api/campaigns',
+        '/api/scheduled',
+        '/api/sent',
+        '/api/responses',
+        '/api/follow-ups',
+        '/api/templates',
+        '/api/files',
+        '/api/settings',
+        '/api/notifications',
+        '/api/audit-logs',
+      ],
+    });
+  });
+
   // Mount API router on BOTH '/api' and '/'
   // This guarantees that whether Vercel rewrites to / or retains /api, all routes match!
   app.use('/api', apiRouter);
   app.use('/', apiRouter);
 
-  // Fallback 404 handler for unknown API routes
+  // Fallback 404 handler for genuinely unknown API routes
   app.use((req, res) => {
-    res.status(404).json({ success: false, error: 'API endpoint not found' });
+    console.warn(`[API 404 NOT FOUND] ${req.method} url=${req.url} originalUrl=${req.originalUrl} path=${req.path}`);
+    res.status(404).json({
+      success: false,
+      error: 'API endpoint not found',
+      path: req.path,
+      method: req.method,
+    });
   });
 
   return app;
