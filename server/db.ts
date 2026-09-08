@@ -54,7 +54,7 @@ function sanitizeEnvValue(val?: string): string | undefined {
 
   // If the value was accidentally pasted with an explicit variable name prefix (e.g. KV_REST_API_TOKEN=xxx),
   // strip only known variable prefixes without destroying base64 '=' or '==' padding in the secret token!
-  const knownPrefix = /^(?:KV_REST_API_URL|KV_REST_API_TOKEN|UPSTASH_REDIS_REST_URL|UPSTASH_REDIS_REST_TOKEN|KV_URL|KV_TOKEN)\s*=\s*(.*)$/i;
+  const knownPrefix = /^(?:KV_REST_API_URL|KV_REST_API_TOKEN|UPSTASH_REDIS_REST_URL|UPSTASH_REDIS_REST_TOKEN|KV_URL|KV_TOKEN|REDIS_URL|REDIS_TOKEN)\s*=\s*(.*)$/i;
   const match = cleaned.match(knownPrefix);
   if (match) {
     cleaned = match[1].trim().replace(/^["']|["']$/g, '').trim();
@@ -64,22 +64,44 @@ function sanitizeEnvValue(val?: string): string | undefined {
 
 export function getUpstashCredentials(): { url?: string; token?: string } {
   // Primary expected environment variable: KV_REST_API_URL
-  // Intentionally supported fallbacks: UPSTASH_REDIS_REST_URL, KV_URL (if HTTP REST URL)
+  // Intentionally supported fallbacks: UPSTASH_REDIS_REST_URL, KV_URL, REDIS_URL
   const rawUrl =
     process.env.KV_REST_API_URL ||
     process.env.UPSTASH_REDIS_REST_URL ||
-    (process.env.KV_URL && process.env.KV_URL.startsWith('http') ? process.env.KV_URL : undefined);
+    process.env.KV_URL ||
+    process.env.REDIS_URL;
 
   // Primary expected environment variable: KV_REST_API_TOKEN
-  // Intentionally supported fallbacks: UPSTASH_REDIS_REST_TOKEN, KV_TOKEN
+  // Intentionally supported fallbacks: UPSTASH_REDIS_REST_TOKEN, KV_TOKEN, REDIS_TOKEN
   const rawToken =
     process.env.KV_REST_API_TOKEN ||
     process.env.UPSTASH_REDIS_REST_TOKEN ||
-    process.env.KV_TOKEN;
+    process.env.KV_TOKEN ||
+    process.env.REDIS_TOKEN;
 
-  const url = sanitizeEnvValue(rawUrl);
-  const token = sanitizeEnvValue(rawToken);
-  return { url, token };
+  let url = sanitizeEnvValue(rawUrl);
+  let token = sanitizeEnvValue(rawToken);
+
+  // If a full redis connection string was passed (e.g. rediss://default:token@host:port)
+  if (url && (url.startsWith('redis://') || url.startsWith('rediss://'))) {
+    const match = url.match(/^rediss?:\/\/(?:([^:]+):)?([^@]+)@([^:/]+)(?::\d+)?/);
+    if (match) {
+      token = token || match[2];
+      url = `https://${match[3]}`;
+    }
+  }
+
+  // Ensure URL starts with https:// if host only was provided (e.g. distinct-cat-12345.upstash.io)
+  if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+    url = `https://${url}`;
+  }
+
+  // Remove trailing slashes
+  if (url) {
+    url = url.replace(/\/+$/, '');
+  }
+
+  return { url: url || undefined, token: token || undefined };
 }
 
 let redisClientInstance: Redis | null = null;
