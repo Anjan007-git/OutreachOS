@@ -38,7 +38,8 @@ export interface SaveFileResult {
 
 export class StorageService {
   /**
-   * Saves a file buffer to persistent storage (Vercel Blob in production, or secure local storage in dev).
+   * Saves a file buffer to persistent storage (Private Vercel Blob in production).
+   * Ensures no local disk is used for permanent files when BLOB_READ_WRITE_TOKEN is configured.
    */
   async saveFile(
     filename: string,
@@ -50,25 +51,40 @@ export class StorageService {
     const cleanName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
     const storageKey = `${userId}/${timestamp}-${cleanName}`;
 
-    // 1. Production Vercel Blob
-    const blobModule = await getVercelBlob();
-    if (blobModule?.put) {
+    // 1. Private Vercel Blob Store
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blobModule = await getVercelBlob();
+      if (!blobModule?.put) {
+        throw new Error('Vercel Blob SDK is not available to complete upload to private store.');
+      }
+
       try {
         const blob = await blobModule.put(`documents/${storageKey}`, buffer, {
-          access: 'public',
+          access: 'private',
+          token: process.env.BLOB_READ_WRITE_TOKEN,
           contentType: mimeType,
         });
+
         return {
           storageKey,
           storageUrl: blob.url,
           size: buffer.length,
         };
       } catch (err: any) {
-        console.warn('Vercel Blob upload failed, falling back to local storage:', err.message);
+        console.error('Private Vercel Blob upload failed:', err.message);
+        throw new Error(`Failed to upload document to private Vercel Blob: ${err.message}`);
       }
     }
 
-    // 2. Local dev storage (.storage/ directory)
+    // Strict constraint: Do not use local filesystem storage for permanent files in production
+    const isProd = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) || process.env.NODE_ENV === 'production';
+    if (isProd) {
+      throw new Error(
+        'Production storage unavailable: BLOB_READ_WRITE_TOKEN is required for private Vercel Blob store.'
+      );
+    }
+
+    // 2. Local dev storage (.storage/ directory) — ONLY for offline dev testing without credentials
     try {
       ensureLocalDir();
       const userDir = path.join(LOCAL_STORAGE_DIR, userId);
@@ -84,7 +100,7 @@ export class StorageService {
       };
     } catch (fsErr: any) {
       console.warn('Filesystem write failed, falling back to in-memory store:', fsErr.message);
-      // 3. In-memory fallback for ephemeral environments
+      // 3. In-memory fallback for local dev
       memoryStorage.set(storageKey, { buffer, mimeType, filename });
       return {
         storageKey,
@@ -95,23 +111,34 @@ export class StorageService {
   }
 
   /**
-   * Retrieves the binary Buffer for a given storageKey / storageUrl.
+   * Retrieves the binary Buffer for a given storageKey / storageUrl from private Vercel Blob.
    */
   async getFileBuffer(storageKey: string, storageUrl?: string): Promise<Buffer | null> {
-    // 1. If remote storage URL exists, fetch it
-    if (storageUrl) {
-      try {
-        const res = await fetch(storageUrl);
-        if (res.ok) {
-          const ab = await res.arrayBuffer();
-          return Buffer.from(ab);
+    // 1. Private Vercel Blob authenticated retrieval
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blobModule = await getVercelBlob();
+      if (blobModule?.get) {
+        try {
+          const target =
+            storageUrl ||
+            (storageKey.startsWith('documents/') ? storageKey : `documents/${storageKey}`);
+          const result = await blobModule.get(target, {
+            access: 'private',
+            token: process.env.BLOB_READ_WRITE_TOKEN,
+          });
+
+          if (result && result.statusCode === 200 && result.stream) {
+            const resp = new Response(result.stream);
+            const arrayBuf = await resp.arrayBuffer();
+            return Buffer.from(arrayBuf);
+          }
+        } catch (err: any) {
+          console.warn(`Could not retrieve private blob from Vercel Blob (${storageUrl || storageKey}):`, err.message);
         }
-      } catch (err: any) {
-        console.warn(`Could not fetch file from storageUrl (${storageUrl}):`, err.message);
       }
     }
 
-    // 2. Check local disk storage
+    // 2. Check local disk storage (dev only)
     try {
       const localFilePath = path.join(LOCAL_STORAGE_DIR, storageKey);
       if (fs.existsSync(localFilePath)) {
@@ -121,7 +148,7 @@ export class StorageService {
       // ignore
     }
 
-    // 3. Check in-memory store
+    // 3. Check in-memory store (dev only)
     if (memoryStorage.has(storageKey)) {
       return memoryStorage.get(storageKey)!.buffer;
     }
@@ -133,11 +160,16 @@ export class StorageService {
    * Deletes a file from storage.
    */
   async deleteFile(storageKey: string, storageUrl?: string): Promise<void> {
-    if (storageUrl) {
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
       const blobModule = await getVercelBlob();
       if (blobModule?.del) {
         try {
-          await blobModule.del(storageUrl);
+          const target =
+            storageUrl ||
+            (storageKey.startsWith('documents/') ? storageKey : `documents/${storageKey}`);
+          await blobModule.del(target, {
+            token: process.env.BLOB_READ_WRITE_TOKEN,
+          });
         } catch (err: any) {
           console.warn('Vercel Blob del failed:', err.message);
         }

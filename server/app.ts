@@ -1126,7 +1126,7 @@ export function createApp(): express.Application {
     const all = db.get('attachments') || [];
     const userFiles = all
       .filter((f) => !f.userId || f.userId === userEmail)
-      .map(({ dataBase64, ...rest }) => rest);
+      .map(({ dataBase64, storageUrl, ...rest }) => rest);
     res.status(200).json(userFiles);
   });
 
@@ -1175,7 +1175,7 @@ export function createApp(): express.Application {
         });
       }
 
-      // 5. Store file in persistent storage (Vercel Blob in prod, local object store in dev)
+      // 5. Store file in persistent storage (Private Vercel Blob in prod, local object store in dev)
       const saveResult = await storageService.saveFile(
         fileDisplayName,
         buffer,
@@ -1207,11 +1207,14 @@ export function createApp(): express.Application {
         createdAt: new Date().toISOString(),
       };
 
+      // Save document metadata in Upstash Redis (no binary chunks stored in database)
       db.update('attachments', (files) => [newFile, ...files]);
+      await db.flush();
       db.logAudit('FILE_UPLOADED', `Uploaded document: ${fileDisplayName} (${category || 'Resume/CV'})`);
 
-      // Return metadata object without raw binary in database or response
-      return res.status(201).json(newFile);
+      // Return metadata object without raw binary or private blob URL in response
+      const { storageUrl: _su, dataBase64: _db, ...clientMetadata } = newFile;
+      return res.status(201).json(clientMetadata);
     } catch (err: any) {
       console.error('File upload failed:', err);
       return res.status(500).json({ success: false, error: err.message || 'File upload failed' });
@@ -1288,6 +1291,7 @@ export function createApp(): express.Application {
       }
 
       db.update('attachments', (files) => files.filter((f) => f.id !== id));
+      await db.flush();
       db.logAudit('FILE_DELETED', `Deleted document: ${file.name}`);
       return res.status(200).json({ success: true });
     } catch (err: any) {
@@ -1297,7 +1301,7 @@ export function createApp(): express.Application {
   });
 
   // Toggle Primary / Default Resume
-  const handleSetDefaultResume = (req: express.Request, res: express.Response) => {
+  const handleSetDefaultResume = async (req: express.Request, res: express.Response) => {
     const userEmail = getAuthenticatedUserEmail(req);
     const { id } = req.params;
     const all = db.get('attachments') || [];
@@ -1318,6 +1322,7 @@ export function createApp(): express.Application {
           : f
       )
     );
+    await db.flush();
 
     return res.status(200).json({ success: true, id, isDefaultResume: true });
   };

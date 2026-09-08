@@ -26,6 +26,7 @@ export async function resolveAttachmentsForEmail(
     return [];
   }
 
+  await db.ensureLoaded();
   const storedFiles = db.get('attachments') as StoredFile[];
   const resolved: ResolvedAttachment[] = [];
   let totalBytes = 0;
@@ -65,7 +66,7 @@ export async function resolveAttachmentsForEmail(
 
     // C. Is it in persistent storage (Vercel Blob or local storage)?
     const storageKey = att.storageKey || stored?.storageKey;
-    const storageUrl = att.url || stored?.storageUrl;
+    const storageUrl = att.url || att.storageUrl || stored?.storageUrl;
     if (!buffer && storageKey) {
       try {
         buffer = await storageService.getFileBuffer(storageKey, storageUrl);
