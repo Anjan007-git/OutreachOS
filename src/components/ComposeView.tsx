@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Send,
   Sparkles,
@@ -17,9 +17,17 @@ import {
   X,
   User,
   Building,
+  Upload,
+  HardDrive,
+  Star,
+  File,
+  AlertCircle,
+  FileCheck,
 } from 'lucide-react';
 import { Contact, Campaign, Template, StoredFile, AttachmentRef } from '../types';
 import { COMMON_VARIABLES, interpolateVariables } from '../lib/variables.js';
+import { GoogleDrivePickerModal } from './GoogleDrivePickerModal';
+import { api } from '../lib/api';
 
 interface ComposeViewProps {
   contacts: Contact[];
@@ -28,7 +36,7 @@ interface ComposeViewProps {
   files: StoredFile[];
   preselectedContact?: Contact | null;
   preselectedCampaign?: Campaign | null;
-  initialDraft?: { subject?: string; body?: string } | null;
+  initialDraft?: { subject?: string; body?: string; attachments?: AttachmentRef[] } | null;
   onSendMessage: (payload: {
     recipientId?: string;
     recipientEmail: string;
@@ -56,6 +64,14 @@ interface ComposeViewProps {
   onAiSubject: (content: string, role?: string, organization?: string) => Promise<string[]>;
   onAiPersonalize: (template: string, contact: Contact) => Promise<string>;
   onAiSummarizeJD: (jdText: string) => Promise<{ keyRequirements: string[]; recommendedAngle: string }>;
+  onUploadFile?: (file: {
+    name: string;
+    size: number;
+    mimeType: string;
+    category?: string;
+    bufferBase64: string;
+  }) => Promise<StoredFile>;
+  onRefreshFiles?: () => Promise<void>;
 }
 
 export const ComposeView: React.FC<ComposeViewProps> = ({
@@ -72,6 +88,8 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
   onAiSubject,
   onAiPersonalize,
   onAiSummarizeJD,
+  onUploadFile,
+  onRefreshFiles,
 }) => {
   // Selected recipient & campaign
   const [selectedContactId, setSelectedContactId] = useState<string>(preselectedContact?.id || '');
@@ -82,10 +100,21 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
   // Message fields
   const [subject, setSubject] = useState(initialDraft?.subject || '');
   const [messageBody, setMessageBody] = useState(initialDraft?.body || '');
-  const [selectedAttachments, setSelectedAttachments] = useState<AttachmentRef[]>([]);
+  const [selectedAttachments, setSelectedAttachments] = useState<AttachmentRef[]>(
+    initialDraft?.attachments || []
+  );
   const [scheduledDate, setScheduledDate] = useState<string>(
     new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16)
   );
+
+  // Attach Documents state & feedback
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [showRepoSelector, setShowRepoSelector] = useState(false);
 
   // View & AI states
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -100,6 +129,9 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
   // Current active contact object
   const activeContact = contacts.find((c) => c.id === selectedContactId) || preselectedContact || null;
   const activeCampaign = campaigns.find((c) => c.id === selectedCampaignId) || preselectedCampaign || null;
+
+  // Find primary resume in repository if available
+  const defaultResume = files.find((f) => f.isDefaultResume);
 
   // When preselected props change
   useEffect(() => {
@@ -120,8 +152,238 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
     if (initialDraft) {
       if (initialDraft.subject) setSubject(initialDraft.subject);
       if (initialDraft.body) setMessageBody(initialDraft.body);
+      if (initialDraft.attachments && initialDraft.attachments.length > 0) {
+        setSelectedAttachments(initialDraft.attachments);
+      }
     }
   }, [initialDraft]);
+
+  // Auto-dismiss upload alerts after 5 seconds
+  useEffect(() => {
+    if (uploadSuccess) {
+      const t = setTimeout(() => setUploadSuccess(null), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [uploadSuccess]);
+
+  useEffect(() => {
+    if (uploadError) {
+      const t = setTimeout(() => setUploadError(null), 7000);
+      return () => clearTimeout(t);
+    }
+  }, [uploadError]);
+
+  // Process and upload file
+  const processFileUpload = async (file: File) => {
+    setUploadError(null);
+    setUploadSuccess(null);
+
+    // 1. Validate extension
+    const name = file.name.trim();
+    const lowerName = name.toLowerCase();
+    const isAllowedExt =
+      lowerName.endsWith('.pdf') || lowerName.endsWith('.doc') || lowerName.endsWith('.docx');
+
+    if (!isAllowedExt) {
+      setUploadError(
+        `Invalid file type "${file.name}". Only PDF (.pdf), DOC (.doc), and DOCX (.docx) files are supported.`
+      );
+      return;
+    }
+
+    // 2. Validate MIME type
+    const validMimes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/octet-stream',
+      '',
+    ];
+    if (file.type && !validMimes.some((m) => file.type.includes(m))) {
+      setUploadError(`Unsupported document MIME format: ${file.type}. Please upload PDF or Word documents.`);
+      return;
+    }
+
+    // 3. Validate size (Max 25 MB - Gmail limit)
+    const MAX_BYTES = 25 * 1024 * 1024;
+    if (file.size > MAX_BYTES) {
+      setUploadError(
+        `File size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds the maximum Gmail attachment limit of 25 MB.`
+      );
+      return;
+    }
+
+    setIsUploadingDoc(true);
+    try {
+      const reader = new FileReader();
+      reader.onerror = () => {
+        setUploadError('Failed to read file from disk');
+        setIsUploadingDoc(false);
+      };
+      reader.onload = async () => {
+        try {
+          const base64 = (reader.result as string).split(',')[1] || '';
+          const effectiveMime =
+            file.type || (lowerName.endsWith('.pdf') ? 'application/pdf' : 'application/msword');
+
+          let uploaded: StoredFile;
+          if (onUploadFile) {
+            uploaded = await onUploadFile({
+              name: file.name,
+              size: file.size,
+              mimeType: effectiveMime,
+              category: 'Resume/CV',
+              bufferBase64: base64,
+            });
+          } else {
+            uploaded = await api.uploadFile({
+              name: file.name,
+              filename: file.name,
+              size: file.size,
+              mimeType: effectiveMime,
+              category: 'Resume/CV',
+              bufferBase64: base64,
+            });
+          }
+
+          // Attach to current composer session
+          const newAtt: AttachmentRef = {
+            fileId: uploaded.id,
+            name: uploaded.name,
+            type: uploaded.mimeType,
+            size: uploaded.size,
+            mimeType: uploaded.mimeType,
+            storageKey: uploaded.storageKey,
+            storageUrl: uploaded.storageUrl,
+            source: 'local',
+          };
+
+          setSelectedAttachments((prev) => {
+            if (prev.some((a) => a.fileId === uploaded.id || a.name === uploaded.name)) {
+              return prev;
+            }
+            return [...prev, newAtt];
+          });
+
+          setUploadSuccess(`"${uploaded.name}" attached successfully.`);
+          if (onRefreshFiles) await onRefreshFiles();
+        } catch (err: any) {
+          console.error('File upload error:', err);
+          setUploadError(err.message || 'File upload failed');
+        } finally {
+          setIsUploadingDoc(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      console.error('Upload initiation error:', err);
+      setUploadError(err.message || 'Could not initiate file upload');
+      setIsUploadingDoc(false);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processFileUpload(file);
+    }
+    // reset input so same file can be re-selected if needed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSelectDriveFile = async (driveFile: {
+    id: string;
+    name: string;
+    mimeType: string;
+    size?: number;
+  }) => {
+    setUploadError(null);
+    setUploadSuccess(null);
+    try {
+      const imported = await api.importDriveFile({
+        driveFileId: driveFile.id,
+        name: driveFile.name,
+        mimeType: driveFile.mimeType,
+        size: driveFile.size,
+        category: 'Resume/CV',
+      });
+
+      const newAtt: AttachmentRef = {
+        fileId: imported.id,
+        driveFileId: driveFile.id,
+        name: imported.name,
+        type: imported.mimeType,
+        size: imported.size || 150000,
+        mimeType: imported.mimeType,
+        source: 'drive',
+      };
+
+      setSelectedAttachments((prev) => {
+        if (prev.some((a) => a.driveFileId === driveFile.id || a.name === driveFile.name)) {
+          return prev;
+        }
+        return [...prev, newAtt];
+      });
+
+      setUploadSuccess(`"${imported.name}" attached from Google Drive.`);
+      if (onRefreshFiles) await onRefreshFiles();
+    } catch (err: any) {
+      console.error('Failed to import Drive file:', err);
+      setUploadError(err.message || 'Failed to attach document from Google Drive');
+    }
+  };
+
+  const handleAttachPrimaryResume = () => {
+    if (!defaultResume) return;
+    const exists = selectedAttachments.some(
+      (a) => a.fileId === defaultResume.id || a.name === defaultResume.name
+    );
+    if (exists) {
+      setUploadSuccess(`Primary Resume "${defaultResume.name}" is already attached.`);
+      return;
+    }
+
+    setSelectedAttachments((prev) => [
+      ...prev,
+      {
+        fileId: defaultResume.id,
+        name: defaultResume.name,
+        type: defaultResume.mimeType,
+        size: defaultResume.size,
+        mimeType: defaultResume.mimeType,
+        storageKey: defaultResume.storageKey,
+        storageUrl: defaultResume.storageUrl,
+        driveFileId: defaultResume.driveFileId,
+        source: defaultResume.driveFileId ? 'drive' : 'local',
+      },
+    ]);
+    setUploadSuccess(`Primary Resume "${defaultResume.name}" attached.`);
+  };
+
+  // Drag & drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      processFileUpload(droppedFile);
+    }
+  };
 
   // Insert template
   const handleSelectTemplate = (templateId: string) => {
@@ -727,62 +989,254 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
             </div>
           </div>
 
-          {/* Attach Documents Selector */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
-            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
-              Attach Documents
-            </span>
-            <p className="text-xs text-slate-500">
-              Select verified PDF/DOC documents from your repository:
-            </p>
+          {/* Attach Documents Card (Task 8 & 9) */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`bg-white rounded-2xl border transition-all p-6 shadow-sm space-y-4 ${
+              isDraggingOver ? 'border-indigo-500 bg-indigo-50/20 ring-2 ring-indigo-200' : 'border-slate-200'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                  Attach Documents
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Select verified PDF/DOC documents from your repository:
+                </p>
+              </div>
+              <Paperclip className="w-4 h-4 text-slate-400" />
+            </div>
 
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {files.map((file) => {
-                const isSelected = selectedAttachments.some((a) => a.fileId === file.id);
-                return (
-                  <label
-                    key={file.id}
-                    className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'bg-indigo-50/60 border-indigo-300'
-                        : 'bg-white border-slate-200 hover:bg-slate-50'
-                    }`}
+            {/* Hidden File Input for .pdf, .doc, .docx */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              onChange={handleFileInputChange}
+              className="hidden"
+            />
+
+            {/* Primary Action Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingDoc}
+                className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-2xs flex items-center justify-center space-x-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isUploadingDoc ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Document</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsDriveModalOpen(true)}
+                className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+              >
+                <HardDrive className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Choose from Google Drive</span>
+              </button>
+            </div>
+
+            {/* Format & Size Limits Notice */}
+            <div className="text-[11px] text-slate-400 flex items-center justify-between px-0.5">
+              <span>Supported: PDF, DOC, DOCX</span>
+              <span className="font-medium text-slate-500">Max file size: 25 MB</span>
+            </div>
+
+            {/* Primary Resume 1-Click Quick Attach */}
+            {defaultResume && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={handleAttachPrimaryResume}
+                  className="w-full p-2 bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200/80 rounded-xl text-xs font-semibold text-amber-800 flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
+                >
+                  <span className="flex items-center space-x-1.5 truncate pr-2">
+                    <Star className="w-3.5 h-3.5 text-amber-600 fill-amber-500 shrink-0" />
+                    <span className="truncate">Primary Resume: {defaultResume.name}</span>
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wider shrink-0">
+                    + Quick Attach
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* Feedback Notifications */}
+            {uploadSuccess && (
+              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center space-x-2 animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="flex-1 font-medium">{uploadSuccess}</span>
+                <button onClick={() => setUploadSuccess(null)} className="text-emerald-500 hover:text-emerald-700">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {uploadError && (
+              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center space-x-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span className="flex-1 font-medium">{uploadError}</span>
+                <button onClick={() => setUploadError(null)} className="text-rose-500 hover:text-rose-700">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Attached Documents List */}
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-700">
+                  Selected Attachments ({selectedAttachments.length})
+                </span>
+                {files.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowRepoSelector(!showRepoSelector)}
+                    className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer"
                   >
-                    <div className="flex items-center space-x-2.5">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedAttachments([
-                              ...selectedAttachments,
-                              {
-                                name: file.name,
-                                fileId: file.id,
-                                driveFileId: file.driveFileId,
-                                mimeType: file.mimeType,
-                              },
-                            ]);
-                          } else {
-                            setSelectedAttachments(
-                              selectedAttachments.filter((a) => a.fileId !== file.id)
-                            );
+                    {showRepoSelector ? 'Hide Repository' : `Browse Repository (${files.length})`}
+                  </button>
+                )}
+              </div>
+
+              {selectedAttachments.length === 0 ? (
+                <div className="py-4 px-3 rounded-xl border border-dashed border-slate-200 text-center bg-slate-50/50 text-slate-400 text-xs">
+                  No documents attached
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {selectedAttachments.map((att, idx) => {
+                    const lower = att.name.toLowerCase();
+                    const isPdf = lower.endsWith('.pdf');
+                    const isDocx = lower.endsWith('.docx');
+                    const typeLabel = isPdf ? 'PDF' : isDocx ? 'DOCX' : 'DOC';
+                    const formattedSize = att.size
+                      ? att.size < 1024 * 1024
+                        ? `${Math.round(att.size / 1024)} KB`
+                        : `${(att.size / (1024 * 1024)).toFixed(1)} MB`
+                      : 'Verified Doc';
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white shadow-2xs hover:border-slate-300 transition-colors"
+                      >
+                        <div className="flex items-center space-x-2.5 min-w-0 pr-2">
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[10px] shrink-0 ${
+                              isPdf
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-blue-50 text-blue-700 border border-blue-200'
+                            }`}
+                          >
+                            {typeLabel}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-slate-800 truncate" title={att.name}>
+                              {att.name}
+                            </div>
+                            <div className="text-[10px] text-slate-400">
+                              {typeLabel} &bull; {formattedSize}
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedAttachments(selectedAttachments.filter((_, i) => i !== idx))
                           }
-                        }}
-                        className="rounded-md text-indigo-600 focus:ring-indigo-500 w-4 h-4"
-                      />
-                      <div>
-                        <div className="font-semibold text-slate-800">{file.name}</div>
-                        <div className="text-[10px] text-slate-400 uppercase font-medium mt-0.5">{file.category}</div>
+                          className="text-xs font-semibold text-slate-400 hover:text-rose-600 px-2 py-1 rounded-md hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+                        >
+                          Remove
+                        </button>
                       </div>
-                    </div>
-                  </label>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Collapsible Repository Selector */}
+              {showRepoSelector && files.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    Select from Verified Documents:
+                  </span>
+                  {files.map((file) => {
+                    const isSelected = selectedAttachments.some((a) => a.fileId === file.id);
+                    return (
+                      <label
+                        key={file.id}
+                        className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition-colors ${
+                          isSelected
+                            ? 'bg-indigo-50/70 border-indigo-300 text-indigo-900'
+                            : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-2.5 truncate pr-2">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedAttachments((prev) => [
+                                  ...prev,
+                                  {
+                                    name: file.name,
+                                    fileId: file.id,
+                                    size: file.size,
+                                    driveFileId: file.driveFileId,
+                                    mimeType: file.mimeType,
+                                    storageKey: file.storageKey,
+                                    storageUrl: file.storageUrl,
+                                    source: file.driveFileId ? 'drive' : 'local',
+                                  },
+                                ]);
+                              } else {
+                                setSelectedAttachments((prev) =>
+                                  prev.filter((a) => a.fileId !== file.id)
+                                );
+                              }
+                            }}
+                            className="rounded-md text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5 cursor-pointer"
+                          />
+                          <span className="truncate font-medium">{file.name}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 shrink-0 uppercase font-semibold">
+                          {file.category}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Google Drive Document Picker Modal */}
+      <GoogleDrivePickerModal
+        isOpen={isDriveModalOpen}
+        onClose={() => setIsDriveModalOpen(false)}
+        onSelectFile={handleSelectDriveFile}
+        title="Choose from Google Drive"
+        actionButtonLabel="Attach to Draft"
+      />
 
       {/* Job Description Analyzer Modal */}
       {showJdModal && (

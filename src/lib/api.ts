@@ -157,10 +157,32 @@ export const api = {
 
   // Files
   getFiles: () => fetchJson<StoredFile[]>('/api/files'),
-  uploadFile: (file: { name: string; size: number; mimeType: string; category: string; dataBase64?: string }) =>
-    fetchJson<StoredFile>('/api/files/upload', { method: 'POST', body: JSON.stringify(file) }),
+  uploadFile: (file: {
+    name: string;
+    filename?: string;
+    size: number;
+    mimeType: string;
+    category?: string;
+    bufferBase64?: string;
+    dataBase64?: string;
+    isDefaultResume?: boolean;
+  }) => fetchJson<StoredFile>('/api/files/upload', { method: 'POST', body: JSON.stringify(file) }),
   deleteFile: (id: string) => fetchJson<{ success: boolean }>(`/api/files/${id}`, { method: 'DELETE' }),
-  getDriveFiles: () => fetchJson<any[]>('/api/drive/files'),
+  setDefaultResume: (id: string) =>
+    fetchJson<{ success: boolean; id: string; isDefaultResume: boolean }>(`/api/files/${id}/default-resume`, {
+      method: 'PUT',
+    }),
+  getDriveFiles: (searchQuery?: string) =>
+    fetchJson<any[]>(`/api/drive/files${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`),
+  importDriveFile: (payload: {
+    driveFileId: string;
+    name: string;
+    mimeType: string;
+    size?: number;
+    category?: string;
+    isDefaultResume?: boolean;
+  }) => fetchJson<StoredFile>('/api/drive/import', { method: 'POST', body: JSON.stringify(payload) }),
+  getFileDownloadUrl: (id: string) => `/api/files/${id}/download`,
   importSheetContacts: (spreadsheetId: string, range?: string) =>
     fetchJson<{ success: boolean; count: number }>('/api/sheets/import-contacts', {
       method: 'POST',

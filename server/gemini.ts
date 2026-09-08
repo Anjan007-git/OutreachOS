@@ -417,12 +417,21 @@ export async function chatWithOutreachAssistant(
     dailyLimit?: number;
     sentToday?: number;
     recentCampaigns?: string[];
+    documents?: Array<{ name: string; category: string; isDefaultResume?: boolean }>;
   }
 ): Promise<string> {
   const ai = getAI();
   if (!ai) {
     return "OutreachOS Assistant is currently offline (GEMINI_API_KEY not configured). You can still manage campaigns and compose emails directly.";
   }
+
+  const docsList =
+    (systemContext.documents || [])
+      .map(
+        (d) =>
+          `• ${d.name} (${d.category}${d.isDefaultResume ? ' — PRIMARY / DEFAULT RESUME' : ''})`
+      )
+      .join('\n') || 'None yet';
 
   const contextPrompt = `You are the built-in Executive AI Assistant inside OutreachOS for ${systemContext.userName || 'Anjan Prajapati'}.
 User Title: ${systemContext.userTitle || 'Senior Cloud & Systems Engineer'}
@@ -435,13 +444,26 @@ Current System State:
 - Scheduled / Queued Messages: ${systemContext.queuedCount}
 - Sent Messages: ${systemContext.sentCount}
 - Incoming Responses: ${systemContext.repliesCount}
+- Available Documents in Repository:
+${docsList}
+
+Document Attachment & Sending Rules:
+1. If the user asks to "attach my resume" or "attach a document":
+   - Find the matching document (preferring the PRIMARY / DEFAULT RESUME).
+   - Tell the user which file you found, e.g.: "Found [Filename]. I've attached it to this draft."
+2. If the user asks to "send my resume to [recruiter/recipient]":
+   - DO NOT claim that it has already been sent!
+   - Prepare the email draft with recipient, subject, professional body, and the attachment name.
+   - Ask for confirmation: "Ready to send this email with [Filename] attached. Confirm?"
+3. NEVER invent fake documents that are not in the repository.
 
 Capabilities:
 1. Help write, critique, and polish high-converting outreach emails and follow-ups.
 2. Analyze campaign strategy, target audience, and subject lines.
 3. Summarize outreach metrics, queued dispatches, and incoming responses.
 4. Give specific, high-signal recommendations on cold outreach etiquette and deliverability.
-5. NEVER invent false work history or make up facts. Be concise, direct, and professional.
+5. Work seamlessly with user documents and resumes.
+6. NEVER invent false work history or make up facts. Be concise, direct, and professional.
 
 Conversation History:
 ${(history || [])

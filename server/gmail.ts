@@ -220,11 +220,22 @@ export function extractBodyText(payload: any): string {
 }
 
 /**
- * List files from Google Drive with metadata
+ * List files from Google Drive with metadata and optional search
  */
-export async function listGoogleDriveFiles(accessToken: string, pageSize = 25): Promise<any[]> {
+export async function listGoogleDriveFiles(
+  accessToken: string,
+  pageSize = 30,
+  searchQuery = ''
+): Promise<any[]> {
   const fields = 'files(id,name,mimeType,size,webViewLink,createdTime,modifiedTime,iconLink)';
-  const query = "trashed=false and (mimeType contains 'pdf' or mimeType contains 'document' or mimeType contains 'sheet' or mimeType contains 'presentation')";
+  let query =
+    "trashed=false and (mimeType contains 'pdf' or mimeType contains 'document' or mimeType contains 'word' or mimeType = 'application/vnd.google-apps.document' or mimeType = 'application/pdf' or mimeType = 'application/msword' or mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')";
+
+  if (searchQuery && searchQuery.trim()) {
+    const cleanSearch = searchQuery.replace(/'/g, "\\'");
+    query += ` and name contains '${cleanSearch}'`;
+  }
+
   const url = `https://www.googleapis.com/drive/v3/files?pageSize=${pageSize}&fields=${encodeURIComponent(fields)}&q=${encodeURIComponent(query)}&orderBy=modifiedTime desc`;
 
   const response = await fetch(url, {
@@ -240,6 +251,52 @@ export async function listGoogleDriveFiles(accessToken: string, pageSize = 25): 
 
   const data = await response.json();
   return data.files || [];
+}
+
+/**
+ * Downloads a file from Google Drive.
+ * If it is a native Google Doc, exports it automatically as PDF.
+ */
+export async function downloadGoogleDriveFile(
+  accessToken: string,
+  driveFileId: string,
+  mimeType?: string
+): Promise<{ buffer: Buffer; mimeType: string; filenameExt: string }> {
+  // If it's a native Google Doc, export it directly as PDF
+  if (mimeType === 'application/vnd.google-apps.document') {
+    const exportUrl = `https://www.googleapis.com/drive/v3/files/${driveFileId}/export?mimeType=application/pdf`;
+    const res = await fetch(exportUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to export Google Doc as PDF (${res.status}): ${errText}`);
+    }
+    const ab = await res.arrayBuffer();
+    return {
+      buffer: Buffer.from(ab),
+      mimeType: 'application/pdf',
+      filenameExt: '.pdf',
+    };
+  }
+
+  // Otherwise download binary media directly
+  const mediaUrl = `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`;
+  const res = await fetch(mediaUrl, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to download Google Drive media (${res.status}): ${errText}`);
+  }
+
+  const ab = await res.arrayBuffer();
+  return {
+    buffer: Buffer.from(ab),
+    mimeType: mimeType || 'application/pdf',
+    filenameExt: '',
+  };
 }
 
 /**

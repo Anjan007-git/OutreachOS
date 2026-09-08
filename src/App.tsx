@@ -679,6 +679,12 @@ export default function App() {
                   onAiSummarizeJD={async (jdText) => {
                     return await api.aiSummarizeJD(jdText);
                   }}
+                  onUploadFile={async (f) => {
+                    const res = await api.uploadFile(f);
+                    await loadAppData();
+                    return res;
+                  }}
+                  onRefreshFiles={loadAppData}
                 />
               )}
 
@@ -848,6 +854,30 @@ export default function App() {
                   }}
                   onLoadDriveFiles={async () => {
                     return await api.getDriveFiles();
+                  }}
+                  onSetDefaultResume={async (id) => {
+                    await api.setDefaultResume(id);
+                    showToast('success', 'Set as primary outreach resume');
+                    await loadAppData();
+                  }}
+                  onSelectForCompose={(file) => {
+                    setAiDraft({
+                      subject: '',
+                      body: '',
+                      attachments: [
+                        {
+                          fileId: file.id,
+                          name: file.name,
+                          type: file.mimeType,
+                          size: file.size,
+                          mimeType: file.mimeType,
+                          storageKey: file.storageKey,
+                          storageUrl: file.storageUrl,
+                          driveFileId: file.driveFileId,
+                        },
+                      ],
+                    });
+                    setCurrentPage('compose');
                   }}
                 />
               )}

@@ -3,6 +3,7 @@ import { sendGmailMessage, searchGmailMessages, getGmailMessage, getHeader, extr
 import { classifyIncomingReply } from './gemini.js';
 import { ScheduledMessage, SentMessage, IncomingMessage } from '../src/types.js';
 import { interpolateVariables } from '../src/lib/variables.js';
+import { resolveAttachmentsForEmail } from './attachments.js';
 
 export const ADMIN_EMAIL = 'anjanp93722@gmail.com';
 export const STANDARD_USER_DAILY_LIMIT = 10;
@@ -197,23 +198,11 @@ export async function processOutboundQueue(): Promise<{ processed: number; reaso
         settings,
       }, true);
 
-      // Resolve attachments from database if dataBase64 is not already populated
-      const attachmentsDb = db.get('attachments');
-      const resolvedAttachments = (msg.attachments || []).map((att) => {
-        if (att.fileId && !att.dataBase64) {
-          const stored = attachmentsDb.find((f) => f.id === att.fileId);
-          if (stored && stored.dataBase64) {
-            return {
-              ...att,
-              name: stored.name,
-              type: stored.mimeType,
-              mimeType: stored.mimeType,
-              dataBase64: stored.dataBase64,
-            };
-          }
-        }
-        return att;
-      });
+      // Resolve attachments from storage / Google Drive into base64 payload
+      const resolvedAttachments = await resolveAttachmentsForEmail(
+        msg.attachments || [],
+        primaryAccount.accessToken
+      );
 
       const sendResult = await sendGmailMessage({
         accessToken: primaryAccount.accessToken,

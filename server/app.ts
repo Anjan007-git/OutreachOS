@@ -7,8 +7,11 @@ import {
   getGmailProfile,
   sendGmailMessage,
   listGoogleDriveFiles,
+  downloadGoogleDriveFile,
   readGoogleSpreadsheet,
 } from './gmail.js';
+import { storageService } from './storage.js';
+import { resolveAttachmentsForEmail } from './attachments.js';
 import {
   improveMessage,
   generateSubject,
@@ -870,23 +873,11 @@ export function createApp(): express.Application {
         settings,
       }, true);
 
-      // Resolve attachments from database if dataBase64 is not already populated
-      const attachmentsDb = db.get('attachments');
-      const resolvedAttachments = (attachments || []).map((att: any) => {
-        if (att.fileId && !att.dataBase64) {
-          const stored = attachmentsDb.find((f) => f.id === att.fileId);
-          if (stored && stored.dataBase64) {
-            return {
-              ...att,
-              name: stored.name,
-              type: stored.mimeType,
-              mimeType: stored.mimeType,
-              dataBase64: stored.dataBase64,
-            };
-          }
-        }
-        return att;
-      });
+      // Resolve attachments from persistent storage or Google Drive
+      const resolvedAttachments = await resolveAttachmentsForEmail(
+        attachments || [],
+        primary.accessToken
+      );
 
       // Dispatch real email via Gmail API
       const sendResult = await sendGmailMessage({
@@ -1112,41 +1103,229 @@ export function createApp(): express.Application {
     res.status(200).json({ success: true });
   });
 
-  // ================= FILES & ATTACHMENTS (Task 8) =================
+  // ================= FILES & ATTACHMENTS (Production Safe) =================
+  const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx'];
+  const ALLOWED_MIME_TYPES = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/octet-stream',
+  ];
+  const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+
+  function getAuthenticatedUserEmail(req: express.Request): string {
+    const gmailAccounts = db.get('gmail_accounts');
+    const primary = gmailAccounts[0];
+    const headerEmail = (req.headers['x-user-email'] as string) || '';
+    return (headerEmail || primary?.email || 'default-user').trim().toLowerCase();
+  }
+
+  // Get user's document list (clean, no raw binary)
   apiRouter.get('/files', (req, res) => {
-    res.status(200).json(db.get('attachments'));
+    const userEmail = getAuthenticatedUserEmail(req);
+    const all = db.get('attachments') || [];
+    const userFiles = all
+      .filter((f) => !f.userId || f.userId === userEmail)
+      .map(({ dataBase64, ...rest }) => rest);
+    res.status(200).json(userFiles);
   });
 
-  const handleUploadFile = (req: express.Request, res: express.Response) => {
-    const { name, size, mimeType, category, dataBase64 } = req.body;
-    if (!name) return res.status(400).json({ success: false, error: 'File name is required' });
+  // Upload document with strict validation & object storage
+  const handleUploadFile = async (req: express.Request, res: express.Response) => {
+    try {
+      const userEmail = getAuthenticatedUserEmail(req);
+      const { name, filename, size, mimeType, category, bufferBase64, dataBase64, isDefaultResume } = req.body;
+      const fileDisplayName = (name || filename || '').trim();
 
-    const newFile: StoredFile = {
-      id: 'f-' + Date.now(),
-      name,
-      size: size || 0,
-      mimeType: mimeType || 'application/pdf',
-      source: 'local',
-      category: category || 'Resume/CV',
-      uploadedAt: new Date().toISOString(),
-      dataBase64,
-    };
+      if (!fileDisplayName) {
+        return res.status(400).json({ success: false, error: 'Document name or filename is required' });
+      }
 
-    db.update('attachments', (files) => [newFile, ...files]);
-    db.logAudit('FILE_UPLOADED', `Uploaded document: ${name} (${category})`);
-    res.status(201).json(newFile);
+      // 1. Validate file extension
+      const ext = path.extname(fileDisplayName).toLowerCase();
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        return res.status(400).json({
+          success: false,
+          error: `Unsupported file format "${ext}". Only PDF (.pdf), DOC (.doc), and DOCX (.docx) documents are supported.`,
+        });
+      }
+
+      // 2. Validate MIME type
+      const effectiveMime = (mimeType || (ext === '.pdf' ? 'application/pdf' : 'application/msword')).toLowerCase();
+      if (!ALLOWED_MIME_TYPES.some((m) => effectiveMime.includes(m) || m.includes(effectiveMime))) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid MIME type "${mimeType}". Only PDF and Word documents are permitted.`,
+        });
+      }
+
+      // 3. Extract binary content
+      const rawBase64 = bufferBase64 || dataBase64;
+      if (!rawBase64) {
+        return res.status(400).json({ success: false, error: 'No document content provided' });
+      }
+
+      const buffer = Buffer.from(rawBase64, 'base64');
+
+      // 4. Validate file size
+      if (buffer.length > MAX_FILE_SIZE) {
+        return res.status(400).json({
+          success: false,
+          error: `File size (${(buffer.length / (1024 * 1024)).toFixed(1)} MB) exceeds the maximum limit of 25 MB.`,
+        });
+      }
+
+      // 5. Store file in persistent storage (Vercel Blob in prod, local object store in dev)
+      const saveResult = await storageService.saveFile(
+        fileDisplayName,
+        buffer,
+        effectiveMime,
+        userEmail
+      );
+
+      // 6. Handle Primary / Default Resume flag
+      const shouldBeDefault = Boolean(isDefaultResume);
+      if (shouldBeDefault) {
+        db.update('attachments', (list) =>
+          list.map((f) => (f.userId === userEmail ? { ...f, isDefaultResume: false } : f))
+        );
+      }
+
+      const newFile: StoredFile = {
+        id: 'doc-' + Date.now(),
+        userId: userEmail,
+        name: fileDisplayName,
+        filename: fileDisplayName,
+        size: saveResult.size,
+        mimeType: effectiveMime,
+        source: 'local',
+        category: category || 'Resume/CV',
+        storageKey: saveResult.storageKey,
+        storageUrl: saveResult.storageUrl,
+        isDefaultResume: shouldBeDefault,
+        uploadedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      };
+
+      db.update('attachments', (files) => [newFile, ...files]);
+      db.logAudit('FILE_UPLOADED', `Uploaded document: ${fileDisplayName} (${category || 'Resume/CV'})`);
+
+      // Return metadata object without raw binary in database or response
+      return res.status(201).json(newFile);
+    } catch (err: any) {
+      console.error('File upload failed:', err);
+      return res.status(500).json({ success: false, error: err.message || 'File upload failed' });
+    }
   };
 
   apiRouter.post('/files/upload', handleUploadFile);
   apiRouter.post('/files', handleUploadFile);
 
-  apiRouter.delete('/files/:id', (req, res) => {
-    const { id } = req.params;
-    db.update('attachments', (files) => files.filter((f) => f.id !== id));
-    res.status(200).json({ success: true });
+  // Secure download / view endpoint
+  apiRouter.get('/files/:id/download', async (req, res) => {
+    try {
+      const userEmail = getAuthenticatedUserEmail(req);
+      const { id } = req.params;
+      const all = db.get('attachments') || [];
+      const file = all.find((f) => f.id === id);
+
+      if (!file) {
+        return res.status(404).json({ success: false, error: 'Document not found' });
+      }
+
+      // Enforce user isolation server-side
+      if (file.userId && file.userId !== userEmail) {
+        return res.status(403).json({ success: false, error: 'Unauthorized access to document' });
+      }
+
+      let buffer: Buffer | null = null;
+      if (file.source === 'drive' && file.driveFileId) {
+        const gmailAccounts = db.get('gmail_accounts');
+        const primary = gmailAccounts.find((a) => a.isConnected && a.accessToken);
+        if (!primary || !primary.accessToken) {
+          return res.status(401).json({ success: false, error: 'Google Drive requires connected Google account' });
+        }
+        const driveRes = await downloadGoogleDriveFile(primary.accessToken, file.driveFileId, file.mimeType);
+        buffer = driveRes.buffer;
+      } else if (file.storageKey) {
+        buffer = await storageService.getFileBuffer(file.storageKey, file.storageUrl);
+      } else if (file.dataBase64) {
+        buffer = Buffer.from(file.dataBase64, 'base64');
+      }
+
+      if (!buffer) {
+        return res.status(404).json({ success: false, error: 'File content could not be found in storage' });
+      }
+
+      res.setHeader('Content-Type', file.mimeType || 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(file.name)}"`);
+      res.setHeader('Content-Length', buffer.length);
+      return res.end(buffer);
+    } catch (err: any) {
+      console.error('Document download failed:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Download failed' });
+    }
   });
 
-  // Google Drive Files Proxy
+  // Delete document
+  apiRouter.delete('/files/:id', async (req, res) => {
+    try {
+      const userEmail = getAuthenticatedUserEmail(req);
+      const { id } = req.params;
+      const all = db.get('attachments') || [];
+      const file = all.find((f) => f.id === id);
+
+      if (!file) {
+        return res.status(404).json({ success: false, error: 'Document not found' });
+      }
+
+      if (file.userId && file.userId !== userEmail) {
+        return res.status(403).json({ success: false, error: 'Unauthorized' });
+      }
+
+      if (file.storageKey) {
+        await storageService.deleteFile(file.storageKey, file.storageUrl);
+      }
+
+      db.update('attachments', (files) => files.filter((f) => f.id !== id));
+      db.logAudit('FILE_DELETED', `Deleted document: ${file.name}`);
+      return res.status(200).json({ success: true });
+    } catch (err: any) {
+      console.error('Error deleting document:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Delete failed' });
+    }
+  });
+
+  // Toggle Primary / Default Resume
+  const handleSetDefaultResume = (req: express.Request, res: express.Response) => {
+    const userEmail = getAuthenticatedUserEmail(req);
+    const { id } = req.params;
+    const all = db.get('attachments') || [];
+    const file = all.find((f) => f.id === id);
+
+    if (!file) {
+      return res.status(404).json({ success: false, error: 'Document not found' });
+    }
+
+    if (file.userId && file.userId !== userEmail) {
+      return res.status(403).json({ success: false, error: 'Unauthorized' });
+    }
+
+    db.update('attachments', (list) =>
+      list.map((f) =>
+        f.userId === userEmail || !f.userId
+          ? { ...f, isDefaultResume: f.id === id }
+          : f
+      )
+    );
+
+    return res.status(200).json({ success: true, id, isDefaultResume: true });
+  };
+
+  apiRouter.put('/files/:id/default-resume', handleSetDefaultResume);
+  apiRouter.patch('/files/:id/default-resume', handleSetDefaultResume);
+
+  // Google Drive Files Proxy with Search
   apiRouter.get('/drive/files', async (req, res) => {
     const gmailAccounts = db.get('gmail_accounts');
     const primary = gmailAccounts.find((a) => a.isConnected && a.accessToken);
@@ -1155,11 +1334,61 @@ export function createApp(): express.Application {
     }
 
     try {
-      const files = await listGoogleDriveFiles(primary.accessToken, 30);
-      res.status(200).json(files);
+      const searchQuery = (req.query.q as string) || '';
+      const files = await listGoogleDriveFiles(primary.accessToken, 40, searchQuery);
+      return res.status(200).json(files);
     } catch (err: any) {
       console.error('Error fetching Google Drive files:', err);
-      res.status(500).json({ success: false, error: err.message || 'Failed to list Google Drive files' });
+      return res.status(500).json({ success: false, error: err.message || 'Failed to list Google Drive files' });
+    }
+  });
+
+  // Import Google Drive Document to User Repository
+  apiRouter.post('/drive/import', async (req, res) => {
+    try {
+      const userEmail = getAuthenticatedUserEmail(req);
+      const { driveFileId, name, mimeType, size, category, isDefaultResume } = req.body;
+
+      if (!driveFileId || !name) {
+        return res.status(400).json({ success: false, error: 'driveFileId and name are required' });
+      }
+
+      const existing = db.get('attachments') || [];
+      const duplicate = existing.find(
+        (f) => f.driveFileId === driveFileId && (!f.userId || f.userId === userEmail)
+      );
+      if (duplicate) {
+        return res.status(200).json(duplicate);
+      }
+
+      const shouldBeDefault = Boolean(isDefaultResume);
+      if (shouldBeDefault) {
+        db.update('attachments', (list) =>
+          list.map((f) => (f.userId === userEmail ? { ...f, isDefaultResume: false } : f))
+        );
+      }
+
+      const importedFile: StoredFile = {
+        id: 'doc-drive-' + Date.now(),
+        userId: userEmail,
+        name,
+        filename: name,
+        size: Number(size) || 150000,
+        mimeType: mimeType || 'application/pdf',
+        source: 'drive',
+        driveFileId,
+        category: category || 'Resume/CV',
+        isDefaultResume: shouldBeDefault,
+        uploadedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      };
+
+      db.update('attachments', (files) => [importedFile, ...files]);
+      db.logAudit('DRIVE_FILE_IMPORTED', `Imported Google Drive document: ${name}`);
+      return res.status(201).json(importedFile);
+    } catch (err: any) {
+      console.error('Drive import failed:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Drive import failed' });
     }
   });
 
@@ -1312,6 +1541,15 @@ export function createApp(): express.Application {
       const primary = gmailAccounts.find((a) => a.isConnected && a.accessToken);
       const perm = checkSendingPermission(primary?.email);
 
+      const userEmail = getAuthenticatedUserEmail(req);
+      const userDocs = (db.get('attachments') || [])
+        .filter((f) => !f.userId || f.userId === userEmail)
+        .map((f) => ({
+          name: f.name,
+          category: f.category,
+          isDefaultResume: Boolean(f.isDefaultResume),
+        }));
+
       const reply = await chatWithOutreachAssistant(message, history || [], {
         userName: settings.profile.name,
         userTitle: settings.profile.title,
@@ -1325,6 +1563,7 @@ export function createApp(): express.Application {
         dailyLimit: typeof perm.dailyLimit === 'number' ? perm.dailyLimit : 999,
         sentToday: perm.sentToday,
         recentCampaigns: campaigns.slice(0, 5).map((c) => c.name),
+        documents: userDocs,
       });
 
       res.status(200).json({ success: true, reply });

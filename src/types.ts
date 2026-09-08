@@ -39,14 +39,18 @@ export type CampaignType =
   | 'CUSTOM';
 
 export interface AttachmentRef {
-  id: string;
+  id?: string;
   name: string;
   size: number;
-  type: string;
-  source: 'local' | 'drive';
+  type?: string;
+  mimeType?: string;
+  source?: 'local' | 'drive';
   url?: string;
+  storageUrl?: string;
   dataBase64?: string;
   fileId?: string;
+  driveFileId?: string;
+  storageKey?: string;
 }
 
 export interface Campaign {
@@ -188,13 +192,19 @@ export type FileCategory = 'Resume/CV' | 'Cover Letter' | 'SOP' | 'Transcript' |
 
 export interface StoredFile {
   id: string;
+  userId?: string;
   name: string;
+  filename?: string;
   size: number;
   mimeType: string;
   source: 'local' | 'drive';
   category: FileCategory;
   uploadedAt: string;
+  createdAt?: string;
+  storageKey?: string;
+  storageUrl?: string;
   driveFileId?: string;
+  isDefaultResume?: boolean;
   dataBase64?: string;
 }
 
