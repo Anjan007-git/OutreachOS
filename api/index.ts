@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { createApp, normalizeUrl } from '../server/app.js';
 
 export const app = createApp();

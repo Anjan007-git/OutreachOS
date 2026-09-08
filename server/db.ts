@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { Redis } from '@upstash/redis';
@@ -48,7 +49,8 @@ export function isProductionEnvironment(): boolean {
 
 function sanitizeEnvValue(val?: string): string | undefined {
   if (!val) return undefined;
-  let cleaned = val.trim();
+  let cleaned = String(val).trim();
+  if (cleaned === '' || cleaned === 'undefined' || cleaned === 'null') return undefined;
   // Strip enclosing single or double quotes
   cleaned = cleaned.replace(/^["']|["']$/g, '').trim();
 
@@ -59,20 +61,19 @@ function sanitizeEnvValue(val?: string): string | undefined {
   if (match) {
     cleaned = match[1].trim().replace(/^["']|["']$/g, '').trim();
   }
+  if (cleaned === '' || cleaned === 'undefined' || cleaned === 'null') return undefined;
   return cleaned || undefined;
 }
 
 export function getUpstashCredentials(): { url?: string; token?: string } {
-  // Primary expected environment variable: KV_REST_API_URL
-  // Intentionally supported fallbacks: UPSTASH_REDIS_REST_URL, KV_URL, REDIS_URL
+  // Read exact environment variables as primary source of truth:
+  // process.env.KV_REST_API_URL and process.env.KV_REST_API_TOKEN
   const rawUrl =
     process.env.KV_REST_API_URL ||
     process.env.UPSTASH_REDIS_REST_URL ||
     process.env.KV_URL ||
     process.env.REDIS_URL;
 
-  // Primary expected environment variable: KV_REST_API_TOKEN
-  // Intentionally supported fallbacks: UPSTASH_REDIS_REST_TOKEN, KV_TOKEN, REDIS_TOKEN
   const rawToken =
     process.env.KV_REST_API_TOKEN ||
     process.env.UPSTASH_REDIS_REST_TOKEN ||

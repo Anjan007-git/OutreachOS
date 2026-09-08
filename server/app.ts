@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -239,52 +240,30 @@ export function createApp(): express.Application {
 
   const apiRouter = express.Router();
 
-  // ================= HEALTH CHECK (Step 5) =================
-  const handleHealthCheck = async (req: express.Request, res: express.Response) => {
-    try {
-      const configured = isUpstashConfigured();
-      let connected = false;
+  // ================= HEALTH CHECK (Diagnostic Endpoint) =================
+  const handleHealthCheck = (req: express.Request, res: express.Response) => {
+    const rawUrl =
+      process.env.KV_REST_API_URL ||
+      process.env.UPSTASH_REDIS_REST_URL ||
+      process.env.KV_URL ||
+      process.env.REDIS_URL;
 
-      if (configured) {
-        try {
-          const redis = getRedisClient();
-          if (redis) {
-            await Promise.race([
-              redis.ping(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Redis ping timeout (2s)')), 2000)),
-            ]);
-            connected = true;
-          }
-        } catch (e: any) {
-          console.warn('Redis ping warning during health check:', e.message);
-        }
-      }
+    const rawToken =
+      process.env.KV_REST_API_TOKEN ||
+      process.env.UPSTASH_REDIS_REST_TOKEN ||
+      process.env.KV_TOKEN ||
+      process.env.REDIS_TOKEN;
 
-      const isProd = isProductionEnvironment();
-      const effectivelyConnected = isProd ? connected : true;
+    const hasUrl = Boolean(rawUrl && String(rawUrl).trim() !== '' && String(rawUrl).trim() !== 'undefined');
+    const hasToken = Boolean(rawToken && String(rawToken).trim() !== '' && String(rawToken).trim() !== 'undefined');
+    const configured = hasUrl && hasToken;
 
-      return res.status(200).json({
-        success: true,
-        database: {
-          configured,
-          connected: effectivelyConnected,
-        },
-        environment: isProd ? 'production' : 'development',
-        version: '1.0.0',
-        timestamp: new Date().toISOString(),
-      });
-    } catch (err: any) {
-      return res.status(200).json({
-        success: true,
-        database: {
-          configured: false,
-          connected: false,
-        },
-        environment: isProductionEnvironment() ? 'production' : 'development',
-        version: '1.0.0',
-        timestamp: new Date().toISOString(),
-      });
-    }
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return res.status(200).json({
+      database: {
+        configured,
+      },
+    });
   };
 
   app.get('/health', handleHealthCheck);
