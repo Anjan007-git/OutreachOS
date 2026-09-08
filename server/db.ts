@@ -127,6 +127,45 @@ export function isUpstashConfigured(): boolean {
   return Boolean(url && token);
 }
 
+export const DEFAULT_TEMPLATES: Template[] = [
+  {
+    id: 'tpl-1',
+    title: 'Job Outreach — Engineering & Cloud Infrastructure',
+    category: 'Job Outreach',
+    subject: 'Inquiry regarding {{role}} role at {{company}} — {{my_name}}',
+    body: `Hi {{first_name}},\n\nI hope you're having a productive week.\n\nI've been following {{company}}'s engineering advancements and wanted to reach out regarding the {{role}} opening. As a {{my_title}} with expertise in cloud infrastructure, Kubernetes, and distributed systems, I'm very impressed by how your team approaches technical scalability.\n\nI've attached my resume for your review. Would you be open to a brief 10-minute conversation next week to explore how my background could support {{company}}?\n\nThank you for your time,\n{{my_name}}\n{{my_title}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'role', 'my_name', 'my_title', 'my_email'],
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'tpl-2',
+    title: 'Executive Engineering Introduction',
+    category: 'Job Outreach',
+    subject: '{{my_name}} — Experienced {{my_title}} exploring {{role}} at {{company}}',
+    body: `Dear {{first_name}},\n\nI hope this note finds you well.\n\nI am reaching out directly because of my strong interest in {{company}}'s mission. Over the past several years, I have architected and operated production cloud platforms, prioritizing high availability, automation, and developer productivity.\n\nI would welcome the opportunity to connect with you or the hiring team regarding {{role}} initiatives at {{company}}. My resume is attached for your consideration.\n\nBest regards,\n{{my_name}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'role', 'my_name', 'my_email'],
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'tpl-3',
+    title: 'Polite 3-Day Follow-Up',
+    category: 'Follow-up',
+    subject: 'Following up on note regarding {{company}} — {{my_name}}',
+    body: `Hi {{first_name}},\n\nI wanted to gently follow up on my note from earlier this week in case it got buried in your inbox. I know your calendar is packed, so no rush at all.\n\nI'd still be delighted to connect briefly if you or your team have a few minutes to chat about {{role}} opportunities at {{company}}.\n\nBest regards,\n{{my_name}}`,
+    variables: ['first_name', 'company', 'role', 'my_name'],
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'tpl-4',
+    title: 'Academic & Research Fellowship Outreach',
+    category: 'University',
+    subject: 'Inquiry: Research Opportunities at {{company}} — {{my_name}}',
+    body: `Dear Professor {{last_name}},\n\nI hope you are well. I have been following your laboratory's published work on cloud systems and distributed architecture at {{company}} with great interest.\n\nI am writing to inquire about potential research opportunities or graduate positions in your group. I have attached my CV detailing my academic and systems engineering experience for your review.\n\nThank you for your guidance and consideration.\n\nSincerely,\n{{my_name}}\n{{my_email}}`,
+    variables: ['last_name', 'company', 'my_name', 'my_email'],
+    createdAt: new Date().toISOString(),
+  },
+];
+
 const DEFAULT_SETTINGS: UserSettings = {
   profile: {
     name: 'Anjan Prajapati',
@@ -186,7 +225,7 @@ export function getInitialData(): DatabaseSchema {
     scheduled_messages: [],
     sent_messages: [],
     attachments: [],
-    templates: [],
+    templates: DEFAULT_TEMPLATES,
     gmail_accounts: [
       {
         isConnected: false,
@@ -220,7 +259,7 @@ function mergeWithSchemaDefaults(parsed: any): DatabaseSchema {
     scheduled_messages: Array.isArray(parsed?.scheduled_messages) ? parsed.scheduled_messages : [],
     sent_messages: Array.isArray(parsed?.sent_messages) ? parsed.sent_messages : [],
     attachments: Array.isArray(parsed?.attachments) ? parsed.attachments : [],
-    templates: Array.isArray(parsed?.templates) ? parsed.templates : [],
+    templates: Array.isArray(parsed?.templates) && parsed.templates.length > 0 ? parsed.templates : DEFAULT_TEMPLATES,
     email_threads: Array.isArray(parsed?.email_threads) ? parsed.email_threads : [],
     incoming_messages: Array.isArray(parsed?.incoming_messages) ? parsed.incoming_messages : [],
     follow_ups: Array.isArray(parsed?.follow_ups) ? parsed.follow_ups : [],
@@ -302,8 +341,18 @@ class Database {
       if (!fs.existsSync(DEFAULT_DATA_DIR)) {
         fs.mkdirSync(DEFAULT_DATA_DIR, { recursive: true });
       }
+      // Strip any raw OAuth access tokens before writing to local file to avoid committing secrets
+      const sanitized: DatabaseSchema = {
+        ...dataToSave,
+        gmail_accounts: Array.isArray(dataToSave.gmail_accounts)
+          ? dataToSave.gmail_accounts.map((acc) => ({
+              ...acc,
+              accessToken: '', // Keep live tokens in memory/Redis only, never in disk files
+            }))
+          : [],
+      };
       const tmpFile = `${DEFAULT_DB_FILE}.tmp.${Date.now()}`;
-      fs.writeFileSync(tmpFile, JSON.stringify(dataToSave, null, 2), 'utf-8');
+      fs.writeFileSync(tmpFile, JSON.stringify(sanitized, null, 2), 'utf-8');
       fs.renameSync(tmpFile, DEFAULT_DB_FILE);
     } catch (err) {
       console.warn('Warning: Could not save to local db.json:', err);

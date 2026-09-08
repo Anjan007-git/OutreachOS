@@ -132,7 +132,7 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
             <div>
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 leading-tight">{t.name}</h3>
+                  <h3 className="text-sm font-bold text-slate-900 leading-tight">{t.title || t.name}</h3>
                   <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md uppercase tracking-wider inline-block mt-1">
                     {String(t.category || 'GENERAL').replace(/_/g, ' ')}
                   </span>

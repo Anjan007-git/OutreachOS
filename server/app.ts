@@ -16,7 +16,9 @@ import {
   generateFollowUp,
   summarizeJobDescription,
   draftReplyResponse,
+  chatWithOutreachAssistant,
 } from './gemini.js';
+import { interpolateVariables } from '../src/lib/variables.js';
 import {
   syncGmailReplies,
   isUserAdmin,
@@ -344,6 +346,39 @@ export function createApp(): express.Application {
     } catch (err: any) {
       console.error('Error connecting Google account:', err);
       res.status(500).json({ success: false, error: err.message || 'Failed to connect Google account' });
+    }
+  });
+
+  apiRouter.post('/auth/refresh-token', async (req, res) => {
+    try {
+      const { accessToken, expiresIn } = req.body;
+      if (!accessToken) {
+        return res.status(400).json({ success: false, error: 'accessToken is required' });
+      }
+
+      const prev = db.get('gmail_accounts')[0];
+      if (!prev || !prev.email) {
+        return res.status(404).json({ success: false, error: 'No Gmail account to refresh' });
+      }
+
+      db.update('gmail_accounts', (accs) =>
+        accs.map((a) =>
+          a.email === prev.email
+            ? {
+                ...a,
+                accessToken,
+                isConnected: true,
+                needsReauth: false,
+                lastSyncTime: new Date().toISOString(),
+              }
+            : a
+        )
+      );
+
+      res.status(200).json({ success: true, email: prev.email, isConnected: true });
+    } catch (err: any) {
+      console.error('Error refreshing token:', err);
+      res.status(500).json({ success: false, error: err.message || 'Failed to refresh token' });
     }
   });
 
@@ -816,14 +851,51 @@ export function createApp(): express.Application {
 
       const settings = db.get('settings');
 
+      // Resolve contact context for variable interpolation
+      const contact = recipientId
+        ? db.get('contacts').find((c) => c.id === recipientId)
+        : db.get('contacts').find((c) => c.email.toLowerCase() === recipientEmail.toLowerCase());
+
+      const finalSubject = interpolateVariables(subject, {
+        contact,
+        customName: recipientName,
+        customEmail: recipientEmail,
+        settings,
+      }, true);
+
+      const finalBody = interpolateVariables(messageBody, {
+        contact,
+        customName: recipientName,
+        customEmail: recipientEmail,
+        settings,
+      }, true);
+
+      // Resolve attachments from database if dataBase64 is not already populated
+      const attachmentsDb = db.get('attachments');
+      const resolvedAttachments = (attachments || []).map((att: any) => {
+        if (att.fileId && !att.dataBase64) {
+          const stored = attachmentsDb.find((f) => f.id === att.fileId);
+          if (stored && stored.dataBase64) {
+            return {
+              ...att,
+              name: stored.name,
+              type: stored.mimeType,
+              mimeType: stored.mimeType,
+              dataBase64: stored.dataBase64,
+            };
+          }
+        }
+        return att;
+      });
+
       // Dispatch real email via Gmail API
       const sendResult = await sendGmailMessage({
         accessToken: primary.accessToken,
         to: recipientEmail,
         toName: recipientName,
-        subject,
-        body: messageBody,
-        attachments: attachments || [],
+        subject: finalSubject,
+        body: finalBody,
+        attachments: resolvedAttachments,
         fromName: settings.profile.name,
         fromEmail: primary.email,
       });
@@ -836,9 +908,9 @@ export function createApp(): express.Application {
         recipientId,
         recipientName: recipientName || recipientEmail.split('@')[0],
         recipientEmail,
-        subject,
-        messageBody,
-        attachments: attachments || [],
+        subject: finalSubject,
+        messageBody: finalBody,
+        attachments: resolvedAttachments,
         campaignId,
         campaignName,
         sentAt: sentTime,
@@ -1220,6 +1292,45 @@ export function createApp(): express.Application {
       res.status(200).json({ draft });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message || 'AI response drafting failed' });
+    }
+  });
+
+  apiRouter.post('/ai/chat', async (req, res) => {
+    try {
+      const { message, history } = req.body;
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ success: false, error: 'Message text is required' });
+      }
+
+      const settings = db.get('settings');
+      const contacts = db.get('contacts');
+      const campaigns = db.get('campaigns');
+      const scheduled = db.get('scheduled_messages').filter((m) => m.status === 'QUEUED');
+      const sent = db.get('sent_messages');
+      const incoming = db.get('incoming_messages');
+      const gmailAccounts = db.get('gmail_accounts');
+      const primary = gmailAccounts.find((a) => a.isConnected && a.accessToken);
+      const perm = checkSendingPermission(primary?.email);
+
+      const reply = await chatWithOutreachAssistant(message, history || [], {
+        userName: settings.profile.name,
+        userTitle: settings.profile.title,
+        contactsCount: contacts.length,
+        campaignsCount: campaigns.length,
+        queuedCount: scheduled.length,
+        sentCount: sent.length,
+        repliesCount: incoming.length,
+        isGmailConnected: Boolean(primary && !primary.needsReauth),
+        gmailEmail: primary?.email,
+        dailyLimit: typeof perm.dailyLimit === 'number' ? perm.dailyLimit : 999,
+        sentToday: perm.sentToday,
+        recentCampaigns: campaigns.slice(0, 5).map((c) => c.name),
+      });
+
+      res.status(200).json({ success: true, reply });
+    } catch (err: any) {
+      console.error('AI chat endpoint error:', err);
+      res.status(500).json({ success: false, error: err.message || 'AI assistant error' });
     }
   });
 

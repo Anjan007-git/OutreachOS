@@ -36,6 +36,7 @@ import { FollowUpsView } from './components/FollowUpsView';
 import { TemplatesView } from './components/TemplatesView';
 import { FilesView } from './components/FilesView';
 import { SettingsView } from './components/SettingsView';
+import { AiAssistantDrawer } from './components/AiAssistantDrawer';
 
 import { api } from './lib/api';
 import { connectGoogleAccount, disconnectGoogleAccount, initAuth } from './lib/auth';
@@ -159,6 +160,7 @@ export default function App() {
   // Preselection for Compose view
   const [composeContact, setComposeContact] = useState<Contact | null>(null);
   const [composeCampaign, setComposeCampaign] = useState<Campaign | null>(null);
+  const [aiDraft, setAiDraft] = useState<{ subject?: string; body?: string } | null>(null);
 
   const showToast = (type: 'success' | 'error' | 'info', text: string) => {
     setToast({ type, text });
@@ -653,6 +655,7 @@ export default function App() {
                   files={files}
                   preselectedContact={composeContact}
                   preselectedCampaign={composeCampaign}
+                  initialDraft={aiDraft}
                   onSendMessage={async (payload) => {
                     await api.composeMessage(payload);
                     await loadAppData();
@@ -873,6 +876,14 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* Persistent AI Outreach Assistant Drawer */}
+      <AiAssistantDrawer
+        onNavigateToComposeWithDraft={(draft) => {
+          setAiDraft(draft);
+          setCurrentPage('compose');
+        }}
+      />
     </div>
   );
 }

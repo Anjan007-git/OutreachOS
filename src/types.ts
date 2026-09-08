@@ -19,6 +19,8 @@ export interface Contact {
   organizationType: OrganizationType;
   role: string;
   country: string;
+  city?: string;
+  department?: string;
   website?: string;
   jobTitle?: string;
   jobUrl?: string;
@@ -174,7 +176,8 @@ export interface FollowUpInstance {
 export interface Template {
   id: string;
   title: string;
-  category: 'Job Outreach' | 'University' | 'Follow-up' | 'Networking';
+  name?: string;
+  category: 'Job Outreach' | 'University' | 'Follow-up' | 'Networking' | string;
   subject: string;
   body: string;
   variables: string[];

@@ -19,6 +19,7 @@ import {
   Building,
 } from 'lucide-react';
 import { Contact, Campaign, Template, StoredFile, AttachmentRef } from '../types';
+import { COMMON_VARIABLES, interpolateVariables } from '../lib/variables.js';
 
 interface ComposeViewProps {
   contacts: Contact[];
@@ -27,6 +28,7 @@ interface ComposeViewProps {
   files: StoredFile[];
   preselectedContact?: Contact | null;
   preselectedCampaign?: Campaign | null;
+  initialDraft?: { subject?: string; body?: string } | null;
   onSendMessage: (payload: {
     recipientId?: string;
     recipientEmail: string;
@@ -63,6 +65,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
   files,
   preselectedContact,
   preselectedCampaign,
+  initialDraft,
   onSendMessage,
   onSendNow,
   onAiImprove,
@@ -77,8 +80,8 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(preselectedCampaign?.id || '');
 
   // Message fields
-  const [subject, setSubject] = useState('');
-  const [messageBody, setMessageBody] = useState('');
+  const [subject, setSubject] = useState(initialDraft?.subject || '');
+  const [messageBody, setMessageBody] = useState(initialDraft?.body || '');
   const [selectedAttachments, setSelectedAttachments] = useState<AttachmentRef[]>([]);
   const [scheduledDate, setScheduledDate] = useState<string>(
     new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16)
@@ -113,6 +116,13 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
     }
   }, [preselectedCampaign]);
 
+  useEffect(() => {
+    if (initialDraft) {
+      if (initialDraft.subject) setSubject(initialDraft.subject);
+      if (initialDraft.body) setMessageBody(initialDraft.body);
+    }
+  }, [initialDraft]);
+
   // Insert template
   const handleSelectTemplate = (templateId: string) => {
     const tpl = templates.find((t) => t.id === templateId);
@@ -124,35 +134,23 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
   // Variable replacement logic
   const renderPreviewText = (text?: string) => {
     if (!text) return '';
+    return interpolateVariables(
+      text,
+      {
+        contact: activeContact,
+        customName,
+        customEmail,
+      },
+      false
+    );
+  };
 
-    if (!activeContact) {
-      const parts = (customName || '').split(' ');
-      return text
-        .replace(/{{first_name}}/g, parts[0] || 'Hiring Team')
-        .replace(/{{last_name}}/g, parts[1] || '')
-        .replace(/{{organization}}/g, 'Target Organization')
-        .replace(/{{role}}/g, 'Open Role')
-        .replace(/{{country}}/g, 'United States')
-        .replace(/{{city}}/g, 'Global')
-        .replace(/{{department}}/g, 'Engineering')
-        .replace(/{{my_name}}/g, 'Anjan Prajapati')
-        .replace(/{{my_email}}/g, 'anjanp93722@gmail.com');
-    }
-
-    const nameParts = (activeContact.name || '').trim().split(' ');
-    const firstName = nameParts[0] || 'Team';
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-
-    return text
-      .replace(/{{first_name}}/g, firstName)
-      .replace(/{{last_name}}/g, lastName)
-      .replace(/{{organization}}/g, activeContact.organization || '')
-      .replace(/{{role}}/g, activeContact.role || 'Open Position')
-      .replace(/{{country}}/g, activeContact.country || '')
-      .replace(/{{city}}/g, activeContact.city || '')
-      .replace(/{{department}}/g, activeContact.department || 'Engineering')
-      .replace(/{{my_name}}/g, 'Anjan Prajapati')
-      .replace(/{{my_email}}/g, 'anjanp93722@gmail.com');
+  const handleInsertVariable = (varKey: string) => {
+    setMessageBody((prev) => {
+      if (!prev) return varKey;
+      const needsSpace = !prev.endsWith(' ') && !prev.endsWith('\n');
+      return prev + (needsSpace ? ' ' : '') + varKey;
+    });
   };
 
   // AI Actions
@@ -568,6 +566,25 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                   {messageBody.length} characters &bull; {messageBody.split(/\s+/).filter(Boolean).length} words
                 </span>
               </div>
+
+              {/* Variable Quick Insert Chips */}
+              <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 text-[11px] text-slate-500 scrollbar-thin">
+                <span className="font-semibold text-slate-600 shrink-0 text-[10px] uppercase tracking-wider">
+                  Insert Tag:
+                </span>
+                {COMMON_VARIABLES.slice(0, 6).map((v) => (
+                  <button
+                    key={v.key}
+                    type="button"
+                    onClick={() => handleInsertVariable(v.key)}
+                    className="px-2 py-0.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200 rounded-md font-mono text-[10px] text-slate-700 transition-colors cursor-pointer shrink-0"
+                    title={`Insert ${v.label} (e.g. ${v.example})`}
+                  >
+                    {v.key}
+                  </button>
+                ))}
+              </div>
+
               <textarea
                 id="textarea-compose-body"
                 rows={12}
@@ -702,7 +719,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                   className="w-full text-left p-3 rounded-xl hover:bg-slate-50 border border-slate-200 hover:border-indigo-300 transition-colors group cursor-pointer"
                 >
                   <div className="text-xs font-bold text-slate-800 group-hover:text-indigo-600">
-                    {tpl.name}
+                    {tpl.title || tpl.name}
                   </div>
                   <div className="text-[10px] text-slate-400 truncate mt-0.5">{tpl.subject}</div>
                 </button>

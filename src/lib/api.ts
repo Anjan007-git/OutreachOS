@@ -198,6 +198,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ incomingSubject, incomingBody, originalOutreach }),
     }),
+  aiChat: (message: string, history?: Array<{ role: 'user' | 'assistant'; content: string }>) =>
+    fetchJson<{ success: boolean; reply: string }>('/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, history }),
+    }),
 
   // Settings
   getSettings: () => fetchJson<UserSettings>('/api/settings'),

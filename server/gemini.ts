@@ -1,16 +1,64 @@
+import 'dotenv/config';
 import { GoogleGenAI } from '@google/genai';
 import { Contact, ReplyClassification, UserProfile } from '../src/types.js';
 
 let aiClient: GoogleGenAI | null = null;
 
+function sanitizeApiKey(val?: string): string | undefined {
+  if (!val) return undefined;
+  let cleaned = String(val).trim();
+  if (cleaned === '' || cleaned === 'undefined' || cleaned === 'null') return undefined;
+  cleaned = cleaned.replace(/^["']|["']$/g, '').trim();
+  const match = cleaned.match(/^(?:GEMINI_API_KEY)\s*=\s*(.*)$/i);
+  if (match) {
+    cleaned = match[1].trim().replace(/^["']|["']$/g, '').trim();
+  }
+  return cleaned || undefined;
+}
+
 function getAI(): GoogleGenAI | null {
   if (!aiClient) {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = sanitizeApiKey(process.env.GEMINI_API_KEY);
     if (apiKey) {
       aiClient = new GoogleGenAI({ apiKey });
     }
   }
   return aiClient;
+}
+
+const PRIMARY_MODEL = 'gemini-3.5-flash-lite';
+const FALLBACK_MODEL = 'gemini-3.6-flash';
+
+async function generateWithFallback(prompt: string): Promise<string> {
+  const ai = getAI();
+  if (!ai) {
+    throw new Error('GEMINI_API_KEY is not configured');
+  }
+
+  try {
+    const res = await ai.models.generateContent({
+      model: PRIMARY_MODEL,
+      contents: prompt,
+    });
+    const text = res.text?.trim();
+    if (text) return text;
+  } catch (err: any) {
+    console.warn(`Gemini primary model (${PRIMARY_MODEL}) error:`, err.message || err);
+    // Try fallback model
+    try {
+      const fallbackRes = await ai.models.generateContent({
+        model: FALLBACK_MODEL,
+        contents: prompt,
+      });
+      const text = fallbackRes.text?.trim();
+      if (text) return text;
+    } catch (fallbackErr: any) {
+      console.error(`Gemini fallback model (${FALLBACK_MODEL}) error:`, fallbackErr.message || fallbackErr);
+      throw fallbackErr;
+    }
+  }
+
+  return '';
 }
 
 const AI_SAFETY_PREAMBLE = `You are OutreachOS AI, an executive outreach assistant for Anjan Prajapati.
@@ -46,11 +94,8 @@ ${content}
 Return ONLY the refined email text. Do not wrap in markdown quotes or preamble.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-    });
-    return response.text?.trim() || content;
+    const text = await generateWithFallback(prompt);
+    return text || content;
   } catch (err) {
     console.error('Gemini improveMessage error:', err);
     return content;
@@ -84,11 +129,7 @@ ${content}
 Format: Return a JSON array of 3 string subject lines, e.g. ["Subject 1", "Subject 2", "Subject 3"]. Return only valid JSON.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-    });
-    const text = response.text?.trim() || '';
+    const text = await generateWithFallback(prompt);
     const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
@@ -143,11 +184,8 @@ ${template}
 Return ONLY the personalized email body ready to be sent.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-    });
-    return response.text?.trim() || template;
+    const text = await generateWithFallback(prompt);
+    return text || template;
   } catch (err) {
     console.error('Gemini personalizeMessage error:', err);
     return template;
@@ -185,11 +223,7 @@ Return a JSON object:
 Return only valid JSON.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-    });
-    const text = response.text?.trim() || '';
+    const text = await generateWithFallback(prompt);
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
@@ -235,11 +269,7 @@ Return a JSON object with:
 Return only JSON.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-    });
-    const text = response.text?.trim() || '';
+    const text = await generateWithFallback(prompt);
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
@@ -308,11 +338,7 @@ Return a JSON object:
 Return only JSON.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-    });
-    const text = response.text?.trim() || '';
+    const text = await generateWithFallback(prompt);
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
@@ -364,13 +390,74 @@ ${originalOutreach}
 Return ONLY the drafted response body text.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-    });
-    return response.text?.trim() || '';
+    const text = await generateWithFallback(prompt);
+    return text || '';
   } catch (err) {
     console.error('Gemini draftReplyResponse error:', err);
     return `Hi,\n\nThank you very much for the update. Looking forward to connecting.\n\nBest regards,\n${userProfile.name}`;
+  }
+}
+
+/**
+ * Interactive AI Assistant Chatbot inside OutreachOS
+ */
+export async function chatWithOutreachAssistant(
+  message: string,
+  history: Array<{ role: 'user' | 'assistant'; content: string }>,
+  systemContext: {
+    userName?: string;
+    userTitle?: string;
+    contactsCount: number;
+    campaignsCount: number;
+    queuedCount: number;
+    sentCount: number;
+    repliesCount: number;
+    isGmailConnected: boolean;
+    gmailEmail?: string;
+    dailyLimit?: number;
+    sentToday?: number;
+    recentCampaigns?: string[];
+  }
+): Promise<string> {
+  const ai = getAI();
+  if (!ai) {
+    return "OutreachOS Assistant is currently offline (GEMINI_API_KEY not configured). You can still manage campaigns and compose emails directly.";
+  }
+
+  const contextPrompt = `You are the built-in Executive AI Assistant inside OutreachOS for ${systemContext.userName || 'Anjan Prajapati'}.
+User Title: ${systemContext.userTitle || 'Senior Cloud & Systems Engineer'}
+
+Current System State:
+- Gmail Connection: ${systemContext.isGmailConnected ? `Connected (${systemContext.gmailEmail})` : 'Disconnected'}
+- Daily Limit: ${systemContext.sentToday || 0} / ${systemContext.dailyLimit || 10} sent today
+- Active Campaigns: ${systemContext.campaignsCount} (${(systemContext.recentCampaigns || []).join(', ') || 'None'})
+- Saved Contacts: ${systemContext.contactsCount}
+- Scheduled / Queued Messages: ${systemContext.queuedCount}
+- Sent Messages: ${systemContext.sentCount}
+- Incoming Responses: ${systemContext.repliesCount}
+
+Capabilities:
+1. Help write, critique, and polish high-converting outreach emails and follow-ups.
+2. Analyze campaign strategy, target audience, and subject lines.
+3. Summarize outreach metrics, queued dispatches, and incoming responses.
+4. Give specific, high-signal recommendations on cold outreach etiquette and deliverability.
+5. NEVER invent false work history or make up facts. Be concise, direct, and professional.
+
+Conversation History:
+${(history || [])
+  .slice(-6)
+  .map((h) => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`)
+  .join('\n')}
+
+User Question: ${message}
+
+Provide a helpful, well-formatted response with clear action steps or ready-to-use email copy where appropriate.`;
+
+  try {
+    const reply = await generateWithFallback(contextPrompt);
+    return reply || 'I am ready to assist with your outreach, campaigns, and drafts.';
+  } catch (err: any) {
+    console.error('Gemini chatWithOutreachAssistant error:', err);
+    return 'I encountered a temporary connection issue. Please try your request again in a moment.';
   }
 }

@@ -2,6 +2,7 @@ import { db } from './db.js';
 import { sendGmailMessage, searchGmailMessages, getGmailMessage, getHeader, extractBodyText } from './gmail.js';
 import { classifyIncomingReply } from './gemini.js';
 import { ScheduledMessage, SentMessage, IncomingMessage } from '../src/types.js';
+import { interpolateVariables } from '../src/lib/variables.js';
 
 export const ADMIN_EMAIL = 'anjanp93722@gmail.com';
 export const STANDARD_USER_DAILY_LIMIT = 10;
@@ -177,13 +178,50 @@ export async function processOutboundQueue(): Promise<{ processed: number; reaso
 
     // Attempt Gmail send
     try {
+      // Find matching contact for accurate variable interpolation
+      const contact = msg.recipientId
+        ? db.get('contacts').find((c) => c.id === msg.recipientId)
+        : db.get('contacts').find((c) => c.email.toLowerCase() === msg.recipientEmail.toLowerCase());
+
+      const finalSubject = interpolateVariables(msg.subject, {
+        contact,
+        customName: msg.recipientName,
+        customEmail: msg.recipientEmail,
+        settings,
+      }, true);
+
+      const finalBody = interpolateVariables(msg.messageBody, {
+        contact,
+        customName: msg.recipientName,
+        customEmail: msg.recipientEmail,
+        settings,
+      }, true);
+
+      // Resolve attachments from database if dataBase64 is not already populated
+      const attachmentsDb = db.get('attachments');
+      const resolvedAttachments = (msg.attachments || []).map((att) => {
+        if (att.fileId && !att.dataBase64) {
+          const stored = attachmentsDb.find((f) => f.id === att.fileId);
+          if (stored && stored.dataBase64) {
+            return {
+              ...att,
+              name: stored.name,
+              type: stored.mimeType,
+              mimeType: stored.mimeType,
+              dataBase64: stored.dataBase64,
+            };
+          }
+        }
+        return att;
+      });
+
       const sendResult = await sendGmailMessage({
         accessToken: primaryAccount.accessToken,
         to: msg.recipientEmail,
         toName: msg.recipientName,
-        subject: msg.subject,
-        body: msg.messageBody,
-        attachments: msg.attachments,
+        subject: finalSubject,
+        body: finalBody,
+        attachments: resolvedAttachments,
         fromName: settings.profile.name,
         fromEmail: primaryAccount.email,
       });
@@ -198,9 +236,9 @@ export async function processOutboundQueue(): Promise<{ processed: number; reaso
         recipientName: msg.recipientName,
         campaignId: msg.campaignId,
         campaignName: msg.campaignName,
-        subject: msg.subject,
-        messageBody: msg.messageBody,
-        attachments: msg.attachments,
+        subject: finalSubject,
+        messageBody: finalBody,
+        attachments: resolvedAttachments,
         gmailMessageId: sendResult.id,
         gmailThreadId: sendResult.threadId,
         sentAt: sentTime,
@@ -283,12 +321,12 @@ export async function processOutboundQueue(): Promise<{ processed: number; reaso
       const errMsg = sendErr.message || 'Unknown send error';
       console.error('Failed to send queued email:', errMsg);
 
-      const isAuthScopeError =
+      const isScopeError =
         errMsg.includes('insufficient authentication scopes') ||
-        errMsg.includes('403') ||
-        errMsg.includes('401');
+        errMsg.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') ||
+        errMsg.includes('invalid_grant');
 
-      if (isAuthScopeError) {
+      if (isScopeError) {
         db.update('gmail_accounts', (accs) =>
           accs.map((a) => (a.email === primaryAccount.email ? { ...a, needsReauth: true } : a))
         );
@@ -297,6 +335,8 @@ export async function processOutboundQueue(): Promise<{ processed: number; reaso
           'Gmail Authorization Required',
           'Updated Workspace permissions are required to dispatch emails. Please reconnect your Gmail account.'
         );
+      } else if (errMsg.includes('401')) {
+        console.warn('Gmail access token expired. Client will refresh on next interaction.');
       }
 
       db.update('scheduled_messages', (list) =>
@@ -457,16 +497,18 @@ export async function syncGmailReplies(): Promise<{ newRepliesCount: number }> {
     return { newRepliesCount: newCount };
   } catch (err: any) {
     const errMsg = err.message || '';
-    const isAuthScopeError =
+    const isScopeError =
       errMsg.includes('insufficient authentication scopes') ||
-      errMsg.includes('403') ||
-      errMsg.includes('401');
+      errMsg.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') ||
+      errMsg.includes('invalid_grant');
 
-    if (isAuthScopeError) {
+    if (isScopeError) {
       db.update('gmail_accounts', (accs) =>
         accs.map((a) => (a.email === account.email ? { ...a, needsReauth: true } : a))
       );
       console.warn('Gmail reply sync paused: Gmail account requires re-authorization with new scopes.');
+    } else if (errMsg.includes('401')) {
+      console.warn('Gmail access token expired during reply sync. Refresh pending.');
     } else {
       console.error('Error during Gmail reply sync:', err);
     }

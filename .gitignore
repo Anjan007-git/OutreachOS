@@ -1,8 +1,24 @@
+# Dependencies
 node_modules/
+
+# Production build output
 build/
 dist/
 coverage/
+
+# Local databases and runtime files
+data/
+*.db
+*.sqlite
+*.tmp.*
+
+# System & logs
 .DS_Store
 *.log
+.turbo
+.parcel-cache
+
+# Environment variables
 .env*
 !.env.example
+
