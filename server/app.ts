@@ -57,6 +57,7 @@ export function normalizeUrl(req: any): string {
 
   if (isGeneric) {
     const candidateHeader =
+      headers['x-matched-path'] ||
       headers['x-forwarded-uri'] ||
       headers['x-original-url'] ||
       headers['x-invoke-path'] ||
@@ -69,7 +70,8 @@ export function normalizeUrl(req: any): string {
       candidateHeader !== '/api/' &&
       candidateHeader !== '/api'
     ) {
-      rawUrl = candidateHeader;
+      const search = rawUrl.includes('?') ? rawUrl.substring(rawUrl.indexOf('?')) : '';
+      rawUrl = candidateHeader.split('?')[0] + search;
     } else if (typeof headers['x-now-route-matches'] === 'string') {
       const match = headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
       if (match && match[1]) {

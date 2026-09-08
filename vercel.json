@@ -4,15 +4,15 @@
   "rewrites": [
     {
       "source": "/api/health",
-      "destination": "/api/health"
+      "destination": "/api/index?path=health"
     },
     {
       "source": "/api/cron",
-      "destination": "/api/cron"
+      "destination": "/api/index?path=cron"
     },
     {
       "source": "/api/cron/(.*)",
-      "destination": "/api/cron"
+      "destination": "/api/index?path=cron/$1"
     },
     {
       "source": "/api",
@@ -20,7 +20,7 @@
     },
     {
       "source": "/api/(.*)",
-      "destination": "/api/index"
+      "destination": "/api/index?path=$1"
     },
     {
       "source": "/((?!api(?:/|$)).*)",
