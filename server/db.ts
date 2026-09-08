@@ -49,30 +49,50 @@ export function isProductionEnvironment(): boolean {
 function sanitizeEnvValue(val?: string): string | undefined {
   if (!val) return undefined;
   let cleaned = val.trim();
-  // Strip any KEY= prefix if the user accidentally pasted the entire line from .env
-  if (cleaned.includes('=')) {
-    cleaned = cleaned.substring(cleaned.indexOf('=') + 1).trim();
-  }
   // Strip enclosing single or double quotes
   cleaned = cleaned.replace(/^["']|["']$/g, '').trim();
+
+  // If the value was accidentally pasted with an explicit variable name prefix (e.g. KV_REST_API_TOKEN=xxx),
+  // strip only known variable prefixes without destroying base64 '=' or '==' padding in the secret token!
+  const knownPrefix = /^(?:KV_REST_API_URL|KV_REST_API_TOKEN|UPSTASH_REDIS_REST_URL|UPSTASH_REDIS_REST_TOKEN|KV_URL|KV_TOKEN)\s*=\s*(.*)$/i;
+  const match = cleaned.match(knownPrefix);
+  if (match) {
+    cleaned = match[1].trim().replace(/^["']|["']$/g, '').trim();
+  }
   return cleaned || undefined;
 }
 
 export function getUpstashCredentials(): { url?: string; token?: string } {
-  const rawUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const rawToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Primary expected environment variable: KV_REST_API_URL
+  // Intentionally supported fallbacks: UPSTASH_REDIS_REST_URL, KV_URL (if HTTP REST URL)
+  const rawUrl =
+    process.env.KV_REST_API_URL ||
+    process.env.UPSTASH_REDIS_REST_URL ||
+    (process.env.KV_URL && process.env.KV_URL.startsWith('http') ? process.env.KV_URL : undefined);
+
+  // Primary expected environment variable: KV_REST_API_TOKEN
+  // Intentionally supported fallbacks: UPSTASH_REDIS_REST_TOKEN, KV_TOKEN
+  const rawToken =
+    process.env.KV_REST_API_TOKEN ||
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    process.env.KV_TOKEN;
+
   const url = sanitizeEnvValue(rawUrl);
   const token = sanitizeEnvValue(rawToken);
   return { url, token };
 }
 
 let redisClientInstance: Redis | null = null;
+let lastUsedUrl: string | undefined = undefined;
+let lastUsedToken: string | undefined = undefined;
 
 export function getRedisClient(): Redis | null {
   const { url, token } = getUpstashCredentials();
   if (url && token) {
-    if (!redisClientInstance) {
+    if (!redisClientInstance || lastUsedUrl !== url || lastUsedToken !== token) {
       redisClientInstance = new Redis({ url, token });
+      lastUsedUrl = url;
+      lastUsedToken = token;
     }
     return redisClientInstance;
   }
@@ -231,6 +251,7 @@ class Database {
   private data: DatabaseSchema;
   private isLoadedFromStorage = false;
   private pendingSave: Promise<void> | null = null;
+  private loadPromise: Promise<DatabaseSchema> | null = null;
 
   constructor() {
     this.data = getInitialData();
@@ -269,55 +290,81 @@ class Database {
   /**
    * Ensures the database state is synchronized with the primary storage engine.
    * In production, this loads from Upstash Redis and throws a clear error if unavailable.
+   * Concurrent in-flight calls are deduplicated via loadPromise, and transient connection
+   * delays are retried with exponential backoff.
    */
   public async ensureLoaded(forceRefresh = false): Promise<DatabaseSchema> {
-    const isProd = isProductionEnvironment();
-    const redis = getRedisClient();
+    if (this.loadPromise && !forceRefresh) {
+      return this.loadPromise;
+    }
 
-    if (redis) {
-      if (!this.isLoadedFromStorage || forceRefresh) {
-        try {
-          const raw = await redis.get<any>(UPSTASH_DB_KEY);
-          if (raw) {
-            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-            this.data = mergeWithSchemaDefaults(parsed);
-          } else {
-            // First time running on Upstash: seed with clean schema
-            let seedData = getInitialData();
-            if (fs.existsSync(DEFAULT_DB_FILE)) {
-              try {
-                const localRaw = fs.readFileSync(DEFAULT_DB_FILE, 'utf-8');
-                seedData = mergeWithSchemaDefaults(JSON.parse(localRaw));
-              } catch {}
+    this.loadPromise = (async () => {
+      const isProd = isProductionEnvironment();
+      const redis = getRedisClient();
+
+      if (redis) {
+        if (!this.isLoadedFromStorage || forceRefresh) {
+          let attempts = 0;
+          const maxAttempts = 3;
+          let lastErr: any = null;
+
+          while (attempts < maxAttempts) {
+            try {
+              const raw = await redis.get<any>(UPSTASH_DB_KEY);
+              if (raw) {
+                const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                this.data = mergeWithSchemaDefaults(parsed);
+              } else {
+                // First time running on Upstash: seed with clean schema
+                let seedData = getInitialData();
+                if (fs.existsSync(DEFAULT_DB_FILE)) {
+                  try {
+                    const localRaw = fs.readFileSync(DEFAULT_DB_FILE, 'utf-8');
+                    seedData = mergeWithSchemaDefaults(JSON.parse(localRaw));
+                  } catch {}
+                }
+                this.data = seedData;
+                await redis.set(UPSTASH_DB_KEY, JSON.stringify(seedData));
+              }
+              this.isLoadedFromStorage = true;
+              return this.data;
+            } catch (err: any) {
+              lastErr = err;
+              attempts++;
+              console.warn(`Upstash Redis load attempt ${attempts}/${maxAttempts} failed:`, err.message);
+              if (attempts < maxAttempts) {
+                await new Promise((r) => setTimeout(r, attempts * 150));
+              }
             }
-            this.data = seedData;
-            await redis.set(UPSTASH_DB_KEY, JSON.stringify(seedData));
           }
-          this.isLoadedFromStorage = true;
-        } catch (err: any) {
-          console.error('Error loading data from Upstash Redis:', err);
+
+          console.error('Error loading data from Upstash Redis after retries:', lastErr);
           if (isProd) {
-            throw new Error(`Production database unavailable: Failed to connect to Upstash Redis (${err.message})`);
+            throw new Error(`Production database unavailable: Failed to connect to Upstash Redis (${lastErr?.message || 'timeout/network error'})`);
           }
           // In development fallback to local file
           this.loadFromLocalFile();
         }
+        return this.data;
+      }
+
+      // No Upstash Redis configured
+      if (isProd) {
+        throw new Error(
+          'Production database unavailable: KV_REST_API_URL and KV_REST_API_TOKEN must be configured in environment.'
+        );
+      }
+
+      // Development local storage
+      if (!this.isLoadedFromStorage || forceRefresh) {
+        this.loadFromLocalFile();
       }
       return this.data;
-    }
+    })().finally(() => {
+      this.loadPromise = null;
+    });
 
-    // No Upstash Redis configured
-    if (isProd) {
-      throw new Error(
-        'Production database unavailable: KV_REST_API_URL and KV_REST_API_TOKEN must be configured in environment.'
-      );
-    }
-
-    // Development local storage
-    if (!this.isLoadedFromStorage || forceRefresh) {
-      this.loadFromLocalFile();
-    }
-    return this.data;
+    return this.loadPromise;
   }
 
   /**
@@ -456,6 +503,8 @@ class Database {
   public async getDbStatus() {
     const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
     const isProd = isVercel || process.env.NODE_ENV === 'production';
+    const { url, token } = getUpstashCredentials();
+    const isConfigured = Boolean(url && token);
     const redis = getRedisClient();
 
     if (redis) {
@@ -464,7 +513,12 @@ class Database {
         return {
           success: true,
           environment: isProd ? 'production' : 'development',
-          database: 'connected',
+          database: {
+            configured: true,
+            connected: true,
+            status: 'connected',
+            provider: 'Upstash Redis/KV',
+          },
           databaseProvider: 'Upstash Redis/KV',
           isPersistent: true,
           connected: true,
@@ -476,7 +530,12 @@ class Database {
         return {
           success: false,
           environment: isProd ? 'production' : 'development',
-          database: 'error',
+          database: {
+            configured: true,
+            connected: false,
+            status: 'error',
+            provider: 'Upstash Redis/KV',
+          },
           databaseProvider: 'Upstash Redis/KV',
           isPersistent: true,
           connected: false,
@@ -491,11 +550,16 @@ class Database {
       return {
         success: false,
         environment: 'production',
-        database: 'error',
+        database: {
+          configured: isConfigured,
+          connected: false,
+          status: isConfigured ? 'error' : 'unconfigured',
+          provider: 'Upstash Redis/KV',
+        },
         databaseProvider: 'Upstash Redis/KV',
         isPersistent: false,
         connected: false,
-        error: 'Upstash Redis credentials (KV_REST_API_URL, KV_REST_API_TOKEN) are missing in production.',
+        error: 'Upstash Redis credentials (KV_REST_API_URL, KV_REST_API_TOKEN) are missing or incomplete in production environment.',
         version: '1.0.0',
         counts: this.getCounts(),
       };
@@ -504,7 +568,12 @@ class Database {
     return {
       success: true,
       environment: 'development',
-      database: 'connected',
+      database: {
+        configured: isConfigured,
+        connected: true,
+        status: 'connected',
+        provider: 'Persistent Storage (Local)',
+      },
       databaseProvider: 'Persistent Storage (Local)',
       isPersistent: true,
       connected: true,

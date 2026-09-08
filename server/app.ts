@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import { db, isProductionEnvironment } from './db.js';
+import { db, isProductionEnvironment, isUpstashConfigured } from './db.js';
 import {
   getGmailProfile,
   sendGmailMessage,
@@ -153,15 +153,46 @@ export function createApp(): express.Application {
 
   // Database synchronization & persistence middleware
   app.use(async (req, res, next) => {
+    const rawUrl = req.url || '';
+    const reqPath = req.path || '';
+
+    // 1. Health check bypass: /api/health and /health must always reach the health check handler
+    // to provide safe diagnostics, even if the database is currently unconfigured or initializing.
+    if (
+      reqPath === '/health' ||
+      reqPath === '/api/health' ||
+      rawUrl.startsWith('/api/health') ||
+      rawUrl.includes('path=health')
+    ) {
+      return next();
+    }
+
     try {
       await db.ensureLoaded();
     } catch (err: any) {
+      // 2. Auth routes (/api/auth/connect-google, /api/auth/status):
+      // Do not block Gmail OAuth callback/connection flow if database initialization is delayed or warming up
+      const isAuthRoute =
+        reqPath.startsWith('/auth') ||
+        reqPath.startsWith('/api/auth') ||
+        rawUrl.includes('/api/auth') ||
+        rawUrl.includes('path=auth');
+
+      if (isAuthRoute) {
+        console.warn('Proceeding with auth route despite database delay/warning:', err.message);
+        return next();
+      }
+
       if (isProductionEnvironment()) {
         return res.status(503).json({
           success: false,
           error: `Database unavailable: ${err.message}`,
           environment: 'production',
-          database: 'error',
+          database: {
+            configured: isUpstashConfigured(),
+            connected: false,
+            status: 'error',
+          },
           databaseProvider: 'Upstash Redis/KV',
         });
       }
@@ -228,7 +259,11 @@ export function createApp(): express.Application {
       res.status(503).json({
         success: false,
         environment: isProductionEnvironment() ? 'production' : 'development',
-        database: 'error',
+        database: {
+          configured: isUpstashConfigured(),
+          connected: false,
+          status: 'error',
+        },
         databaseProvider: 'Upstash Redis/KV',
         timestamp: new Date().toISOString(),
         version: '1.0.0',
