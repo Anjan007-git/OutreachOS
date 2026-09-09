@@ -49,6 +49,25 @@ export const api = {
   getHealth: () => fetchJson<{ success: boolean; environment: string; database: string; version: string; timestamp: string }>('/api/health'),
 
   // Auth & Connection
+  getSession: () =>
+    fetchJson<{
+      authenticated: boolean;
+      user: { email: string; name: string; role: 'USER' | 'ADMIN'; isAdmin: boolean } | null;
+      gmailConnected: boolean;
+      gmailEmail?: string | null;
+    }>('/api/auth/session'),
+
+  login: (email: string, name?: string, role?: string) =>
+    fetchJson<{
+      success: boolean;
+      user: { email: string; name: string; role: 'USER' | 'ADMIN'; isAdmin: boolean };
+    }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, name, role }),
+    }),
+
+  logout: () => fetchJson<{ success: boolean; message?: string }>('/api/auth/logout', { method: 'POST' }),
+
   getAuthStatus: () =>
     fetchJson<{
       isConnected: boolean;

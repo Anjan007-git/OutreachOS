@@ -97,7 +97,7 @@ export function normalizeUrl(req: any): string {
     queryString = rawUrl.substring(qIdx + 1);
   }
 
-  // Check if ?path= was passed in query (e.g. from legacy rewrite rules)
+  // Check if ?path= was passed in query (e.g. from Vercel rewrite /api/index?path=...)
   const searchParams = new URLSearchParams(queryString);
   const pathParam = (req && req.query && req.query.path) || searchParams.get('path');
   if (pathParam && (pathname === '/api' || pathname === '/api/' || pathname === '/api/index' || pathname === '/' || pathname === '')) {
@@ -111,27 +111,85 @@ export function normalizeUrl(req: any): string {
   pathname = pathname
     .replace(/^\/api\/api(?=\/|$)/, '/api')
     .replace(/^\/api\/index\//, '/api/')
-    .replace(/^\/api\/index(?=\/|$)/, '/api')
-    .replace(/^\/index(?=\/|$)/, '');
+    .replace(/^\/api\/index(?=\/|$)/, '/api');
 
   // Normalize multiple slashes (e.g. //api///contacts -> /api/contacts)
   pathname = pathname.replace(/\/{2,}/g, '/');
 
-  // Ensure leading /api prefix for API routes
-  if (!pathname.startsWith('/api') && pathname !== '/' && pathname !== '') {
-    if (
-      !pathname.startsWith('/@') &&
-      !pathname.startsWith('/src/') &&
-      !pathname.startsWith('/node_modules/') &&
-      !pathname.startsWith('/assets/') &&
-      !/\.(tsx?|jsx?|css|svg|png|jpg|jpeg|gif|ico|woff2?|ttf|eot|map|json|html)$/i.test(pathname)
-    ) {
-      pathname = '/api' + (pathname.startsWith('/') ? pathname : '/' + pathname);
-    }
-  }
-
   return pathname + (queryString ? '?' + queryString : '');
 }
+
+export function parseCookies(req: express.Request): Record<string, string> {
+  const list: Record<string, string> = {};
+  const rc = req.headers.cookie;
+  if (rc) {
+    rc.split(';').forEach((cookie) => {
+      const parts = cookie.split('=');
+      const name = parts.shift()?.trim();
+      if (name) {
+        list[name] = decodeURIComponent(parts.join('='));
+      }
+    });
+  }
+  return list;
+}
+
+export interface AuthSession {
+  email: string;
+  name: string;
+  role: 'USER' | 'ADMIN';
+  isAdmin: boolean;
+}
+
+export function getSessionFromRequest(req: express.Request): AuthSession | null {
+  // 1. Check outreachos_session cookie
+  const cookies = parseCookies(req);
+  const sessionToken = cookies['outreachos_session'];
+  if (sessionToken) {
+    try {
+      const decoded = JSON.parse(Buffer.from(sessionToken, 'base64').toString('utf-8'));
+      if (decoded && decoded.email && (!decoded.expiresAt || decoded.expiresAt > Date.now())) {
+        const isAdmin = isUserAdmin(decoded.email);
+        return {
+          email: decoded.email,
+          name: decoded.name || decoded.email.split('@')[0],
+          role: isAdmin ? 'ADMIN' : (decoded.role || 'USER'),
+          isAdmin,
+        };
+      }
+    } catch {}
+  }
+
+  // 2. Check header x-user-email or Authorization
+  const headerEmail = (req.headers['x-user-email'] as string)?.trim();
+  if (headerEmail) {
+    const isAdmin = isUserAdmin(headerEmail);
+    return {
+      email: headerEmail,
+      name: headerEmail.split('@')[0],
+      role: isAdmin ? 'ADMIN' : 'USER',
+      isAdmin,
+    };
+  }
+
+  return null;
+}
+
+export const PROTECTED_APP_PREFIXES = [
+  '/dashboard',
+  '/contacts',
+  '/campaigns',
+  '/compose',
+  '/scheduled',
+  '/sent',
+  '/responses',
+  '/follow-ups',
+  '/followups',
+  '/templates',
+  '/documents',
+  '/files',
+  '/settings',
+];
 
 export function createApp(): express.Application {
   const app = express();
@@ -145,6 +203,47 @@ export function createApp(): express.Application {
   // Middleware for parsing JSON with 25MB limit for attachments
   app.use(express.json({ limit: '25mb' }));
   app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+
+  // Protected frontend route redirect middleware (server-side route guard)
+  app.use((req, res, next) => {
+    if (req.method !== 'GET') return next();
+
+    const reqPath = (req.path || req.url || '').split('?')[0];
+
+    // Don't intercept API routes, dev bundles, or static assets
+    if (
+      reqPath.startsWith('/api') ||
+      reqPath.startsWith('/@') ||
+      reqPath.startsWith('/src') ||
+      reqPath.startsWith('/node_modules') ||
+      reqPath.startsWith('/assets') ||
+      /\.(tsx?|jsx?|css|svg|png|jpg|jpeg|gif|ico|woff2?|ttf|eot|map|json)$/i.test(reqPath)
+    ) {
+      return next();
+    }
+
+    const isProtected = PROTECTED_APP_PREFIXES.some(
+      (prefix) => reqPath === prefix || reqPath.startsWith(prefix + '/')
+    );
+
+    if (isProtected) {
+      const session = getSessionFromRequest(req);
+      if (!session) {
+        const redirectUrl = '/auth/login?redirect=' + encodeURIComponent(req.originalUrl || req.url);
+        return res.redirect(redirectUrl);
+      }
+    }
+
+    // If visiting /auth/login while already authenticated, redirect to /dashboard
+    if (reqPath === '/auth/login') {
+      const session = getSessionFromRequest(req);
+      if (session) {
+        return res.redirect('/dashboard');
+      }
+    }
+
+    next();
+  });
 
   // CORS and JSON Headers
   app.use((req, res, next) => {
@@ -275,6 +374,111 @@ export function createApp(): express.Application {
   apiRouter.get('/health', handleHealthCheck);
 
   // ================= AUTH & GMAIL INTEGRATION =================
+  // Application Session Check (Distinguishes Application Login from Gmail OAuth Connection)
+  const handleSessionCheck = (req: express.Request, res: express.Response) => {
+    const session = getSessionFromRequest(req);
+    const primary = db.get('gmail_accounts')?.[0];
+    const gmailConnected = Boolean(primary?.isConnected && primary?.accessToken && !(primary as any).needsReauth);
+
+    if (session) {
+      return res.status(200).json({
+        authenticated: true,
+        user: {
+          email: session.email,
+          name: session.name,
+          role: session.role,
+          isAdmin: session.isAdmin,
+        },
+        gmailConnected,
+        gmailEmail: primary?.email || null,
+      });
+    }
+
+    return res.status(200).json({
+      authenticated: false,
+      user: null,
+      gmailConnected: false,
+      gmailEmail: null,
+    });
+  };
+
+  // Application User Login (Supports standard Google Auth, Firebase session, and direct login)
+  const handleLogin = async (req: express.Request, res: express.Response) => {
+    try {
+      const { email, name, role } = req.body || {};
+      const safeEmail = (email || '').trim().toLowerCase();
+      if (!safeEmail || !safeEmail.includes('@')) {
+        return res.status(400).json({ success: false, error: 'Valid email address is required to sign in.' });
+      }
+
+      const safeName = (name || safeEmail.split('@')[0]).trim();
+      const isAdmin = isUserAdmin(safeEmail);
+      const userRole: 'USER' | 'ADMIN' = isAdmin ? 'ADMIN' : (role === 'ADMIN' ? 'ADMIN' : 'USER');
+
+      // Create session token payload valid for 30 days
+      const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      const sessionPayload = {
+        email: safeEmail,
+        name: safeName,
+        role: userRole,
+        expiresAt,
+      };
+      const sessionToken = Buffer.from(JSON.stringify(sessionPayload)).toString('base64');
+
+      // Update users collection in database
+      db.update('users', (users = []) => {
+        const existing = users.find((u) => u.email.toLowerCase() === safeEmail);
+        if (existing) {
+          return users.map((u) =>
+            u.email.toLowerCase() === safeEmail ? { ...u, name: safeName, role: userRole } : u
+          );
+        }
+        return [...users, { id: 'usr-' + Date.now(), email: safeEmail, name: safeName, role: userRole }];
+      });
+
+      db.logAudit('USER_LOGIN', `User signed in: ${safeEmail} (${userRole})`);
+      await db.flush();
+
+      // Set cookie (Path=/; Max-Age=30 days; SameSite=Lax)
+      res.setHeader(
+        'Set-Cookie',
+        `outreachos_session=${sessionToken}; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Lax; HttpOnly`
+      );
+
+      return res.status(200).json({
+        success: true,
+        user: {
+          email: safeEmail,
+          name: safeName,
+          role: userRole,
+          isAdmin,
+        },
+      });
+    } catch (err: any) {
+      console.error('Login error:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Login failed' });
+    }
+  };
+
+  // Application User Logout
+  const handleLogout = (req: express.Request, res: express.Response) => {
+    const session = getSessionFromRequest(req);
+    if (session) {
+      db.logAudit('USER_LOGOUT', `User signed out: ${session.email}`);
+    }
+    res.setHeader('Set-Cookie', 'outreachos_session=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly');
+    return res.status(200).json({ success: true, message: 'Signed out successfully' });
+  };
+
+  apiRouter.get('/auth/session', handleSessionCheck);
+  app.get('/auth/session', handleSessionCheck);
+
+  apiRouter.post('/auth/login', handleLogin);
+  app.post('/auth/login', handleLogin);
+
+  apiRouter.post('/auth/logout', handleLogout);
+  app.post('/auth/logout', handleLogout);
+
   apiRouter.get('/auth/status', (req, res) => {
     const gmailAccounts = db.get('gmail_accounts');
     const primary = gmailAccounts[0] || { isConnected: false };
@@ -1114,10 +1318,13 @@ export function createApp(): express.Application {
   const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
   function getAuthenticatedUserEmail(req: express.Request): string {
+    const session = getSessionFromRequest(req);
+    if (session?.email) return session.email.toLowerCase();
+    const headerEmail = (req.headers['x-user-email'] as string) || '';
+    if (headerEmail) return headerEmail.trim().toLowerCase();
     const gmailAccounts = db.get('gmail_accounts');
     const primary = gmailAccounts[0];
-    const headerEmail = (req.headers['x-user-email'] as string) || '';
-    return (headerEmail || primary?.email || 'default-user').trim().toLowerCase();
+    return (primary?.email || 'default-user').trim().toLowerCase();
   }
 
   // Get user's document list (clean, no raw binary)

@@ -27,6 +27,24 @@ provider.setCustomParameters({
   access_type: 'offline',
 });
 
+const basicProvider = new GoogleAuthProvider();
+basicProvider.setCustomParameters({
+  prompt: 'select_account',
+});
+
+export const signInWithGoogleBasic = async (): Promise<{
+  user: User;
+  email: string;
+  name: string;
+}> => {
+  const result = await signInWithPopup(auth, basicProvider);
+  return {
+    user: result.user,
+    email: result.user.email || '',
+    name: result.user.displayName || result.user.email?.split('@')[0] || 'User',
+  };
+};
+
 let cachedAccessToken: string | null = null;
 let isSigningIn = false;
 

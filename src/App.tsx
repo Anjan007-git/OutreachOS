@@ -22,9 +22,13 @@ import {
   CheckCircle2,
   Menu,
   X,
+  LogOut,
 } from 'lucide-react';
 
 import { Header } from './components/Header';
+import { LandingPage } from './components/LandingPage';
+import { LoginPage } from './components/LoginPage';
+import { useRouter } from './lib/router';
 import { DashboardView } from './components/DashboardView';
 import { ContactsView } from './components/ContactsView';
 import { CampaignsView } from './components/CampaignsView';
@@ -70,6 +74,48 @@ type NavPage =
   | 'files'
   | 'settings';
 
+function pathToNavPage(pathname: string): NavPage {
+  const p = pathname.toLowerCase().replace(/^\/+/, '').split('/')[0];
+  switch (p) {
+    case 'contacts':
+      return 'contacts';
+    case 'campaigns':
+      return 'campaigns';
+    case 'compose':
+      return 'compose';
+    case 'scheduled':
+      return 'scheduled';
+    case 'sent':
+      return 'sent';
+    case 'responses':
+      return 'responses';
+    case 'follow-ups':
+    case 'followups':
+      return 'followups';
+    case 'templates':
+      return 'templates';
+    case 'documents':
+    case 'files':
+      return 'files';
+    case 'settings':
+      return 'settings';
+    case 'dashboard':
+    default:
+      return 'dashboard';
+  }
+}
+
+function navPageToPath(page: NavPage): string {
+  switch (page) {
+    case 'followups':
+      return '/follow-ups';
+    case 'files':
+      return '/documents';
+    default:
+      return `/${page}`;
+  }
+}
+
 const DEFAULT_USER_SETTINGS: UserSettings = {
   profile: {
     name: 'Anjan Prajapati',
@@ -112,9 +158,83 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
 };
 
 export default function App() {
+  const router = useRouter();
+
   // Navigation
-  const [currentPage, setCurrentPage] = useState<NavPage>('dashboard');
+  const [currentPage, setCurrentPage] = useState<NavPage>(() => pathToNavPage(router.path));
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  // Application session state (distinct from Gmail OAuth)
+  const [session, setSession] = useState<{
+    isAuthenticated: boolean;
+    user: { email: string; name: string; role: 'USER' | 'ADMIN'; isAdmin: boolean } | null;
+    isLoading: boolean;
+  }>({
+    isAuthenticated: false,
+    user: null,
+    isLoading: true,
+  });
+
+  const checkSession = useCallback(async () => {
+    try {
+      const data = await api.getSession();
+      setSession({
+        isAuthenticated: Boolean(data?.authenticated),
+        user: data?.user || null,
+        isLoading: false,
+      });
+      return data?.authenticated;
+    } catch {
+      setSession({
+        isAuthenticated: false,
+        user: null,
+        isLoading: false,
+      });
+      return false;
+    }
+  }, []);
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
+
+  // Synchronize router path to currentPage on load or path changes
+  useEffect(() => {
+    if (!router.isPublic) {
+      const pageFromPath = pathToNavPage(router.path);
+      setCurrentPage(pageFromPath);
+    }
+  }, [router.path, router.isPublic]);
+
+  // Route protection guard
+  useEffect(() => {
+    if (session.isLoading) return;
+
+    if (!router.isPublic && !session.isAuthenticated) {
+      // User is attempting to view a protected page while unauthenticated
+      router.replace('/auth/login?redirect=' + encodeURIComponent(router.path));
+    } else if (router.path === '/auth/login' && session.isAuthenticated) {
+      // User is on login page while already authenticated
+      const target = router.query.redirect || '/dashboard';
+      router.replace(target);
+    }
+  }, [session.isLoading, session.isAuthenticated, router.path, router.isPublic, router.query]);
+
+  const navigateToPage = (page: NavPage) => {
+    setCurrentPage(page);
+    router.navigate(navPageToPath(page));
+  };
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+      setSession({ isAuthenticated: false, user: null, isLoading: false });
+      showToast('info', 'Signed out of OutreachOS');
+      router.navigate('/auth/login');
+    } catch (err: any) {
+      showToast('error', `Sign out failed: ${err.message}`);
+    }
+  };
 
   // App Data State
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -169,6 +289,10 @@ export default function App() {
 
   // Data loader
   const loadAppData = useCallback(async () => {
+    if (!session.isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
     try {
       const [
         authStatus,
@@ -267,6 +391,8 @@ export default function App() {
 
   // Initial load and periodic refresh
   useEffect(() => {
+    if (!session.isAuthenticated) return;
+
     loadAppData();
     const unsubscribeAuth = initAuth(
       () => {
@@ -283,7 +409,7 @@ export default function App() {
       unsubscribeAuth();
       clearInterval(interval);
     };
-  }, [loadAppData]);
+  }, [session.isAuthenticated, loadAppData]);
 
   // Handle Google OAuth
   const handleConnectGmail = async () => {
@@ -334,19 +460,19 @@ export default function App() {
   const handleNavigateToComposeWithContact = (contact: Contact) => {
     setComposeContact(contact);
     setComposeCampaign(null);
-    setCurrentPage('compose');
+    navigateToPage('compose');
   };
 
   const handleNavigateToComposeWithCampaign = (campaign: Campaign) => {
     setComposeCampaign(campaign);
     setComposeContact(null);
-    setCurrentPage('compose');
+    navigateToPage('compose');
   };
 
   const handleNavigateToComposeWithTemplate = (template: Template) => {
     setComposeContact(null);
     setComposeCampaign(null);
-    setCurrentPage('compose');
+    navigateToPage('compose');
   };
 
   const pageTitles: Record<NavPage, string> = {
@@ -392,6 +518,61 @@ export default function App() {
     { id: 'files', label: 'Documents', icon: FolderOpen, badge: files?.length || 0 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
+
+  // Public Route Rendering: Homepage (Landing Page)
+  if (router.path === '/') {
+    return (
+      <LandingPage
+        isAuthenticated={session.isAuthenticated}
+        user={session.user}
+        onNavigateLogin={() => router.navigate('/auth/login')}
+        onNavigateDashboard={() => router.navigate('/dashboard')}
+      />
+    );
+  }
+
+  // Public Route Rendering: Login Screen
+  if (router.path === '/auth/login') {
+    return (
+      <LoginPage
+        onLoginSuccess={(userData) => {
+          setSession({ isAuthenticated: true, user: userData as any, isLoading: false });
+          const target = router.query.redirect || '/dashboard';
+          router.navigate(target);
+        }}
+        onNavigateHome={() => router.navigate('/')}
+        redirectPath={router.query.redirect || '/dashboard'}
+      />
+    );
+  }
+
+  // OAuth Callback Route
+  if (router.path === '/auth/callback') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center mb-3">
+          O
+        </div>
+        <p className="text-sm font-semibold text-slate-700">Connecting to OutreachOS workspace...</p>
+      </div>
+    );
+  }
+
+  // Protected Route State Guards
+  if (session.isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center mb-3 animate-pulse">
+          O
+        </div>
+        <p className="text-xs font-semibold text-slate-500">Loading OutreachOS workspace...</p>
+      </div>
+    );
+  }
+
+  if (!session.isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans overflow-hidden antialiased selection:bg-indigo-100 selection:text-indigo-900">
@@ -462,7 +643,7 @@ export default function App() {
                 key={item.id}
                 id={`nav-item-${item.id}`}
                 onClick={() => {
-                  setCurrentPage(item.id);
+                  navigateToPage(item.id);
                   setIsMobileNavOpen(false);
                 }}
                 className={`w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
@@ -512,7 +693,7 @@ export default function App() {
             <button
               onClick={() => {
                 if (gmailStatus.isConnected && !gmailStatus.needsReauth) {
-                  setCurrentPage('settings');
+                  navigateToPage('settings');
                 } else {
                   handleConnectGmail();
                 }
@@ -529,6 +710,23 @@ export default function App() {
                 ? 'Manage Settings'
                 : 'Connect Account'}
             </button>
+
+            {/* OutreachOS Session info & Sign Out */}
+            {session.user && (
+              <div className="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                <div className="truncate mr-2 min-w-0">
+                  <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">OutreachOS User</div>
+                  <div className="font-semibold text-slate-700 truncate">{session.user.email}</div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  title="Sign out of OutreachOS"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors shrink-0"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </aside>
@@ -551,7 +749,9 @@ export default function App() {
           isSyncing={isSyncing}
           currentPageTitle={pageTitles[currentPage] || 'Performance Dashboard'}
           onToggleMobileNav={() => setIsMobileNavOpen(!isMobileNavOpen)}
-          onOpenSettings={() => setCurrentPage('settings')}
+          onOpenSettings={() => navigateToPage('settings')}
+          onLogout={handleLogout}
+          userSession={session.user}
         />
 
         {/* Re-auth Warning Banner */}
@@ -585,7 +785,7 @@ export default function App() {
               {currentPage === 'dashboard' && (
                 <DashboardView
                   stats={stats}
-                  onNavigate={(page) => setCurrentPage(page as NavPage)}
+                  onNavigate={(page) => navigateToPage(page as NavPage)}
                   onSyncReplies={handleSyncReplies}
                   isSyncing={isSyncing}
                   recentResponses={responses}
@@ -748,7 +948,7 @@ export default function App() {
                       }
                     );
                     setComposeCampaign(campaigns.find((c) => c.id === sent.campaignId) || null);
-                    setCurrentPage('compose');
+                    navigateToPage('compose');
                   }}
                   onSendAgain={async (sent) => {
                     await api.sendNow({
@@ -796,7 +996,7 @@ export default function App() {
                       country: 'United States',
                     });
                     setComposeCampaign(campaigns.find((c) => c.id === incoming.campaignId) || null);
-                    setCurrentPage('compose');
+                    navigateToPage('compose');
                   }}
                   isSyncing={isSyncing}
                 />
@@ -877,7 +1077,7 @@ export default function App() {
                         },
                       ],
                     });
-                    setCurrentPage('compose');
+                    navigateToPage('compose');
                   }}
                 />
               )}
@@ -911,7 +1111,7 @@ export default function App() {
       <AiAssistantDrawer
         onNavigateToComposeWithDraft={(draft) => {
           setAiDraft(draft);
-          setCurrentPage('compose');
+          navigateToPage('compose');
         }}
       />
     </div>

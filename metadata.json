@@ -1,6 +1,6 @@
 {
   "name": "OutreachOS",
-  "description": "Personal email outreach and automation platform with Gmail integration, contact management, campaign scheduling, and Gemini AI assistance.",
+  "description": "AI-Powered Professional Outreach, Gmail Automation, Smart Scheduling, and Follow-Up Operating System.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

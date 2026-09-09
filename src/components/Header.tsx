@@ -25,6 +25,8 @@ interface HeaderProps {
   currentPageTitle?: string;
   onToggleMobileNav?: () => void;
   onOpenSettings?: () => void;
+  onLogout?: () => void;
+  userSession?: { email: string; name: string } | null;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -43,6 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
   currentPageTitle = 'Performance Dashboard',
   onToggleMobileNav,
   onOpenSettings,
+  onLogout,
+  userSession,
 }) => {
   const [showNotifs, setShowNotifs] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -245,9 +249,15 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs mb-5">
+              {userSession && (
+                <div className="flex justify-between pb-2 border-b border-slate-200">
+                  <span className="text-slate-500">OutreachOS Session:</span>
+                  <span className="font-semibold text-indigo-700">{userSession.email}</span>
+                </div>
+              )}
               <div className="flex justify-between">
-                <span className="text-slate-500">Connected Account:</span>
-                <span className="font-semibold text-slate-800">{gmailStatus.email}</span>
+                <span className="text-slate-500">Gmail Sending Account:</span>
+                <span className="font-semibold text-slate-800">{gmailStatus.email || 'Not connected'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Active Permissions:</span>
@@ -263,22 +273,37 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowAuthModal(false)}
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 cursor-pointer"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  onDisconnectGmail();
-                  setShowAuthModal(false);
-                }}
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 cursor-pointer"
-              >
-                Disconnect Gmail
-              </button>
+            <div className="flex justify-between items-center">
+              {onLogout ? (
+                <button
+                  onClick={() => {
+                    setShowAuthModal(false);
+                    onLogout();
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+                >
+                  Sign Out of App
+                </button>
+              ) : <div />}
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setShowAuthModal(false)}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+                >
+                  Close
+                </button>
+                {gmailStatus.isConnected && (
+                  <button
+                    onClick={() => {
+                      onDisconnectGmail();
+                      setShowAuthModal(false);
+                    }}
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 cursor-pointer"
+                  >
+                    Disconnect Gmail
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
