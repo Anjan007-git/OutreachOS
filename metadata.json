@@ -1,6 +1,6 @@
 {
   "name": "OutreachOS",
-  "description": "AI-Powered Professional Outreach, Gmail Automation, Smart Scheduling, and Follow-Up Operating System.",
+  "description": "Create personalized outreach, send through Gmail, schedule campaigns, automate follow-ups, and manage every response from one intelligent workspace.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
