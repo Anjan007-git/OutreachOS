@@ -12,7 +12,7 @@ export const Footer: React.FC<FooterProps> = ({
   onNavigateLogin,
   onNavigateDashboard,
 }) => {
-  // Official configuration placeholders for social & creator links
+  // Configurable URLs (generic/placeholder until officially configured)
   const githubUrl = 'https://github.com';
   const linkedinUrl = 'https://linkedin.com';
   const contactEmail = 'contact@outreachos.com';
@@ -51,31 +51,37 @@ export const Footer: React.FC<FooterProps> = ({
 
             {/* Social / Creator Row */}
             <div className="pt-2 flex items-center gap-3">
-              <a
-                href={githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub Repository"
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors"
-              >
-                <Github className="w-4 h-4" />
-              </a>
-              <a
-                href={linkedinUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn Profile"
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors"
-              >
-                <Linkedin className="w-4 h-4" />
-              </a>
-              <a
-                href={`mailto:${contactEmail}`}
-                aria-label="Contact via Gmail"
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors"
-              >
-                <Mail className="w-4 h-4" />
-              </a>
+              {githubUrl && (
+                <a
+                  href={githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub Repository"
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <Github className="w-4 h-4" />
+                </a>
+              )}
+              {linkedinUrl && (
+                <a
+                  href={linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn Profile"
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+              )}
+              {contactEmail && (
+                <a
+                  href={`mailto:${contactEmail}`}
+                  aria-label="Contact via Email"
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <Mail className="w-4 h-4" />
+                </a>
+              )}
             </div>
           </div>
 
@@ -139,19 +145,10 @@ export const Footer: React.FC<FooterProps> = ({
                   Documents
                 </a>
               </li>
-              <li>
-                <a
-                  href="#features"
-                  onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 transition-colors"
-                >
-                  Responses
-                </a>
-              </li>
             </ul>
           </div>
 
-          {/* Resources Links (Span 2) */}
+          {/* Resources (Span 2) */}
           <div className="col-span-1 md:col-span-2 space-y-3">
             <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               Resources
@@ -168,20 +165,11 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <a
-                  href="#ai-assistant"
-                  onClick={(e) => scrollToSection(e, 'ai-assistant')}
-                  className="hover:text-indigo-600 transition-colors"
-                >
-                  OutreachOS AI
-                </a>
-              </li>
-              <li>
-                <a
                   href="#security"
                   onClick={(e) => scrollToSection(e, 'security')}
                   className="hover:text-indigo-600 transition-colors"
                 >
-                  Security
+                  Security Architecture
                 </a>
               </li>
               <li>
@@ -193,36 +181,45 @@ export const Footer: React.FC<FooterProps> = ({
                   Use Cases
                 </a>
               </li>
+              <li>
+                <a
+                  href="#ai-assistant"
+                  onClick={(e) => scrollToSection(e, 'ai-assistant')}
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  OutreachOS AI
+                </a>
+              </li>
             </ul>
           </div>
 
-          {/* Company Links (Span 2) */}
+          {/* Company (Span 2) */}
           <div className="col-span-1 md:col-span-2 space-y-3">
             <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               Company
             </div>
             <ul className="space-y-2">
               <li>
+                <span className="text-slate-400">About OutreachOS</span>
+              </li>
+              <li>
+                <span className="text-slate-400">Privacy Policy</span>
+              </li>
+              <li>
+                <span className="text-slate-400">Terms of Service</span>
+              </li>
+              <li>
                 <a
                   href={`mailto:${contactEmail}`}
                   className="hover:text-indigo-600 transition-colors"
                 >
-                  Contact
+                  Support
                 </a>
-              </li>
-              <li>
-                <span className="text-slate-400 cursor-default">About</span>
-              </li>
-              <li>
-                <span className="text-slate-400 cursor-default">Privacy Policy</span>
-              </li>
-              <li>
-                <span className="text-slate-400 cursor-default">Terms of Service</span>
               </li>
             </ul>
           </div>
 
-          {/* Account Links (Span 2) */}
+          {/* Account / Action Column (Span 2) */}
           <div className="col-span-1 md:col-span-2 space-y-3">
             <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               Account
@@ -233,17 +230,17 @@ export const Footer: React.FC<FooterProps> = ({
                   <li>
                     <button
                       onClick={onNavigateDashboard}
-                      className="hover:text-indigo-600 transition-colors cursor-pointer text-left"
+                      className="hover:text-indigo-600 transition-colors cursor-pointer text-left font-semibold text-indigo-600"
                     >
-                      Dashboard
+                      Open Dashboard
                     </button>
                   </li>
                   <li>
                     <button
                       onClick={onNavigateDashboard}
-                      className="hover:text-indigo-600 transition-colors cursor-pointer text-left"
+                      className="hover:text-indigo-600 transition-colors cursor-pointer text-left text-slate-500"
                     >
-                      Settings
+                      Workspace Settings
                     </button>
                   </li>
                 </>
@@ -281,9 +278,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Required Exact Developer & Powered By Credit */}
           <div className="text-slate-600 font-medium flex items-center gap-1.5">
-            <span>Developed by Anjan</span>
-            <span className="text-slate-400">•</span>
-            <span>Powered by TRIFECTA TRENDS</span>
+            <span>Developed by Anjan • Powered by TRIFECTA TRENDS</span>
           </div>
         </div>
       </div>

@@ -1,5 +1,13 @@
 import React from 'react';
-import { Mail, Users, Sparkles, Send, MessageSquareText } from 'lucide-react';
+import {
+  Mail,
+  Users,
+  Sparkles,
+  FileText,
+  Send,
+  Inbox,
+  Repeat,
+} from 'lucide-react';
 
 export const WorkflowTimeline: React.FC = () => {
   const steps = [
@@ -7,7 +15,7 @@ export const WorkflowTimeline: React.FC = () => {
       num: '01',
       icon: Mail,
       title: 'Connect Gmail',
-      description: 'Authorize your Google Workspace mailbox directly with official OAuth 2.0 in one click.',
+      description: 'Authorize your Google Workspace mailbox directly with official OAuth 2.0 in seconds.',
     },
     {
       num: '02',
@@ -19,19 +27,31 @@ export const WorkflowTimeline: React.FC = () => {
       num: '03',
       icon: Sparkles,
       title: 'Personalize with AI',
-      description: 'Generate authentic, context-grounded outreach drafts without generic mass templates.',
+      description: 'Generate authentic, context-grounded outreach drafts without generic templates.',
     },
     {
       num: '04',
-      icon: Send,
-      title: 'Send or Schedule',
-      description: 'Dispatch immediately or queue delivery across recipient business hours with rate limits.',
+      icon: FileText,
+      title: 'Attach Documents',
+      description: 'Link your default resume or portfolio from your secure private document vault.',
     },
     {
       num: '05',
-      icon: MessageSquareText,
+      icon: Send,
+      title: 'Send or Schedule',
+      description: 'Dispatch immediately or queue delivery across recipient business hours with safety rate limits.',
+    },
+    {
+      num: '06',
+      icon: Inbox,
       title: 'Track Replies',
-      description: 'Automatically detect incoming responses, categorize intent, and prepare follow-up notes.',
+      description: 'Automatically monitor incoming responses, categorize sentiment, and alert you.',
+    },
+    {
+      num: '07',
+      icon: Repeat,
+      title: 'Follow Up',
+      description: 'Trigger automated, multi-stage follow-ups that automatically cancel once a reply is detected.',
     },
   ];
 
@@ -47,50 +67,45 @@ export const WorkflowTimeline: React.FC = () => {
             From Contact to Conversation.
           </h2>
           <p className="text-base text-slate-600 leading-relaxed">
-            A linear, dependable five-step operational pipeline that removes busywork and maximizes response quality.
+            A linear, dependable seven-step operational pipeline that removes busywork and maximizes response quality.
           </p>
         </div>
 
-        {/* Timeline Desktop Horizontal / Mobile Vertical */}
-        <div className="relative">
-          {/* Subtle Connecting Line on Desktop */}
-          <div className="hidden lg:block absolute top-14 left-10 right-10 h-0.5 bg-slate-200 -z-0" />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 relative z-10">
-            {steps.map((step, idx) => {
-              const Icon = step.icon;
-              return (
-                <div
-                  key={idx}
-                  className="rounded-2xl bg-white border border-slate-200/90 p-5 shadow-2xs hover:border-indigo-300 hover:shadow-xs transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    {/* Number Badge & Icon */}
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                        {step.num}
-                      </span>
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
-                        <Icon className="w-4 h-4 text-indigo-600" />
-                      </div>
+        {/* 7-Step Grid Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {steps.map((step, idx) => {
+            const Icon = step.icon;
+            return (
+              <div
+                key={idx}
+                className="rounded-2xl bg-white border border-slate-200/90 p-5 shadow-2xs hover:border-indigo-300 hover:shadow-xs transition-all flex flex-col justify-between"
+              >
+                <div>
+                  {/* Number Badge & Icon */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                      {step.num}
+                    </span>
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-indigo-600" />
                     </div>
-
-                    <h3 className="text-sm font-bold text-slate-900 mb-2">
-                      {step.title}
-                    </h3>
-
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      {step.description}
-                    </p>
                   </div>
 
-                  <div className="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-slate-400">
-                    Step {step.num} of 05
-                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 mb-2">
+                    {step.title}
+                  </h3>
+
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    {step.description}
+                  </p>
                 </div>
-              );
-            })}
-          </div>
+
+                <div className="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-slate-400">
+                  Step {step.num} of 07
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -6,11 +6,8 @@ import {
   Clock,
   CheckCircle2,
   Lock,
-  Calendar,
   FileText,
-  Sliders,
   ShieldCheck,
-  ChevronDown,
   Mail,
 } from 'lucide-react';
 
@@ -49,7 +46,7 @@ export const HeroProductVisual: React.FC = () => {
         {/* Application Interior Workspace */}
         <div className="p-4 sm:p-6 lg:p-8 bg-slate-50/50">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left 8 Cols: Realistic Message Composer */}
+            {/* Left 8 Cols: Realistic Generic Message Composer */}
             <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-4">
               {/* Header Bar inside composer */}
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -76,12 +73,12 @@ export const HeroProductVisual: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs items-center">
                 <label className="sm:col-span-2 font-semibold text-slate-500">Recipient:</label>
                 <div className="sm:col-span-10 flex flex-wrap items-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-200/80">
-                  <span className="font-semibold text-slate-900">Sarah Lin</span>
+                  <span className="font-semibold text-slate-900">Professional Contact</span>
                   <span className="text-slate-400 font-mono text-[11px]">
-                    &lt;s.lin@cloudscale-tech.com&gt;
+                    &lt;contact@example.com&gt;
                   </span>
                   <span className="ml-auto text-[10px] font-medium px-2 py-0.5 rounded-md bg-indigo-100/70 text-indigo-800 border border-indigo-200/60">
-                    Staff Engineering Manager • CloudScale
+                    Engineering Leadership • Target Organization
                   </span>
                 </div>
               </div>
@@ -90,33 +87,29 @@ export const HeroProductVisual: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs items-center">
                 <label className="sm:col-span-2 font-semibold text-slate-500">Subject:</label>
                 <div className="sm:col-span-10 p-2 rounded-lg bg-slate-50 border border-slate-200/80 font-medium text-slate-800 text-xs">
-                  Staff Systems Engineer role at CloudScale — Anjan Prajapati
+                  Personalized Outreach — Engineering Role
                 </div>
               </div>
 
               {/* Realistic Email Body with Grounded Tokens */}
               <div className="rounded-lg bg-white border border-slate-200/80 p-4 text-xs font-sans text-slate-700 leading-relaxed space-y-3">
-                <p>Hi Sarah,</p>
+                <p>Hi [Contact Name],</p>
                 <p>
-                  I’ve been closely following CloudScale’s recent technical updates on scaling
-                  distributed telemetry across multi-region Kubernetes clusters.
+                  I’ve been following <span className="font-medium text-slate-900">[Target Organization]</span>’s recent initiatives in distributed systems and infrastructure scaling.
                 </p>
                 <p>
-                  With 6+ years architecting high-throughput backend services, resilient queuing
-                  pipelines, and cloud infrastructure, I would love to explore how my experience aligns
-                  with your{' '}
+                  With experience designing resilient backend services and high-throughput data pipelines, I would love to explore how my background aligns with the{' '}
                   <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200/60">
-                    Staff Systems Engineer
+                    Engineering Role
                   </span>{' '}
                   opening.
                 </p>
                 <p>
-                  I’ve attached my verified resume below for quick reference. Would you have 10 minutes
-                  this Thursday or Friday for an introductory conversation?
+                  I’ve attached my resume below for quick review. Would you be open to a brief introductory conversation this week?
                 </p>
                 <div className="pt-2 text-slate-900 font-medium">
                   Best regards,<br />
-                  <span className="font-semibold">Anjan Prajapati</span>
+                  <span className="font-semibold text-slate-800">[Your Name]</span>
                 </div>
               </div>
 
@@ -128,10 +121,10 @@ export const HeroProductVisual: React.FC = () => {
                   </div>
                   <div>
                     <span className="font-semibold text-slate-800">
-                      Anjan_Prajapati_Resume.pdf
+                      Your Resume.pdf
                     </span>
                     <span className="text-[10px] text-slate-400 block">
-                      248 KB • Verified Private Blob
+                      248 KB • Private Document
                     </span>
                   </div>
                 </div>
@@ -174,17 +167,17 @@ export const HeroProductVisual: React.FC = () => {
                 </div>
                 <div className="space-y-2 text-xs">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold">Company</span>
-                    <div className="font-semibold text-slate-800">CloudScale Technologies</div>
+                    <span className="text-[10px] text-slate-400 uppercase font-semibold">Organization</span>
+                    <div className="font-semibold text-slate-800">Target Organization</div>
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-semibold">Role Opening</span>
-                    <div className="font-semibold text-slate-800">Staff Systems Engineer</div>
+                    <div className="font-semibold text-slate-800">Engineering Role</div>
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-semibold">Matched Angle</span>
                     <div className="text-slate-600 text-[11px] leading-snug">
-                      Distributed microservices, Kubernetes telemetry, high-availability architecture.
+                      Relevant technical experience, domain background, and organizational context.
                     </div>
                   </div>
                 </div>
@@ -239,7 +232,7 @@ export const HeroProductVisual: React.FC = () => {
 
       <div className="hidden md:flex absolute -top-4 right-12 items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-md text-xs font-semibold text-slate-800 animate-in fade-in">
         <Sparkles className="w-4 h-4 text-indigo-600" />
-        <span>Gemini Model Grounded • Contextual Hooks</span>
+        <span>AI Model Grounded • Contextual Hooks</span>
       </div>
     </section>
   );

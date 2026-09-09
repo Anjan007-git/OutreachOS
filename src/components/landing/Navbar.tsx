@@ -3,14 +3,12 @@ import { ArrowRight, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   isAuthenticated: boolean;
-  user?: { email: string; name: string } | null;
   onNavigateLogin: () => void;
   onNavigateDashboard: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   isAuthenticated,
-  user,
   onNavigateLogin,
   onNavigateDashboard,
 }) => {

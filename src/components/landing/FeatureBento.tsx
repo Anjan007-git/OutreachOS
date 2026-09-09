@@ -8,341 +8,419 @@ import {
   Repeat,
   Layers,
   Bot,
-  CheckCircle2,
-  ShieldCheck,
-  Send,
-  Calendar,
   ChevronRight,
-  TrendingUp,
+  ShieldCheck,
+  Calendar,
+  CheckCircle2,
+  Check,
+  ArrowRight,
+  Inbox,
+  Users,
 } from 'lucide-react';
 
 export const FeatureBento: React.FC = () => {
+  const workflowSteps = [
+    { label: 'Contacts', icon: Users },
+    { label: 'Campaigns', icon: Layers },
+    { label: 'AI Personalization', icon: Sparkles },
+    { label: 'Documents', icon: FileText },
+    { label: 'Schedule', icon: Clock },
+    { label: 'Gmail', icon: Mail },
+    { label: 'Replies', icon: Inbox },
+    { label: 'Follow-ups', icon: Repeat },
+  ];
+
   return (
-    <section id="features" className="py-20 sm:py-28 bg-slate-50/70 border-t border-slate-200/80">
+    <section id="features" className="py-20 sm:py-28 bg-slate-50/60 border-t border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12">
           <span className="text-xs uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60 mb-4 inline-block">
-            System Capabilities
+            Unified Outreach Architecture
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight mb-4">
-            Everything You Need to Run Professional Outreach.
+            One Workspace for the Entire Outreach Workflow.
           </h2>
           <p className="text-base text-slate-600 leading-relaxed">
-            Eight coordinated modules engineered to turn cold outbound attempts into authentic, high-impact career and business dialogues.
+            From contact research to scheduled Gmail dispatch and automated follow-ups, every stage is unified in one coherent system.
           </p>
         </div>
 
-        {/* Bento Grid */}
+        {/* Sophisticated Workflow Linear Ribbon */}
+        <div className="mb-14 overflow-x-auto pb-3">
+          <div className="flex items-center justify-between min-w-[760px] p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+            {workflowSteps.map((step, idx) => {
+              const Icon = step.icon;
+              return (
+                <React.Fragment key={idx}>
+                  <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs font-semibold text-slate-700">
+                    <div className="p-1 rounded-md bg-indigo-50 text-indigo-600">
+                      <Icon className="w-3.5 h-3.5" />
+                    </div>
+                    <span>{step.label}</span>
+                  </div>
+                  {idx < workflowSteps.length - 1 && (
+                    <div className="text-slate-300 px-1">
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bento Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* FEATURE 1: AI Personalization (Large Card: 2 Cols on lg) */}
-          <div className="lg:col-span-2 rounded-2xl bg-white border border-slate-200 p-6 sm:p-8 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
+          {/* 1. LARGE CARD: AI-Powered Personalization (Span 2 on lg) */}
+          <div className="lg:col-span-2 rounded-2xl bg-white border border-slate-200/90 p-6 sm:p-8 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 w-fit">
                   <Sparkles className="w-5 h-5" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">
-                    Contextual AI Personalization
-                  </h3>
-                  <span className="text-xs text-slate-500">
-                    Grounded in real recipient research and specific background context
-                  </span>
-                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
+                  Context Grounded
+                </span>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed mb-5">
-                OutreachOS drafts customized opening hooks and value propositions without hallucinating credentials or copying repetitive mass-market templates.
+
+              <h3 className="text-xl font-bold text-slate-900 mb-2">
+                AI-Powered Personalization
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
+                OutreachOS drafts tailored messages grounded directly in the recipient's role, organizational context, and your uploaded background without generic mass-market templates.
               </p>
 
-              {/* Realistic Email-Generation UI Preview */}
+              {/* Generic Email Composition Preview */}
               <div className="rounded-xl border border-slate-200/90 bg-slate-50/80 p-4 space-y-3 font-sans">
-                <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-200/70">
-                  <span className="font-semibold text-slate-700">AI Draft Preview</span>
-                  <span className="text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded font-mono font-medium">
-                    Model: Gemini 2.5 Grounded
+                <div className="flex items-center justify-between text-xs pb-2.5 border-b border-slate-200/70">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-800">Composition Preview</span>
+                    <span className="text-[10px] font-mono text-slate-500 bg-slate-200/70 px-1.5 py-0.5 rounded">
+                      Grounded Draft
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-indigo-600 font-mono font-medium">
+                    Status: Ready for Review
                   </span>
                 </div>
+
                 <div className="text-xs text-slate-700 leading-relaxed space-y-2">
-                  <p className="font-medium text-slate-900">
-                    Subject: Engineering Leadership opening at HyperScale — Anjan Prajapati
+                  <p className="font-semibold text-slate-900">
+                    Subject: Personalized Outreach — Target Role
                   </p>
-                  <p className="bg-white p-2.5 rounded-lg border border-slate-200/80 text-[11px] text-slate-600">
-                    "Hi David, I reviewed HyperScale’s recent open-source work on distributed transaction tracing.
-                    Given my background scaling real-time distributed pipelines handling 2M+ events/sec, I’d love to connect
-                    and share how similar systems were delivered at scale."
-                  </p>
+                  <div className="bg-white p-3 rounded-lg border border-slate-200/80 text-[11px] text-slate-600 leading-relaxed space-y-1.5">
+                    <p>
+                      "Hi [First Name], I reviewed [Target Organization]’s recent work in [Domain/Engineering].
+                      Given my experience in [Core Skill], I would welcome the opportunity to connect regarding the [Target Role] opening."
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
-              <span>Automatic angle recommendation based on job description</span>
+            <div className="pt-4 mt-6 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
+              <span>Automatic angle recommendation based on prospect context</span>
               <ChevronRight className="w-4 h-4" />
             </div>
           </div>
 
-          {/* FEATURE 2: Gmail Native (1 Col) */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
+          {/* 2. CARD: Smart Scheduling (1 Col) */}
+          <div className="rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
             <div>
-              <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 w-fit mb-4">
-                <Mail className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900 mb-1">
-                Gmail Native Dispatch
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Sends directly via Google Workspace OAuth 2.0 with valid SPF, DKIM, and DMARC alignment. No third-party relay markers.
-              </p>
-
-              {/* Status Visual */}
-              <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Delivery Mode</span>
-                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
-                    RFC 2822 Direct
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Connected Account</span>
-                  <span className="font-mono text-slate-700 text-[11px]">Primary Workspace</span>
-                </div>
-                <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold pt-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Inbox Deliverability Guard Active</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
-              Zero third-party SMTP server relays
-            </div>
-          </div>
-
-          {/* FEATURE 3: Smart Scheduling (1 Col) */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
-            <div>
-              <div className="p-2 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 w-fit mb-4">
+              <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 w-fit mb-4">
                 <Clock className="w-5 h-5" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1">
-                Smart Dispatch Queue
+                Smart Scheduling
               </h3>
-              <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Schedule outreach across recipient business hours with randomized inter-message jitter to protect account safety.
+              <p className="text-xs text-slate-600 leading-relaxed mb-5">
+                Stagger outreach delivery across recipient business hours with automated timezone detection and quota protections.
               </p>
 
-              {/* Timeline Visual */}
-              <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2 text-xs font-sans">
+              {/* Scheduling Visual */}
+              <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-3.5 space-y-2.5 text-xs">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-semibold text-slate-700">Dispatch Queue</span>
-                  <span className="text-indigo-600 font-mono">3 Pending</span>
+                  <span className="text-slate-500 font-medium">Optimal Window</span>
+                  <span className="font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                    09:15 AM Local
+                  </span>
                 </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between p-1.5 rounded bg-white border border-slate-200 text-[11px]">
-                    <span className="truncate font-medium text-slate-800">David Ross (VPE)</span>
-                    <span className="text-slate-400 font-mono shrink-0">09:15 AM</span>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200/70 text-slate-700 text-[11px]">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>Tuesday Morning Queue</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">
+                  <span>Randomized Jitter: 60–180s</span>
+                  <span className="text-emerald-600 font-medium">Safe Sending Active</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
+              Humanized delivery avoids spam filters
+            </div>
+          </div>
+
+          {/* 3. CARD: Gmail Integration (1 Col) */}
+          <div className="rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
+            <div>
+              <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 w-fit mb-4">
+                <Mail className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 mb-1">
+                Gmail Integration
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed mb-5">
+                Sends directly through authorized Google Workspace OAuth 2.0. Perfect SPF, DKIM, and DMARC alignment with zero third-party relays.
+              </p>
+
+              {/* Status Visual - Zero personal email displayed */}
+              <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-3.5 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-medium">OAuth Status</span>
+                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    Gmail Connected ✓
+                  </span>
+                </div>
+                <div className="p-2 rounded-lg bg-white border border-slate-200/70 text-[11px] text-slate-600 space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Transport:</span>
+                    <span className="font-mono text-slate-800">Gmail API v1</span>
                   </div>
-                  <div className="flex items-center justify-between p-1.5 rounded bg-white border border-slate-200 text-[11px]">
-                    <span className="truncate font-medium text-slate-800">Elena Chen (Director)</span>
-                    <span className="text-slate-400 font-mono shrink-0">09:42 AM</span>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Header:</span>
+                    <span className="font-mono text-emerald-600">RFC 2822 Native</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
-              Daily quota safeguards prevent spikes
+              Zero relay headers or marketing tags
             </div>
           </div>
 
-          {/* FEATURE 4: Private Document Vault (1 Col) */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
+          {/* 4. CARD: Private Documents (1 Col) */}
+          <div className="rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
             <div>
-              <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 w-fit mb-4">
+              <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 w-fit mb-4">
                 <FileText className="w-5 h-5" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1">
-                Private Document Vault
+                Private Documents
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Upload verified PDF/DOC files to a private Vercel Blob store. Attached server-side directly into Gmail messages.
+                Securely store resumes and portfolio PDFs in an encrypted private vault. Attached directly to outbound emails with one click.
               </p>
 
-              {/* Vault Document List */}
-              <div className="space-y-1.5">
+              {/* Generic Document List */}
+              <div className="space-y-1.5 text-xs">
                 {[
-                  { name: 'Anjan_Prajapati_Resume.pdf', tag: 'Default Resume', size: '248 KB' },
-                  { name: 'Cover_Letter_Engineering.pdf', tag: 'Cover Letter', size: '112 KB' },
-                  { name: 'Systems_Portfolio.pdf', tag: 'Private', size: '1.4 MB' },
-                ].map((doc, i) => (
+                  { name: 'Resume.pdf', tag: 'Default Resume', size: '248 KB' },
+                  { name: 'CV.pdf', tag: 'Academic', size: '185 KB' },
+                  { name: 'Portfolio.pdf', tag: 'Work Samples', size: '3.2 MB' },
+                ].map((doc, idx) => (
                   <div
-                    key={i}
-                    className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs"
+                    key={idx}
+                    className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200/70"
                   >
-                    <div className="flex items-center gap-1.5 truncate">
-                      <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                      <span className="truncate font-medium text-slate-800">{doc.name}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                      <span className="font-medium text-slate-800 truncate text-[11px]">
+                        {doc.name}
+                      </span>
                     </div>
-                    <span className="text-[10px] uppercase font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded shrink-0 border border-indigo-200/60">
-                      {doc.tag}
+                    <span className="text-[10px] text-slate-400 shrink-0">
+                      {doc.size}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
-              Zero public web URLs exposed
+            <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-emerald-700 font-medium">
+              <span className="flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                Private Blob Storage
+              </span>
             </div>
           </div>
 
-          {/* FEATURE 5: Response Intelligence (2 Cols on lg) */}
-          <div className="lg:col-span-2 rounded-2xl bg-white border border-slate-200 p-6 sm:p-8 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
+          {/* 5. CARD: Reply Intelligence (1 Col) */}
+          <div className="rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
-                  <MessageSquareText className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">
-                    Reply Intelligence & Categorization
-                  </h3>
-                  <span className="text-xs text-slate-500">
-                    Detect incoming responses in Gmail and classify sentiment instantly
-                  </span>
-                </div>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed mb-5">
-                Never lose a prospect in your inbox. OutreachOS continuously syncs incoming replies and categorizes them into actionable stages with suggested AI response drafts.
-              </p>
-
-              {/* Reply Classification Interface */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-emerald-900">INTERVIEW</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  </div>
-                  <p className="text-[11px] text-emerald-800 leading-snug">
-                    "We would love to set up a technical chat with our hiring team this Tuesday..."
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-200/80 text-xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-indigo-900">INTERESTED</span>
-                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                  </div>
-                  <p className="text-[11px] text-indigo-800 leading-snug">
-                    "Send over your project portfolio and compensation expectations."
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-100 border border-slate-200 text-xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-800">FOLLOW_UP</span>
-                    <span className="w-2 h-2 rounded-full bg-slate-400" />
-                  </div>
-                  <p className="text-[11px] text-slate-600 leading-snug">
-                    "Looping in our recruiter Sarah Lin for the upcoming headcount cycle."
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
-              <span>Automatic stop-on-reply protects you from awkward double-sends</span>
-              <ChevronRight className="w-4 h-4" />
-            </div>
-          </div>
-
-          {/* FEATURE 6: Automated Follow-Ups (1 Col) */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
-            <div>
-              <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 w-fit mb-4">
-                <Repeat className="w-5 h-5" />
+              <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 w-fit mb-4">
+                <MessageSquareText className="w-5 h-5" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1">
-                Automated Follow-Up Rules
+                Reply Intelligence
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Set non-intrusive follow-up sequences. If no reply is detected after 3–5 days, a gentle polite note is automatically staged.
+                Automatically monitors incoming replies, categorizes recipient sentiment, and drafts suggested follow-up responses.
               </p>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5 font-mono">
-                <div className="text-[11px] text-slate-500">Trigger Condition:</div>
-                <div className="text-slate-800 font-medium">IF days_since_sent &gt; 3 AND replies == 0</div>
-                <div className="text-indigo-600 text-[11px] font-semibold font-sans pt-1">
-                  → Auto-draft threaded follow-up
+              {/* Generic Categorization Visual */}
+              <div className="space-y-2 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold text-center">
+                    Positive / Interview
+                  </div>
+                  <div className="p-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-semibold text-center">
+                    Interested
+                  </div>
+                  <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold text-center">
+                    Follow-up
+                  </div>
+                  <div className="p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-semibold text-center">
+                    No Response
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600 leading-snug">
+                  "Let's schedule a call for next Tuesday to discuss."
                 </div>
               </div>
             </div>
 
             <div className="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
-              Halts immediately if the recipient responds
+              Instant AI reply drafts with conversation context
             </div>
           </div>
 
-          {/* FEATURE 7: Campaigns & Pipeline (1 Col) */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
+          {/* 6. CARD: Campaign Management (1 Col) */}
+          <div className="rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
             <div>
-              <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 w-fit mb-4">
+              <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 w-fit mb-4">
                 <Layers className="w-5 h-5" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1">
-                Targeted Outreach Campaigns
+                Campaign Management
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Group prospects into focused campaigns. Monitor delivery, open rates, and reply statuses with zero clutter.
+                Organize outreach initiatives into distinct campaigns with progress tracking from draft to response.
               </p>
 
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between items-center p-2 rounded bg-slate-50 border border-slate-200/80">
-                  <span className="font-semibold text-slate-800">Q3 Tier-1 Engineering</span>
-                  <span className="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-                    42% Replied
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-2 rounded bg-slate-50 border border-slate-200/80">
-                  <span className="font-semibold text-slate-800">Tech Founders & VCs</span>
-                  <span className="text-[11px] font-mono text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">
+              {/* Campaign Stages Progress */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="font-semibold text-slate-800">Q3 Outreach Cycle</span>
+                  <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold text-[10px]">
                     Active
                   </span>
                 </div>
-              </div>
-            </div>
-
-            <div className="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
-              Complete audit history on every contact
-            </div>
-          </div>
-
-          {/* FEATURE 8: OutreachOS AI Copilot (1 Col) */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
-            <div>
-              <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 w-fit mb-4">
-                <Bot className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900 mb-1">
-                Natural-Language Copilot
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Instruct the AI drawer in plain English to prepare messages, match resumes, or analyze job descriptions.
-              </p>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
-                <div className="text-[11px] font-semibold text-indigo-700">"Draft a note to Alex at Stripe"</div>
-                <div className="p-2 bg-white rounded border border-slate-200 text-[11px] text-slate-700 leading-snug">
-                  ✓ Found Alex Vance (Principal Eng)<br />
-                  ✓ Prepared personalized message<br />
-                  ✓ Ready for review in Compose
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex justify-between text-[11px] text-slate-500">
+                    <span>Drafted: 12</span>
+                    <span>Scheduled: 8</span>
+                    <span>Replied: 18</span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden flex">
+                    <div className="w-1/4 bg-slate-400" />
+                    <div className="w-1/4 bg-amber-400" />
+                    <div className="w-1/2 bg-emerald-500" />
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
-              Human-in-the-loop review always enforced
+              Track delivery and response across teams
+            </div>
+          </div>
+
+          {/* 7. CARD: Automated Follow-Ups (1 Col) */}
+          <div className="rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
+            <div>
+              <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 w-fit mb-4">
+                <Repeat className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 mb-1">
+                Automated Follow-Ups
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                Configure conditional sequences that automatically stop as soon as a recipient replies.
+              </p>
+
+              {/* Follow-Up Sequence Diagram */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                <div className="flex items-center justify-between text-[11px] font-medium text-slate-700">
+                  <span>Initial Outreach</span>
+                  <span className="text-emerald-600 font-semibold">Sent</span>
+                </div>
+                <div className="h-4 border-l-2 border-dashed border-slate-300 ml-2" />
+                <div className="flex items-center justify-between text-[11px] font-medium text-slate-700">
+                  <span>Follow-up 1 (+3 days)</span>
+                  <span className="text-indigo-600 font-semibold">Queued</span>
+                </div>
+                <div className="h-4 border-l-2 border-dashed border-slate-300 ml-2" />
+                <div className="flex items-center justify-between text-[11px] font-medium text-slate-400">
+                  <span>Follow-up 2 (+5 days)</span>
+                  <span>Conditional</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
+              Zero double-messaging when prospect replies
+            </div>
+          </div>
+
+          {/* 8. CARD: OutreachOS AI Copilot (Span 2 on lg) */}
+          <div className="lg:col-span-2 rounded-2xl bg-white border border-slate-200/90 p-6 sm:p-8 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 w-fit">
+                  <Bot className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
+                  Executive Copilot
+                </span>
+              </div>
+
+              <h3 className="text-xl font-bold text-slate-900 mb-2">
+                OutreachOS AI
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
+                Execute complex outreach workflows through natural language. Direct the assistant to find matching contacts, prepare personalized drafts, and stage them for review.
+              </p>
+
+              {/* Natural Language Command UI */}
+              <div className="rounded-xl border border-slate-200/90 bg-slate-50 p-4 space-y-3 font-sans text-xs">
+                <div className="flex items-start gap-2.5">
+                  <div className="px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[10px]">
+                    YOU
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-800 font-medium flex-1">
+                    "Prepare an outreach draft for the engineering opening at Target Org and attach my resume."
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <div className="p-1 rounded bg-indigo-100 text-indigo-700">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-700 flex-1 space-y-2">
+                    <p className="text-[11px]">
+                      "I located your selected resume (<span className="font-semibold text-slate-900">Resume.pdf</span>) and prepared a grounded outreach draft for your review."
+                    </p>
+                    <div className="flex gap-2 pt-1">
+                      <span className="px-2.5 py-1 rounded bg-indigo-50 text-indigo-700 font-semibold text-[10px] border border-indigo-200">
+                        Review in Compose
+                      </span>
+                      <span className="px-2.5 py-1 rounded bg-slate-100 text-slate-600 font-semibold text-[10px]">
+                        Schedule for Tomorrow
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 mt-6 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
+              <span>Always requires explicit user confirmation before sending</span>
+              <ChevronRight className="w-4 h-4" />
             </div>
           </div>
         </div>

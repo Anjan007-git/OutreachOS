@@ -17,14 +17,12 @@ import {
 
 interface LandingPageProps {
   isAuthenticated: boolean;
-  user?: { email: string; name: string } | null;
   onNavigateLogin: () => void;
   onNavigateDashboard: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   isAuthenticated,
-  user,
   onNavigateLogin,
   onNavigateDashboard,
 }) => {
@@ -48,7 +46,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 1. Navbar */}
       <Navbar
         isAuthenticated={isAuthenticated}
-        user={user}
         onNavigateLogin={onNavigateLogin}
         onNavigateDashboard={onNavigateDashboard}
       />

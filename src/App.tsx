@@ -524,7 +524,6 @@ export default function App() {
     return (
       <LandingPage
         isAuthenticated={session.isAuthenticated}
-        user={session.user}
         onNavigateLogin={() => router.navigate('/auth/login')}
         onNavigateDashboard={() => router.navigate('/dashboard')}
       />

@@ -28,9 +28,9 @@ export const Hero: React.FC<HeroProps> = ({
 
         {/* Major Headline */}
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.12] mb-6">
-          Your Outreach.{' '}
+          Turn Outreach Into a{' '}
           <span className="text-indigo-600 block sm:inline">
-            Engineered to Work.
+            System.
           </span>
         </h1>
 
@@ -58,19 +58,19 @@ export const Hero: React.FC<HeroProps> = ({
           </button>
         </div>
 
-        {/* Trust / Value Row (No fake statistics) */}
+        {/* Trust / Value Row (No fake statistics, grounded product truths) */}
         <div className="flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs text-slate-500 font-medium pt-2">
           <div className="flex items-center gap-1.5">
             <Check className="w-4 h-4 text-emerald-600" />
-            <span>Gmail API Authorized</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>Private Document Storage</span>
+            <span>Gmail API</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Check className="w-4 h-4 text-emerald-600" />
             <span>AI Personalization</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Check className="w-4 h-4 text-emerald-600" />
+            <span>Private Document Storage</span>
           </div>
         </div>
       </div>
