@@ -14,7 +14,7 @@ export const Footer: React.FC<FooterProps> = ({
 }) => {
   // Configurable URLs (generic/placeholder until officially configured)
   const githubUrl = 'https://github.com/Anjan007-git';
-  const linkedinUrl = 'https://linkedin.com/anjanprajapati';
+  const linkedinUrl = 'https://linkedin.com/in/anjanprajapati';
   const contactEmail = 'anjantrends@gmail.com';
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
