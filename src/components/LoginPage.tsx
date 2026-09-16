@@ -35,8 +35,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const { email, name } = await signInWithGoogleBasic();
-      const res = await api.login(email, name);
+      const { email, name, idToken, googleIdToken } = await signInWithGoogleBasic();
+      const res = await api.login(email, name, undefined, idToken, googleIdToken);
       if (res.success && res.user) {
         onLoginSuccess(res.user);
       } else {

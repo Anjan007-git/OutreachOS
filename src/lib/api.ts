@@ -16,13 +16,18 @@ import {
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   const controller = new AbortController();
-  const timeoutMs = 12000;
+  const timeoutMs = 15000;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  const storedToken = typeof window !== 'undefined' ? localStorage.getItem('outreachos_token') : null;
+  const authHeader = storedToken ? { Authorization: `Bearer ${storedToken}` } : {};
 
   try {
     const res = await fetch(url, {
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
         ...options?.headers,
       },
       signal: options?.signal || controller.signal,
@@ -48,6 +53,14 @@ export const api = {
   // Health Check
   getHealth: () => fetchJson<{ success: boolean; environment: string; database: string; version: string; timestamp: string }>('/api/health'),
 
+  // Auth Health Diagnostic
+  getAuthHealth: () =>
+    fetchJson<{
+      googleClientConfigured: boolean;
+      databaseConfigured: boolean;
+      sessionConfigured: boolean;
+    }>('/api/auth/health'),
+
   // Auth & Connection
   getSession: () =>
     fetchJson<{
@@ -57,16 +70,28 @@ export const api = {
       gmailEmail?: string | null;
     }>('/api/auth/session'),
 
-  login: (email: string, name?: string, role?: string) =>
-    fetchJson<{
+  login: async (email: string, name?: string, role?: string, idToken?: string, googleIdToken?: string) => {
+    const res = await fetchJson<{
       success: boolean;
       user: { email: string; name: string; role: 'USER' | 'ADMIN'; isAdmin: boolean };
+      sessionToken?: string;
     }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, name, role }),
-    }),
+      body: JSON.stringify({ email, name, role, idToken, googleIdToken }),
+    });
 
-  logout: () => fetchJson<{ success: boolean; message?: string }>('/api/auth/logout', { method: 'POST' }),
+    if (res && res.sessionToken && typeof window !== 'undefined') {
+      localStorage.setItem('outreachos_token', res.sessionToken);
+    }
+    return res;
+  },
+
+  logout: async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('outreachos_token');
+    }
+    return fetchJson<{ success: boolean; message?: string }>('/api/auth/logout', { method: 'POST' });
+  },
 
   getAuthStatus: () =>
     fetchJson<{

@@ -1,4 +1,4 @@
-import handler from './index.js';
+import handler from './index';
 
 export default function cronHandler(req: any, res: any) {
   if (req && (!req.url || req.url === '/' || req.url === '' || !req.url.startsWith('/api/cron'))) {

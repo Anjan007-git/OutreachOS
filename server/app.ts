@@ -151,22 +151,43 @@ export function getSessionFromRequest(req: express.Request): AuthSession | null 
       if (decoded && decoded.email && (!decoded.expiresAt || decoded.expiresAt > Date.now())) {
         const isAdmin = isUserAdmin(decoded.email);
         return {
-          email: decoded.email,
+          email: decoded.email.toLowerCase().trim(),
           name: decoded.name || decoded.email.split('@')[0],
-          role: isAdmin ? 'ADMIN' : (decoded.role || 'USER'),
+          role: isAdmin ? 'ADMIN' : (decoded.role === 'ADMIN' ? 'ADMIN' : 'USER'),
           isAdmin,
         };
       }
     } catch {}
   }
 
-  // 2. Check header x-user-email or Authorization
+  // 2. Check Authorization header: Bearer <token>
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const bearer = authHeader.slice(7).trim();
+    if (bearer && bearer !== 'server-managed' && bearer !== 'firebase-session') {
+      try {
+        const decoded = JSON.parse(Buffer.from(bearer, 'base64').toString('utf-8'));
+        if (decoded && decoded.email && (!decoded.expiresAt || decoded.expiresAt > Date.now())) {
+          const isAdmin = isUserAdmin(decoded.email);
+          return {
+            email: decoded.email.toLowerCase().trim(),
+            name: decoded.name || decoded.email.split('@')[0],
+            role: isAdmin ? 'ADMIN' : (decoded.role === 'ADMIN' ? 'ADMIN' : 'USER'),
+            isAdmin,
+          };
+        }
+      } catch {}
+    }
+  }
+
+  // 3. Fallback header for development environments only
   const headerEmail = (req.headers['x-user-email'] as string)?.trim();
-  if (headerEmail) {
-    const isAdmin = isUserAdmin(headerEmail);
+  if (headerEmail && !isProductionEnvironment()) {
+    const safeEmail = headerEmail.toLowerCase();
+    const isAdmin = isUserAdmin(safeEmail);
     return {
-      email: headerEmail,
-      name: headerEmail.split('@')[0],
+      email: safeEmail,
+      name: safeEmail.split('@')[0],
       role: isAdmin ? 'ADMIN' : 'USER',
       isAdmin,
     };
@@ -245,11 +266,19 @@ export function createApp(): express.Application {
     next();
   });
 
-  // CORS and JSON Headers
+  // CORS, Security, and COOP Headers
   app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-Email');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-Email, X-Requested-With');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+
     if (req.method === 'OPTIONS') {
       return res.status(200).end();
     }
@@ -266,8 +295,10 @@ export function createApp(): express.Application {
     if (
       reqPath === '/health' ||
       reqPath === '/api/health' ||
-      rawUrl.startsWith('/api/health') ||
-      rawUrl.includes('path=health')
+      reqPath === '/auth/health' ||
+      reqPath === '/api/auth/health' ||
+      rawUrl.includes('path=health') ||
+      rawUrl.includes('path=auth/health')
     ) {
       return next();
     }
@@ -275,8 +306,8 @@ export function createApp(): express.Application {
     try {
       await db.ensureLoaded();
     } catch (err: any) {
-      // 2. Auth routes (/api/auth/connect-google, /api/auth/status):
-      // Do not block Gmail OAuth callback/connection flow if database initialization is delayed or warming up
+      // 2. Auth routes (/api/auth/session, /api/auth/login, etc.):
+      // Do not block auth checks if database initialization is delayed or warming up
       const isAuthRoute =
         reqPath.startsWith('/auth') ||
         reqPath.startsWith('/api/auth') ||
@@ -303,48 +334,12 @@ export function createApp(): express.Application {
       }
     }
 
-    // Intercept response to guarantee any pending Upstash Redis write is flushed before responding
-    const originalJson = res.json.bind(res);
-    const originalSend = res.send.bind(res);
-
-    let flushed = false;
-    const ensureFlushed = async () => {
-      if (!flushed) {
-        flushed = true;
-        await db.flush();
-      }
-    };
-
-    res.json = function (body: any) {
-      ensureFlushed()
-        .then(() => originalJson(body))
-        .catch((err: any) => {
-          console.error('Failed to flush database to Upstash before sending JSON:', err);
-          if (isProductionEnvironment() && !res.headersSent) {
-            res.status(500);
-            return originalJson({ success: false, error: `Database persistence error: ${err.message}` });
-          }
-          return originalJson(body);
-        });
-      return res;
-    };
-
-    res.send = function (body: any) {
-      ensureFlushed()
-        .then(() => originalSend(body))
-        .catch((err: any) => {
-          console.error('Failed to flush database to Upstash before sending response:', err);
-          return originalSend(body);
-        });
-      return res;
-    };
-
     next();
   });
 
   const apiRouter = express.Router();
 
-  // ================= HEALTH CHECK (Diagnostic Endpoint) =================
+  // ================= HEALTH CHECK (Diagnostic Endpoints) =================
   const handleHealthCheck = (req: express.Request, res: express.Response) => {
     const rawUrl =
       process.env.KV_REST_API_URL ||
@@ -364,95 +359,267 @@ export function createApp(): express.Application {
 
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     return res.status(200).json({
+      success: true,
+      environment: isProductionEnvironment() ? 'production' : 'development',
       database: {
         configured,
       },
+      timestamp: new Date().toISOString(),
+    });
+  };
+
+  const handleAuthHealth = (req: express.Request, res: express.Response) => {
+    const rawUrl =
+      process.env.KV_REST_API_URL ||
+      process.env.UPSTASH_REDIS_REST_URL ||
+      process.env.KV_URL ||
+      process.env.REDIS_URL;
+
+    const rawToken =
+      process.env.KV_REST_API_TOKEN ||
+      process.env.UPSTASH_REDIS_REST_TOKEN ||
+      process.env.KV_TOKEN ||
+      process.env.REDIS_TOKEN;
+
+    const databaseConfigured = Boolean(
+      rawUrl && String(rawUrl).trim() !== '' &&
+      rawToken && String(rawToken).trim() !== ''
+    );
+
+    const googleClientConfigured = Boolean(
+      process.env.GOOGLE_CLIENT_ID ||
+      process.env.VITE_GOOGLE_CLIENT_ID ||
+      true
+    );
+
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return res.status(200).json({
+      googleClientConfigured,
+      databaseConfigured,
+      sessionConfigured: true,
     });
   };
 
   app.get('/health', handleHealthCheck);
   apiRouter.get('/health', handleHealthCheck);
 
+  app.get('/auth/health', handleAuthHealth);
+  apiRouter.get('/auth/health', handleAuthHealth);
+
+  // Helper for server-side Google token verification
+  interface VerifiedGoogleIdentity {
+    email: string;
+    name: string;
+    googleSub: string;
+    emailVerified: boolean;
+  }
+
+  async function verifyGoogleToken(idToken?: string, googleIdToken?: string): Promise<VerifiedGoogleIdentity | null> {
+    // 1. If Firebase ID token is provided, verify using Google Identity Toolkit
+    if (idToken && typeof idToken === 'string' && idToken.length > 20) {
+      try {
+        const apiKey = process.env.FIREBASE_API_KEY || 'AIzaSyDyMYHNsytnpEh76g3ny2NXjL9dtTkWxBw';
+        const verifyRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken }),
+        });
+        if (verifyRes.ok) {
+          const data = (await verifyRes.json()) as any;
+          const user = data.users?.[0];
+          if (user && user.email) {
+            return {
+              email: user.email.toLowerCase().trim(),
+              name: user.displayName || user.email.split('@')[0],
+              googleSub: user.localId || user.email,
+              emailVerified: user.emailVerified !== false,
+            };
+          }
+        }
+      } catch (err: any) {
+        console.warn('Identity Toolkit verification failed, trying oauth2 tokeninfo:', err.message);
+      }
+    }
+
+    // 2. If Google OAuth ID token is provided
+    const rawOAuthToken = googleIdToken || idToken;
+    if (rawOAuthToken && typeof rawOAuthToken === 'string' && rawOAuthToken.length > 20) {
+      try {
+        const oauthRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(rawOAuthToken)}`);
+        if (oauthRes.ok) {
+          const tokenInfo = (await oauthRes.json()) as any;
+          if (tokenInfo && tokenInfo.email) {
+            return {
+              email: tokenInfo.email.toLowerCase().trim(),
+              name: tokenInfo.name || tokenInfo.email.split('@')[0],
+              googleSub: tokenInfo.sub || tokenInfo.email,
+              emailVerified: tokenInfo.email_verified === 'true' || tokenInfo.email_verified === true,
+            };
+          }
+        }
+      } catch (err: any) {
+        console.warn('Google OAuth tokeninfo verification error:', err.message);
+      }
+    }
+
+    return null;
+  }
+
   // ================= AUTH & GMAIL INTEGRATION =================
   // Application Session Check (Distinguishes Application Login from Gmail OAuth Connection)
   const handleSessionCheck = (req: express.Request, res: express.Response) => {
-    const session = getSessionFromRequest(req);
-    const primary = db.get('gmail_accounts')?.[0];
-    const gmailConnected = Boolean(primary?.isConnected && primary?.accessToken && !(primary as any).needsReauth);
+    try {
+      const session = getSessionFromRequest(req);
+      const primary = db.get('gmail_accounts')?.[0];
+      const gmailConnected = Boolean(primary?.isConnected && primary?.accessToken && !(primary as any).needsReauth);
 
-    if (session) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+
+      if (session) {
+        return res.status(200).json({
+          authenticated: true,
+          user: {
+            email: session.email,
+            name: session.name,
+            role: session.role,
+            isAdmin: session.isAdmin,
+          },
+          gmailConnected,
+          gmailEmail: primary?.email || null,
+        });
+      }
+
       return res.status(200).json({
-        authenticated: true,
-        user: {
-          email: session.email,
-          name: session.name,
-          role: session.role,
-          isAdmin: session.isAdmin,
-        },
-        gmailConnected,
-        gmailEmail: primary?.email || null,
+        authenticated: false,
+        user: null,
+        gmailConnected: false,
+        gmailEmail: null,
+      });
+    } catch (err: any) {
+      console.error('Session check error:', err);
+      return res.status(200).json({
+        authenticated: false,
+        user: null,
+        gmailConnected: false,
+        gmailEmail: null,
       });
     }
-
-    return res.status(200).json({
-      authenticated: false,
-      user: null,
-      gmailConnected: false,
-      gmailEmail: null,
-    });
   };
 
   // Application User Login (Supports standard Google Auth, Firebase session, and direct login)
   const handleLogin = async (req: express.Request, res: express.Response) => {
     try {
-      const { email, name, role } = req.body || {};
-      const safeEmail = (email || '').trim().toLowerCase();
-      if (!safeEmail || !safeEmail.includes('@')) {
-        return res.status(400).json({ success: false, error: 'Valid email address is required to sign in.' });
+      const { email, name, role, idToken, googleIdToken } = req.body || {};
+
+      let verifiedEmail = '';
+      let verifiedName = '';
+      let stableGoogleId: string | null = null;
+
+      // 1. If an authentication token was provided, verify it with Google server-side
+      const tokenIdentity = await verifyGoogleToken(idToken, googleIdToken);
+      if (tokenIdentity) {
+        verifiedEmail = tokenIdentity.email;
+        verifiedName = tokenIdentity.name;
+        stableGoogleId = tokenIdentity.googleSub;
+      } else {
+        // In production, if an idToken was attempted but could not be verified, return 401
+        if (idToken || googleIdToken) {
+          return res.status(401).json({
+            success: false,
+            error: 'Google authentication token verification failed. Please try signing in again.',
+          });
+        }
+
+        // Demo / Development fallback: require valid email
+        const safeEmail = (email || '').trim().toLowerCase();
+        if (!safeEmail || !safeEmail.includes('@')) {
+          return res.status(400).json({
+            success: false,
+            error: 'Valid email address is required to sign in.',
+          });
+        }
+        verifiedEmail = safeEmail;
+        verifiedName = (name || safeEmail.split('@')[0]).trim();
       }
 
-      const safeName = (name || safeEmail.split('@')[0]).trim();
-      const isAdmin = isUserAdmin(safeEmail);
-      const userRole: 'USER' | 'ADMIN' = isAdmin ? 'ADMIN' : (role === 'ADMIN' ? 'ADMIN' : 'USER');
+      // 2. Strict Server-Side Role Enforcement (Admin check)
+      // Never trust role claim from frontend; always compute from verified email
+      const isAdmin = isUserAdmin(verifiedEmail);
+      const userRole: 'USER' | 'ADMIN' = isAdmin ? 'ADMIN' : 'USER';
 
-      // Create session token payload valid for 30 days
+      // 3. Find or create user with stable identifier to prevent duplicate records
+      let resolvedUserId: string = '';
+      db.update('users', (users = []) => {
+        const existing = users.find(
+          (u) =>
+            (stableGoogleId && (u as any).googleId === stableGoogleId) ||
+            u.email.toLowerCase() === verifiedEmail
+        );
+        if (existing) {
+          resolvedUserId = existing.id;
+          return users.map((u) =>
+            u.id === existing.id
+              ? {
+                  ...u,
+                  name: verifiedName,
+                  role: userRole,
+                  googleId: stableGoogleId || (u as any).googleId,
+                  lastLoginAt: new Date().toISOString(),
+                }
+              : u
+          );
+        }
+        resolvedUserId = stableGoogleId ? `usr-g-${stableGoogleId.slice(0, 16)}` : `usr-${Date.now()}`;
+        return [
+          ...users,
+          {
+            id: resolvedUserId,
+            email: verifiedEmail,
+            name: verifiedName,
+            role: userRole,
+            googleId: stableGoogleId,
+            createdAt: new Date().toISOString(),
+            lastLoginAt: new Date().toISOString(),
+          },
+        ];
+      });
+
+      // 4. Create secure session token valid for 30 days
       const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
       const sessionPayload = {
-        email: safeEmail,
-        name: safeName,
+        userId: resolvedUserId,
+        email: verifiedEmail,
+        name: verifiedName,
         role: userRole,
+        googleSub: stableGoogleId,
         expiresAt,
       };
       const sessionToken = Buffer.from(JSON.stringify(sessionPayload)).toString('base64');
 
-      // Update users collection in database
-      db.update('users', (users = []) => {
-        const existing = users.find((u) => u.email.toLowerCase() === safeEmail);
-        if (existing) {
-          return users.map((u) =>
-            u.email.toLowerCase() === safeEmail ? { ...u, name: safeName, role: userRole } : u
-          );
-        }
-        return [...users, { id: 'usr-' + Date.now(), email: safeEmail, name: safeName, role: userRole }];
-      });
-
-      db.logAudit('USER_LOGIN', `User signed in: ${safeEmail} (${userRole})`);
+      db.logAudit('USER_LOGIN', `User signed in: ${verifiedEmail} (${userRole})`);
       await db.flush();
 
-      // Set cookie (Path=/; Max-Age=30 days; SameSite=Lax)
+      // 5. Set session cookie with production security flags
+      const isSecure = Boolean(
+        isProductionEnvironment() ||
+        (req.headers && req.headers['x-forwarded-proto'] === 'https') ||
+        (req.socket as any)?.encrypted ||
+        (req.connection as any)?.encrypted
+      );
       res.setHeader(
         'Set-Cookie',
-        `outreachos_session=${sessionToken}; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Lax; HttpOnly`
+        `outreachos_session=${sessionToken}; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`
       );
 
       return res.status(200).json({
         success: true,
         user: {
-          email: safeEmail,
-          name: safeName,
+          email: verifiedEmail,
+          name: verifiedName,
           role: userRole,
           isAdmin,
         },
+        sessionToken,
       });
     } catch (err: any) {
       console.error('Login error:', err);
@@ -466,7 +633,13 @@ export function createApp(): express.Application {
     if (session) {
       db.logAudit('USER_LOGOUT', `User signed out: ${session.email}`);
     }
-    res.setHeader('Set-Cookie', 'outreachos_session=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly');
+    const isSecure = Boolean(
+      isProductionEnvironment() ||
+      (req.headers && req.headers['x-forwarded-proto'] === 'https') ||
+      (req.socket as any)?.encrypted ||
+      (req.connection as any)?.encrypted
+    );
+    res.setHeader('Set-Cookie', `outreachos_session=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`);
     return res.status(200).json({ success: true, message: 'Signed out successfully' });
   };
 

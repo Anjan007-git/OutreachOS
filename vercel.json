@@ -1,10 +1,30 @@
 {
   "version": 2,
   "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.ts": {
+      "includeFiles": "dist/**"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/health",
       "destination": "/api/index?path=health"
+    },
+    {
+      "source": "/api/auth/health",
+      "destination": "/api/index?path=auth/health"
     },
     {
       "source": "/api/cron",

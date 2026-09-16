@@ -484,8 +484,11 @@ class Database {
    */
   public async flush(): Promise<void> {
     if (this.pendingSave) {
-      await this.pendingSave;
-      this.pendingSave = null;
+      try {
+        await this.pendingSave;
+      } finally {
+        this.pendingSave = null;
+      }
     }
   }
 

@@ -36,12 +36,18 @@ export const signInWithGoogleBasic = async (): Promise<{
   user: User;
   email: string;
   name: string;
+  idToken: string;
+  googleIdToken?: string;
 }> => {
   const result = await signInWithPopup(auth, basicProvider);
+  const idToken = await result.user.getIdToken();
+  const credential = GoogleAuthProvider.credentialFromResult(result);
   return {
     user: result.user,
     email: result.user.email || '',
     name: result.user.displayName || result.user.email?.split('@')[0] || 'User',
+    idToken,
+    googleIdToken: credential?.idToken,
   };
 };
 
