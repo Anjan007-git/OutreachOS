@@ -348,6 +348,18 @@ export function createApp(): express.Application {
 
   const apiRouter = express.Router();
 
+  // Request monitoring & server-side error logging (safe: no credentials/tokens logged)
+  apiRouter.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      if (res.statusCode >= 400) {
+        const duration = Date.now() - start;
+        console.warn(`[API ${res.statusCode}] ${req.method} ${req.baseUrl || ''}${req.path} (${duration}ms)`);
+      }
+    });
+    next();
+  });
+
   // Auto-flush middleware to ensure database state is written before responding to mutating requests
   apiRouter.use((req, res, next) => {
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {

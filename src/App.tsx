@@ -30,6 +30,7 @@ import { LandingPage } from './components/LandingPage';
 import { LoginPage } from './components/LoginPage';
 import { useRouter } from './lib/router';
 import { DashboardView } from './components/DashboardView';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ContactsView } from './components/ContactsView';
 import { CampaignsView } from './components/CampaignsView';
 import { ComposeView } from './components/ComposeView';
@@ -275,6 +276,7 @@ export default function App() {
 
   // UI state
   const [isLoading, setIsLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info' | 'warning'; text: string } | null>(null);
 
@@ -288,7 +290,7 @@ export default function App() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Data loader
+  // Data loader with resilient error recovery and explicit state tracking
   const loadAppData = useCallback(async () => {
     if (!session.isAuthenticated) {
       setIsLoading(false);
@@ -296,73 +298,99 @@ export default function App() {
     }
     try {
       const [
-        authStatus,
-        statsData,
-        contactsData,
-        campaignsData,
-        schedData,
-        sentData,
-        respData,
-        fuData,
-        tplData,
-        filesData,
-        settingsData,
-        notifsData,
-        logsData,
-      ] = await Promise.all([
-        api.getAuthStatus().catch(() => ({ isConnected: false, email: null, displayName: null, lastSyncTime: null })),
-        api.getDashboardStats().catch(() => null),
-        api.getContacts().catch(() => []),
-        api.getCampaigns().catch(() => []),
-        api.getScheduledMessages().catch(() => []),
-        api.getSentMessages().catch(() => []),
-        api.getResponses().catch(() => []),
-        api.getFollowUps().catch(() => ({ rules: [], instances: [] })),
-        api.getTemplates().catch(() => []),
-        api.getFiles().catch(() => []),
-        api.getSettings().catch(() => null),
-        api.getNotifications().catch(() => []),
-        api.getAuditLogs().catch(() => []),
+        authStatusRes,
+        statsRes,
+        contactsRes,
+        campaignsRes,
+        schedRes,
+        sentRes,
+        respRes,
+        fuRes,
+        tplRes,
+        filesRes,
+        settingsRes,
+        notifsRes,
+        logsRes,
+      ] = await Promise.allSettled([
+        api.getAuthStatus(),
+        api.getDashboardStats(),
+        api.getContacts(),
+        api.getCampaigns(),
+        api.getScheduledMessages(),
+        api.getSentMessages(),
+        api.getResponses(),
+        api.getFollowUps(),
+        api.getTemplates(),
+        api.getFiles(),
+        api.getSettings(),
+        api.getNotifications(),
+        api.getAuditLogs(),
       ]);
 
-      setGmailStatus(authStatus);
-      const safeContacts = Array.isArray(contactsData) ? contactsData : [];
-      const safeCampaigns = Array.isArray(campaignsData) ? campaignsData : [];
-      const safeSched = Array.isArray(schedData) ? schedData : [];
-      const safeSent = Array.isArray(sentData) ? sentData : [];
-      const safeResp = Array.isArray(respData) ? respData : [];
-
-      if (statsData) {
-        setStats(statsData);
-      } else {
-        setStats({
-          totalContacts: safeContacts.length,
-          scheduledCount: safeSched.length,
-          sentToday: 0,
-          totalSent: safeSent.length,
-          repliesCount: safeResp.length,
-          followUpsCount: 0,
-          failedCount: 0,
-          activeCampaigns: safeCampaigns.filter((c: any) => c.status === 'ACTIVE').length,
-          replyRatePercentage: safeSent.length > 0 ? Math.round((safeResp.length / safeSent.length) * 100) : 0,
-          recentActivities: [],
-          sentOverTime: [],
-          outreachBreakdown: [],
-          topCountries: [],
-        });
+      if (authStatusRes.status === 'fulfilled') {
+        setGmailStatus(authStatusRes.value);
       }
+
+      const safeContacts = contactsRes.status === 'fulfilled' && Array.isArray(contactsRes.value) ? contactsRes.value : [];
+      const safeCampaigns = campaignsRes.status === 'fulfilled' && Array.isArray(campaignsRes.value) ? campaignsRes.value : [];
+      const safeSched = schedRes.status === 'fulfilled' && Array.isArray(schedRes.value) ? schedRes.value : [];
+      const safeSent = sentRes.status === 'fulfilled' && Array.isArray(sentRes.value) ? sentRes.value : [];
+      const safeResp = respRes.status === 'fulfilled' && Array.isArray(respRes.value) ? respRes.value : [];
+
       setContacts(safeContacts);
       setCampaigns(safeCampaigns);
       setScheduledMessages(safeSched);
       setSentMessages(safeSent);
       setResponses(safeResp);
-      setFollowUpRules(Array.isArray(fuData?.rules) ? fuData.rules : []);
-      setFollowUpInstances(Array.isArray(fuData?.instances) ? fuData.instances : []);
-      setTemplates(Array.isArray(tplData) ? tplData : []);
-      setFiles(Array.isArray(filesData) ? filesData : []);
-      setNotifications(Array.isArray(notifsData) ? notifsData : []);
-      setAuditLogs(Array.isArray(logsData) ? logsData : []);
-      if (settingsData) {
+
+      if (statsRes.status === 'fulfilled' && statsRes.value) {
+        setStats(statsRes.value);
+        setDashboardError(null);
+      } else {
+        const errorReason = statsRes.status === 'rejected' ? (statsRes.reason?.message || 'Dashboard statistics request failed') : null;
+        if (contactsRes.status === 'fulfilled' || sentRes.status === 'fulfilled') {
+          // If stats calculation fails server-side but relational arrays are loaded, calculate real production stats directly
+          const now = new Date();
+          const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+          setStats({
+            totalContacts: safeContacts.length,
+            scheduledCount: safeSched.filter((s: any) => s.status === 'QUEUED').length,
+            sentToday: safeSent.filter((s: any) => new Date(s.sentAt).getTime() >= startOfDay).length,
+            totalSent: safeSent.length,
+            repliesCount: safeResp.length,
+            followUpsCount: 0,
+            failedCount: safeSched.filter((s: any) => s.status === 'FAILED').length,
+            activeCampaigns: safeCampaigns.filter((c: any) => c.status === 'ACTIVE').length,
+            replyRatePercentage: safeSent.length > 0 ? Math.round((safeResp.length / safeSent.length) * 100) : 0,
+            recentActivities: [],
+            sentOverTime: [],
+            outreachBreakdown: [],
+            topCountries: [],
+          });
+          setDashboardError(null);
+        } else {
+          setDashboardError(errorReason || 'Unable to load workspace statistics');
+        }
+      }
+
+      if (fuRes.status === 'fulfilled' && fuRes.value) {
+        setFollowUpRules(Array.isArray(fuRes.value?.rules) ? fuRes.value.rules : []);
+        setFollowUpInstances(Array.isArray(fuRes.value?.instances) ? fuRes.value.instances : []);
+      }
+      if (tplRes.status === 'fulfilled' && Array.isArray(tplRes.value)) {
+        setTemplates(tplRes.value);
+      }
+      if (filesRes.status === 'fulfilled' && Array.isArray(filesRes.value)) {
+        setFiles(filesRes.value);
+      }
+      if (notifsRes.status === 'fulfilled' && Array.isArray(notifsRes.value)) {
+        setNotifications(notifsRes.value);
+      }
+      if (logsRes.status === 'fulfilled' && Array.isArray(logsRes.value)) {
+        setAuditLogs(logsRes.value);
+      }
+      if (settingsRes.status === 'fulfilled' && settingsRes.value) {
+        const settingsData = settingsRes.value;
         setSettings((prev) => ({
           ...prev,
           ...settingsData,
@@ -381,14 +409,13 @@ export default function App() {
           },
         }));
       }
-      setNotifications(notifsData);
-      setAuditLogs(logsData);
     } catch (err: any) {
       console.error('Failed to load application data:', err);
+      setDashboardError(err?.message || 'Failed to load workspace data');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [session.isAuthenticated]);
 
   // Initial load and periodic refresh
   useEffect(() => {
@@ -801,35 +828,48 @@ export default function App() {
 
         {/* Scrollable Page Body */}
         <div className="flex-1 p-6 md:p-8 space-y-6 overflow-y-auto">
-          {isLoading && currentPage === 'dashboard' ? (
-            <DashboardView
-              stats={null}
-              isLoading={true}
-              onNavigate={(page) => navigateToPage(page as NavPage)}
-              onSyncReplies={handleSyncReplies}
-              isSyncing={isSyncing}
-              recentResponses={responses}
-              upcomingScheduled={scheduledMessages}
-            />
-          ) : isLoading ? (
-            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-3">
-              <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-              <span className="text-xs text-slate-500 font-medium">Loading OutreachOS Workspace...</span>
-            </div>
-          ) : (
-            <>
-              {/* Dashboard View */}
-              {currentPage === 'dashboard' && (
-                <DashboardView
-                  stats={stats}
-                  isLoading={false}
-                  onNavigate={(page) => navigateToPage(page as NavPage)}
-                  onSyncReplies={handleSyncReplies}
-                  isSyncing={isSyncing}
-                  recentResponses={responses}
-                  upcomingScheduled={scheduledMessages}
-                />
-              )}
+          <ErrorBoundary>
+            {isLoading && currentPage === 'dashboard' ? (
+              <DashboardView
+                stats={null}
+                isLoading={true}
+                error={dashboardError}
+                onRetry={() => {
+                  setIsLoading(true);
+                  setDashboardError(null);
+                  loadAppData();
+                }}
+                onNavigate={(page) => navigateToPage(page as NavPage)}
+                onSyncReplies={handleSyncReplies}
+                isSyncing={isSyncing}
+                recentResponses={responses}
+                upcomingScheduled={scheduledMessages}
+              />
+            ) : isLoading ? (
+              <div className="flex flex-col items-center justify-center min-h-[400px] space-y-3">
+                <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
+                <span className="text-xs text-slate-500 font-medium">Loading OutreachOS Workspace...</span>
+              </div>
+            ) : (
+              <>
+                {/* Dashboard View */}
+                {currentPage === 'dashboard' && (
+                  <DashboardView
+                    stats={stats}
+                    isLoading={false}
+                    error={dashboardError}
+                    onRetry={() => {
+                      setIsLoading(true);
+                      setDashboardError(null);
+                      loadAppData();
+                    }}
+                    onNavigate={(page) => navigateToPage(page as NavPage)}
+                    onSyncReplies={handleSyncReplies}
+                    isSyncing={isSyncing}
+                    recentResponses={responses}
+                    upcomingScheduled={scheduledMessages}
+                  />
+                )}
 
               {/* Contacts View */}
               {currentPage === 'contacts' && (
@@ -1145,6 +1185,7 @@ export default function App() {
               )}
             </>
           )}
+          </ErrorBoundary>
         </div>
       </main>
 

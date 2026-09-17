@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, Github, Linkedin } from 'lucide-react';
+import { Mail, Github, Linkedin, CheckCircle2 } from 'lucide-react';
 
 interface FooterProps {
   isAuthenticated: boolean;
@@ -25,40 +25,42 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   return (
-    <footer className="bg-white dark:bg-black border-t border-slate-200/80 dark:border-white/[0.06] text-slate-600 dark:text-zinc-400 text-xs transition-colors">
+    <footer className="bg-white dark:bg-black border-t border-slate-200/80 dark:border-white/[0.08] text-slate-600 dark:text-zinc-400 text-xs transition-colors">
       {/* Top Multi-Column Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-2 md:grid-cols-12 gap-8 sm:gap-10">
           {/* Brand Column (Span 4 on md) */}
           <div className="col-span-2 md:col-span-4 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-2xs">
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-2xs">
                 O
               </div>
-              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+              <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
                 Outreach<span className="text-indigo-600 dark:text-indigo-400">OS</span>
               </span>
             </div>
 
             <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm leading-relaxed">
-              AI-powered professional outreach, built around Gmail, intelligent personalization, scheduling, and secure document workflows.
+              AI-powered professional outreach, built around native Gmail, intelligent personalization, safe scheduling, and secure document workflows.
             </p>
 
-            <div className="text-[11px] font-semibold text-slate-400 dark:text-zinc-500">
-              Built for thoughtful outreach.
+            {/* Status Indicator */}
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-[#0c0c0c] border border-slate-200/80 dark:border-white/[0.08] text-[11px] font-medium text-slate-700 dark:text-zinc-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>All systems operational</span>
             </div>
 
             {/* Social / Creator Row */}
-            <div className="pt-2 flex items-center gap-3">
+            <div className="pt-2 flex items-center gap-2.5">
               {githubUrl && (
                 <a
                   href={githubUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="GitHub Repository"
-                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0c0c0c] hover:bg-slate-200 dark:hover:bg-[#141414] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-200/60 dark:border-white/[0.05] transition-colors cursor-pointer"
+                  className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-[#0c0c0c] hover:bg-slate-200 dark:hover:bg-[#141414] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-200/60 dark:border-white/[0.05] transition-colors cursor-pointer"
                 >
-                  <Github className="w-4 h-4" />
+                  <Github className="w-3.5 h-3.5" />
                 </a>
               )}
               {linkedinUrl && (
@@ -67,108 +69,45 @@ export const Footer: React.FC<FooterProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn Profile"
-                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0c0c0c] hover:bg-slate-200 dark:hover:bg-[#141414] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-200/60 dark:border-white/[0.05] transition-colors cursor-pointer"
+                  className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-[#0c0c0c] hover:bg-slate-200 dark:hover:bg-[#141414] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-200/60 dark:border-white/[0.05] transition-colors cursor-pointer"
                 >
-                  <Linkedin className="w-4 h-4" />
+                  <Linkedin className="w-3.5 h-3.5" />
                 </a>
               )}
               {contactEmail && (
                 <a
                   href={`mailto:${contactEmail}`}
                   aria-label="Contact via Email"
-                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0c0c0c] hover:bg-slate-200 dark:hover:bg-[#141414] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-200/60 dark:border-white/[0.05] transition-colors cursor-pointer"
+                  className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-[#0c0c0c] hover:bg-slate-200 dark:hover:bg-[#141414] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-200/60 dark:border-white/[0.05] transition-colors cursor-pointer"
                 >
-                  <Mail className="w-4 h-4" />
+                  <Mail className="w-3.5 h-3.5" />
                 </a>
               )}
             </div>
           </div>
 
-          {/* Product Links (Span 2) */}
-          <div className="col-span-1 md:col-span-2 space-y-3">
+          {/* Product Links (Span 3) */}
+          <div className="col-span-1 md:col-span-3 space-y-3">
             <div className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Product
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-2 text-xs">
               <li>
                 <a
                   href="#features"
                   onClick={(e) => scrollToSection(e, 'features')}
                   className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
-                  AI Personalization
+                  Features
                 </a>
               </li>
-              <li>
-                <a
-                  href="#features"
-                  onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                  Gmail Sending
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#features"
-                  onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                  Smart Scheduling
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#features"
-                  onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                  Campaigns
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#features"
-                  onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                  Follow-Ups
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#features"
-                  onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                  Documents
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Resources (Span 2) */}
-          <div className="col-span-1 md:col-span-2 space-y-3">
-            <div className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Resources
-            </div>
-            <ul className="space-y-2">
               <li>
                 <a
                   href="#how-it-works"
                   onClick={(e) => scrollToSection(e, 'how-it-works')}
                   className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
-                  How It Works
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#security"
-                  onClick={(e) => scrollToSection(e, 'security')}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                  Security Architecture
+                  Workflow
                 </a>
               </li>
               <li>
@@ -182,47 +121,63 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <a
-                  href={`mailto:${contactEmail}`}
+                  href="#features"
+                  onClick={(e) => scrollToSection(e, 'features')}
                   className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
-                  Technical Support
+                  Templates
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Company (Span 2) */}
-          <div className="col-span-1 md:col-span-2 space-y-3">
+          {/* Resources Links (Span 3) */}
+          <div className="col-span-1 md:col-span-3 space-y-3">
             <div className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Company
+              Resources
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-2 text-xs">
               <li>
-                <span className="text-slate-400 dark:text-zinc-500">About OutreachOS</span>
-              </li>
-              <li>
-                <span className="text-slate-400 dark:text-zinc-500">Privacy Policy</span>
-              </li>
-              <li>
-                <span className="text-slate-400 dark:text-zinc-500">Terms of Service</span>
+                <a
+                  href="#how-it-works"
+                  onClick={(e) => scrollToSection(e, 'how-it-works')}
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                  Documentation
+                </a>
               </li>
               <li>
                 <a
-                  href={`mailto:${contactEmail}`}
+                  href="#security"
+                  onClick={(e) => scrollToSection(e, 'security')}
                   className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
-                  Support
+                  Privacy
                 </a>
+              </li>
+              <li>
+                <a
+                  href="#security"
+                  onClick={(e) => scrollToSection(e, 'security')}
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                  Terms
+                </a>
+              </li>
+              <li>
+                <span className="text-slate-400 dark:text-zinc-600">
+                  Changelog (v2.4)
+                </span>
               </li>
             </ul>
           </div>
 
           {/* Account / Action Column (Span 2) */}
-          <div className="col-span-1 md:col-span-2 space-y-3">
+          <div className="col-span-2 md:col-span-2 space-y-3">
             <div className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Account
+              Access
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-2 text-xs">
               {isAuthenticated ? (
                 <>
                   <li>
@@ -238,7 +193,7 @@ export const Footer: React.FC<FooterProps> = ({
                       onClick={onNavigateDashboard}
                       className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-left text-slate-500 dark:text-zinc-400"
                     >
-                      Workspace Settings
+                      Workspace
                     </button>
                   </li>
                 </>
@@ -268,13 +223,13 @@ export const Footer: React.FC<FooterProps> = ({
       </div>
 
       {/* Footer Bottom Bar */}
-      <div className="border-t border-slate-200/80 dark:border-white/[0.06] bg-slate-50/80 dark:bg-black py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 dark:text-zinc-400 text-xs">
+      <div className="border-t border-slate-200/80 dark:border-white/[0.06] bg-slate-50/80 dark:bg-black py-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 dark:text-zinc-400 text-xs">
           <div>
             © 2026 OutreachOS. All rights reserved.
           </div>
 
-          {/* Required Exact Developer & Powered By Credit */}
+          {/* Exact Developer & Powered By Credit */}
           <div className="text-slate-600 dark:text-zinc-300 font-medium flex items-center gap-1.5">
             <span>Developed by Anjan • Powered by TRIFECTA TRENDS</span>
           </div>

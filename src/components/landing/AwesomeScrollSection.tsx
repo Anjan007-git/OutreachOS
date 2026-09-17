@@ -80,22 +80,10 @@ export const AwesomeScrollSection: React.FC<AwesomeScrollSectionProps> = ({
       style={{
         opacity: isRevealed ? 1 : 0,
         transform: isRevealed ? 'translateY(0) translateX(0) scale(1)' : getInitialTransform(),
-        transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
+        transition: `opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
         willChange: isRevealed ? 'auto' : 'transform, opacity',
       }}
     >
-      {/* Dynamic ambient backdrop aura in light mode only; hidden in dark mode to preserve pure liquid black */}
-      <div
-        className={`absolute inset-0 -z-10 pointer-events-none blur-3xl opacity-20 dark:hidden transition-opacity duration-700 ${
-          isRevealed ? 'opacity-20' : 'opacity-0'
-        } ${
-          glowColor === 'indigo'
-            ? 'bg-radial from-indigo-500/15 via-purple-500/5 to-transparent'
-            : glowColor === 'emerald'
-            ? 'bg-radial from-emerald-500/15 via-teal-500/5 to-transparent'
-            : 'bg-radial from-cyan-500/15 via-blue-500/5 to-transparent'
-        }`}
-      />
       {children}
     </div>
   );

@@ -11,12 +11,16 @@ import {
   GraduationCap,
   Layers,
   Sparkles,
+  AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 import { DashboardStats, IncomingMessage, ScheduledMessage } from '../types';
 
 interface DashboardViewProps {
   stats: DashboardStats | null;
   isLoading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
   onNavigate: (page: string) => void;
   onSyncReplies: () => void;
   isSyncing: boolean;
@@ -27,10 +31,38 @@ interface DashboardViewProps {
 export const DashboardView: React.FC<DashboardViewProps> = ({
   stats,
   isLoading = false,
+  error = null,
+  onRetry,
   onNavigate,
   recentResponses = [],
   upcomingScheduled = [],
 }) => {
+  // If there's an error and no stats available, display clean, actionable error state
+  if (error && !stats) {
+    return (
+      <div className="p-8 max-w-xl mx-auto my-12 bg-white dark:bg-zinc-900 rounded-2xl border border-rose-200 dark:border-rose-900/50 shadow-sm text-center space-y-4" id="dashboard-error-state">
+        <div className="w-12 h-12 mx-auto rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+          <AlertTriangle className="w-6 h-6" />
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">Unable to Load Dashboard Data</h3>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-md mx-auto">{error}</p>
+        </div>
+        {onRetry && (
+          <div className="pt-2">
+            <button
+              onClick={onRetry}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Retry Request</span>
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // If loading or stats haven't arrived from server yet, display comprehensive skeletons
   if (isLoading || !stats) {
     return (

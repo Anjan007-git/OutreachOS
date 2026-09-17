@@ -21,23 +21,23 @@ export const ContextPersonalization: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 sm:py-28 bg-white dark:bg-black border-t border-slate-200/80 dark:border-white/[0.06] transition-colors">
+    <section className="py-12 sm:py-16 bg-white dark:bg-black border-t border-slate-200/80 dark:border-white/[0.06] transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 25 }}
+          initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto mb-12"
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-3xl mx-auto mb-10 sm:mb-12"
         >
-          <span className="text-xs uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-emerald-50 dark:bg-[#0e0e0e] text-emerald-700 dark:text-zinc-300 border border-emerald-200/60 dark:border-white/[0.06] mb-4 inline-block">
+          <span className="text-xs uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-slate-100 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/[0.08] mb-3 inline-block">
             Context-Aware Outreach
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight mb-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight mb-3">
             Personalized by Context, Not Guesswork.
           </h2>
-          <p className="text-base text-slate-600 dark:text-zinc-400 leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto font-normal leading-relaxed">
             OutreachOS uses the information you provide to create relevant, high-impact outreach without hallucinations or generic templates.
           </p>
         </motion.div>

@@ -16,7 +16,7 @@ import {
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   const controller = new AbortController();
-  const timeoutMs = 15000;
+  const timeoutMs = 9000;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   const storedToken = typeof window !== 'undefined' ? localStorage.getItem('outreachos_token') : null;
@@ -44,6 +44,11 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
     }
 
     return await res.json();
+  } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      throw new Error(`Request timed out after ${timeoutMs / 1000}s: ${url}`);
+    }
+    throw err;
   } finally {
     clearTimeout(timeoutId);
   }
