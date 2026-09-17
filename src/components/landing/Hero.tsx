@@ -24,7 +24,7 @@ export const Hero: React.FC<HeroProps> = ({
           initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50/90 dark:bg-zinc-900 border border-indigo-200/60 dark:border-zinc-800 text-xs font-semibold text-indigo-700 dark:text-indigo-300 mb-6 shadow-2xs"
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50/90 dark:bg-[#0c0c0c] border border-indigo-200/60 dark:border-white/[0.08] text-xs font-semibold text-indigo-700 dark:text-zinc-300 mb-6 shadow-2xs"
         >
           <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
           <span>AI-Powered Professional Outreach</span>
@@ -72,7 +72,7 @@ export const Hero: React.FC<HeroProps> = ({
           </button>
           <button
             onClick={onSeeHowItWorks}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 text-sm font-semibold border border-slate-200 dark:border-zinc-800 shadow-2xs transition-colors cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-[#0c0c0c] hover:bg-slate-50 dark:hover:bg-[#161616] text-slate-700 dark:text-zinc-200 text-sm font-semibold border border-slate-200 dark:border-white/[0.08] shadow-2xs transition-colors cursor-pointer"
           >
             <Play className="w-3.5 h-3.5 text-slate-400 fill-slate-400" />
             <span>See How It Works</span>

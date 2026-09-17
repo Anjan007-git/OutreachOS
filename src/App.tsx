@@ -416,7 +416,12 @@ export default function App() {
     try {
       showToast('info', 'Connecting your Gmail account with Workspace OAuth...');
       const result = await connectGoogleAccount();
-      showToast('success', `Connected as ${result.email}! Gmail sending and reply monitoring active.`);
+      showToast('success', `Connected as ${result.email}! Syncing sent emails, threads, and replies...`);
+      try {
+        await api.syncResponses();
+      } catch (syncErr) {
+        console.warn('Initial post-connect sync notice:', syncErr);
+      }
       await loadAppData();
     } catch (err: any) {
       showToast('error', `Gmail connection failed: ${err.message}`);
@@ -438,10 +443,21 @@ export default function App() {
     setIsSyncing(true);
     try {
       const res = await api.syncResponses();
+      const parts: string[] = [];
+      if (res.newSent && res.newSent > 0) {
+        parts.push(`Synced ${res.newSent} sent email${res.newSent > 1 ? 's' : ''}`);
+      }
       if (res.newReplies > 0) {
-        showToast('success', `Found ${res.newReplies} new incoming reply! Categorized by Gemini.`);
+        parts.push(`Found ${res.newReplies} incoming repl${res.newReplies > 1 ? 'ies' : 'y'}`);
+      }
+      if (res.newContacts && res.newContacts > 0) {
+        parts.push(`Added ${res.newContacts} contact${res.newContacts > 1 ? 's' : ''}`);
+      }
+
+      if (parts.length > 0) {
+        showToast('success', parts.join(' • '));
       } else {
-        showToast('info', 'Gmail synced. No new outreach replies detected.');
+        showToast('info', 'Gmail synced. Sent messages, replies, and contacts are up to date.');
       }
       await loadAppData();
     } catch (err: any) {

@@ -26,6 +26,8 @@ export interface Contact {
   jobUrl?: string;
   notes?: string;
   tags: string[];
+  status?: string;
+  lastContactedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +37,7 @@ export type CampaignType =
   | 'University Outreach'
   | 'Custom Outreach'
   | 'JOB_OUTREACH'
+  | 'JOB_APPLICATION'
   | 'UNIVERSITY_ADMISSIONS'
   | 'CUSTOM';
 

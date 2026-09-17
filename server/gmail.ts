@@ -318,3 +318,60 @@ export async function readGoogleSpreadsheet(accessToken: string, spreadsheetId: 
   const data = await response.json();
   return data.values || [];
 }
+
+/**
+ * Parse recipient name and email from an RFC 2822 header (e.g. "Jane Doe <jane@acme.com>")
+ */
+export function parseEmailRecipient(toHeader: string): { email: string; name: string } {
+  if (!toHeader) return { email: '', name: '' };
+  const match = toHeader.match(/(?:"?([^"]*)"?\s*)?<([^>]+)>/);
+  if (match) {
+    const name = (match[1] || '').trim();
+    const email = (match[2] || '').trim();
+    return {
+      email,
+      name: name || email.split('@')[0],
+    };
+  }
+  const cleanEmail = toHeader.trim();
+  return {
+    email: cleanEmail,
+    name: cleanEmail.split('@')[0] || '',
+  };
+}
+
+/**
+ * Inactive/common personal email domains
+ */
+const COMMON_PERSONAL_DOMAINS = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'yahoo.com',
+  'ymail.com',
+  'hotmail.com',
+  'outlook.com',
+  'live.com',
+  'msn.com',
+  'icloud.com',
+  'me.com',
+  'mac.com',
+  'aol.com',
+  'proton.me',
+  'protonmail.com',
+  'zoho.com',
+  'mail.com',
+  'gmx.com',
+]);
+
+/**
+ * Infer organization or company name from email address
+ */
+export function inferOrganizationFromEmail(email: string): string {
+  if (!email || !email.includes('@')) return '';
+  const domain = email.split('@')[1].toLowerCase().trim();
+  if (!domain || COMMON_PERSONAL_DOMAINS.has(domain)) return '';
+  
+  const namePart = domain.split('.')[0];
+  if (!namePart || namePart.length < 2) return '';
+  return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+}

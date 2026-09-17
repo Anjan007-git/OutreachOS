@@ -25,7 +25,7 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   return (
-    <footer className="bg-white dark:bg-black border-t border-slate-200 dark:border-zinc-850 text-slate-600 dark:text-zinc-400 text-xs transition-colors">
+    <footer className="bg-white dark:bg-black border-t border-slate-200/80 dark:border-white/[0.06] text-slate-600 dark:text-zinc-400 text-xs transition-colors">
       {/* Top Multi-Column Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="grid grid-cols-2 md:grid-cols-12 gap-8 sm:gap-10">
@@ -56,7 +56,7 @@ export const Footer: React.FC<FooterProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="GitHub Repository"
-                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0c0c0c] hover:bg-slate-200 dark:hover:bg-[#141414] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-200/60 dark:border-white/[0.05] transition-colors cursor-pointer"
                 >
                   <Github className="w-4 h-4" />
                 </a>
@@ -67,7 +67,7 @@ export const Footer: React.FC<FooterProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn Profile"
-                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0c0c0c] hover:bg-slate-200 dark:hover:bg-[#141414] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-200/60 dark:border-white/[0.05] transition-colors cursor-pointer"
                 >
                   <Linkedin className="w-4 h-4" />
                 </a>
@@ -76,7 +76,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href={`mailto:${contactEmail}`}
                   aria-label="Contact via Email"
-                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0c0c0c] hover:bg-slate-200 dark:hover:bg-[#141414] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-200/60 dark:border-white/[0.05] transition-colors cursor-pointer"
                 >
                   <Mail className="w-4 h-4" />
                 </a>
@@ -268,7 +268,7 @@ export const Footer: React.FC<FooterProps> = ({
       </div>
 
       {/* Footer Bottom Bar */}
-      <div className="border-t border-slate-200/80 dark:border-zinc-850 bg-slate-50/80 dark:bg-black py-6">
+      <div className="border-t border-slate-200/80 dark:border-white/[0.06] bg-slate-50/80 dark:bg-black py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 dark:text-zinc-400 text-xs">
           <div>
             © 2026 OutreachOS. All rights reserved.

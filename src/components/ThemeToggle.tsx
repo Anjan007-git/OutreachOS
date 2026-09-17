@@ -1,6 +1,5 @@
 import React from 'react';
 import { Sun, Moon } from 'lucide-react';
-import { motion } from 'motion/react';
 import { useTheme } from '../lib/theme';
 
 interface ThemeToggleProps {
@@ -24,44 +23,27 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '', showLa
         role="switch"
         aria-checked={isDark}
         aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-        title={isDark ? 'Switch to light theme' : 'Switch to dark (black) theme'}
+        title={isDark ? 'Switch to light theme' : 'Switch to pure black theme'}
         onClick={toggleTheme}
-        className={`relative inline-flex h-7 w-13 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
-          isDark
-            ? 'bg-black border border-zinc-700 shadow-inner'
-            : 'bg-slate-200/90 hover:bg-slate-300/80 border border-slate-300/70'
-        }`}
+        className="relative inline-flex h-8 w-8 sm:h-8.5 sm:w-8.5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200/90 dark:border-white/[0.08] bg-slate-100/90 hover:bg-slate-200/80 dark:bg-[#0c0c0c] dark:hover:bg-[#161616] text-slate-700 hover:text-slate-950 dark:text-zinc-300 dark:hover:text-white shadow-2xs transition-all duration-200 active:scale-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
       >
-        {/* Background icon indicators inside the track */}
-        <div className="absolute inset-0 flex items-center justify-between px-1.5 pointer-events-none">
-          <Sun
-            className={`w-3.5 h-3.5 transition-opacity duration-200 ${
-              isDark ? 'opacity-30 text-zinc-500' : 'opacity-80 text-amber-500'
-            }`}
-          />
-          <Moon
-            className={`w-3.5 h-3.5 transition-opacity duration-200 ${
-              isDark ? 'opacity-90 text-zinc-300' : 'opacity-25 text-slate-400'
-            }`}
-          />
-        </div>
-
-        {/* Sliding Thumb */}
-        <motion.span
-          layout
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-          className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full shadow-sm transition-colors duration-200 ${
+        {/* Sun Icon (Visible in Light Mode, smooth rotation & crossfade out in Dark) */}
+        <Sun
+          className={`w-4 h-4 transition-all duration-300 ease-out transform ${
             isDark
-              ? 'translate-x-6 bg-zinc-800 text-zinc-100 border border-zinc-600'
-              : 'translate-x-0 bg-white text-amber-500 border border-amber-200/50'
+              ? 'opacity-0 rotate-90 scale-50 pointer-events-none absolute'
+              : 'opacity-100 rotate-0 scale-100 text-amber-600 dark:text-amber-400'
           }`}
-        >
-          {isDark ? (
-            <Moon className="w-3.5 h-3.5 text-zinc-200" />
-          ) : (
-            <Sun className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20" />
-          )}
-        </motion.span>
+        />
+
+        {/* Moon Icon (Visible in Dark Mode, smooth rotation & crossfade out in Light) */}
+        <Moon
+          className={`w-4 h-4 transition-all duration-300 ease-out transform ${
+            isDark
+              ? 'opacity-100 rotate-0 scale-100 text-zinc-200'
+              : 'opacity-0 -rotate-90 scale-50 pointer-events-none absolute'
+          }`}
+        />
       </button>
     </div>
   );

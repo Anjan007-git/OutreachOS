@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface AwesomeScrollSectionProps {
   children: React.ReactNode;
@@ -16,52 +15,80 @@ export const AwesomeScrollSection: React.FC<AwesomeScrollSectionProps> = ({
   direction = 'up',
   glowColor = 'indigo',
 }) => {
-  const getInitial = () => {
-    switch (direction) {
-      case 'scale':
-        return { opacity: 0, scale: 0.92, y: 30 };
-      case 'left':
-        return { opacity: 0, x: -50, y: 15 };
-      case 'right':
-        return { opacity: 0, x: 50, y: 15 };
-      case 'up':
-      default:
-        return { opacity: 0, y: 45, scale: 0.97 };
-    }
-  };
+  const ref = useRef<HTMLDivElement>(null);
+  const [isRevealed, setIsRevealed] = useState(false);
 
-  const getAnimate = () => {
+  useEffect(() => {
+    // 1. Respect prefers-reduced-motion
+    if (typeof window !== 'undefined') {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (mediaQuery.matches) {
+        setIsRevealed(true);
+        return;
+      }
+    }
+
+    const element = ref.current;
+    if (!element) return;
+
+    // 2. If already visible or above the viewport on mount, reveal immediately
+    const rect = element.getBoundingClientRect();
+    if (rect.top <= (window.innerHeight || document.documentElement.clientHeight) * 0.92) {
+      setIsRevealed(true);
+      return;
+    }
+
+    // 3. One-way IntersectionObserver: triggers once on scroll DOWN, NEVER on scroll UP
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsRevealed(true);
+          observer.disconnect(); // Permanently disconnect: never reverses, never refades, never replays!
+        }
+      },
+      {
+        threshold: 0.08,
+        rootMargin: '0px 0px -40px 0px',
+      }
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const getInitialTransform = () => {
     switch (direction) {
       case 'scale':
-        return { opacity: 1, scale: 1, y: 0 };
+        return 'scale(0.985) translateY(24px)';
       case 'left':
+        return 'translateX(-24px)';
       case 'right':
-        return { opacity: 1, x: 0, y: 0 };
+        return 'translateX(24px)';
       case 'up':
       default:
-        return { opacity: 1, y: 0, scale: 1 };
+        return 'translateY(24px)';
     }
   };
 
   return (
-    <motion.div
-      initial={getInitial()}
-      whileInView={getAnimate()}
-      viewport={{ once: false, amount: 0.12, margin: '0px 0px -40px 0px' }}
-      transition={{
-        duration: 0.7,
-        delay,
-        ease: [0.16, 1, 0.3, 1], // snappy smooth cubic-bezier
-      }}
+    <div
+      ref={ref}
       className={`relative ${className}`}
+      style={{
+        opacity: isRevealed ? 1 : 0,
+        transform: isRevealed ? 'translateY(0) translateX(0) scale(1)' : getInitialTransform(),
+        transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
+        willChange: isRevealed ? 'auto' : 'transform, opacity',
+      }}
     >
-      {/* Dynamic ambient backdrop aura in light mode only; hidden in dark mode to preserve pure black aesthetics */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: false, amount: 0.15 }}
-        transition={{ duration: 1, delay: delay + 0.1 }}
-        className={`absolute inset-0 -z-10 pointer-events-none blur-3xl opacity-30 dark:hidden transition-opacity ${
+      {/* Dynamic ambient backdrop aura in light mode only; hidden in dark mode to preserve pure liquid black */}
+      <div
+        className={`absolute inset-0 -z-10 pointer-events-none blur-3xl opacity-20 dark:hidden transition-opacity duration-700 ${
+          isRevealed ? 'opacity-20' : 'opacity-0'
+        } ${
           glowColor === 'indigo'
             ? 'bg-radial from-indigo-500/15 via-purple-500/5 to-transparent'
             : glowColor === 'emerald'
@@ -70,6 +97,6 @@ export const AwesomeScrollSection: React.FC<AwesomeScrollSectionProps> = ({
         }`}
       />
       {children}
-    </motion.div>
+    </div>
   );
 };

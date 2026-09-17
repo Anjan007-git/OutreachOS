@@ -14,7 +14,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({
   onSignIn,
 }) => {
   return (
-    <section className="relative py-20 sm:py-28 bg-black text-white border-t border-zinc-850 overflow-hidden">
+    <section className="relative py-20 sm:py-28 bg-slate-950 dark:bg-black text-white border-t border-slate-200/80 dark:border-white/[0.06] overflow-hidden transition-colors">
       {/* Subtle Grid */}
       <div
         className="absolute inset-0 opacity-10 pointer-events-none"
@@ -28,12 +28,12 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 35 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.15 }}
         transition={{ duration: 0.6 }}
         className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8"
       >
         {/* Eyebrow Pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-300 shadow-2xs">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 dark:bg-[#0e0e0e] border border-white/15 dark:border-white/[0.08] text-xs font-semibold text-zinc-300 shadow-2xs">
           <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
           <span>Start Reaching Out Professionally</span>
         </div>
@@ -61,7 +61,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({
           {!isAuthenticated && (
             <button
               onClick={onSignIn}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-semibold border border-zinc-800 transition-colors cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white/10 dark:bg-[#0c0c0c] hover:bg-white/15 dark:hover:bg-[#141414] text-zinc-200 text-sm font-semibold border border-white/10 dark:border-white/[0.08] transition-colors cursor-pointer"
             >
               <span>Sign In</span>
             </button>

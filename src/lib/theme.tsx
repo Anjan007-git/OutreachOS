@@ -36,11 +36,24 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [theme]);
 
+  const triggerTransition = () => {
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement;
+      root.classList.add('theme-transition');
+      window.clearTimeout((window as unknown as { _themeTimer?: number })._themeTimer);
+      (window as unknown as { _themeTimer?: number })._themeTimer = window.setTimeout(() => {
+        root.classList.remove('theme-transition');
+      }, 400);
+    }
+  };
+
   const toggleTheme = () => {
+    triggerTransition();
     setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
   const setTheme = (newTheme: Theme) => {
+    triggerTransition();
     setThemeState(newTheme);
   };
 

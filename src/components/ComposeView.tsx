@@ -145,8 +145,13 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
   useEffect(() => {
     if (preselectedCampaign) {
       setSelectedCampaignId(preselectedCampaign.id);
+    } else if (!selectedCampaignId && campaigns.length > 0) {
+      const active = campaigns.find((c) => c.status === 'ACTIVE') || campaigns[0];
+      if (active) {
+        setSelectedCampaignId(active.id);
+      }
     }
-  }, [preselectedCampaign]);
+  }, [preselectedCampaign, campaigns, selectedCampaignId]);
 
   useEffect(() => {
     if (initialDraft) {

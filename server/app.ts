@@ -9,6 +9,8 @@ import {
   listGoogleDriveFiles,
   downloadGoogleDriveFile,
   readGoogleSpreadsheet,
+  parseEmailRecipient,
+  inferOrganizationFromEmail,
 } from './gmail.js';
 import { storageService } from './storage.js';
 import { resolveAttachmentsForEmail } from './attachments.js';
@@ -24,13 +26,14 @@ import {
 import { interpolateVariables } from '../src/lib/variables.js';
 import {
   syncGmailReplies,
+  syncGmailSent,
   isUserAdmin,
   checkSendingPermission,
   ADMIN_EMAIL,
   isDuplicateSend,
   processOutboundQueue,
 } from './scheduler.js';
-import { Contact, Campaign, ScheduledMessage, SentMessage, StoredFile, Template, FollowUpRule } from '../src/types.js';
+import { Contact, Campaign, ScheduledMessage, SentMessage, StoredFile, Template, FollowUpRule, FollowUpInstance } from '../src/types.js';
 
 export function normalizeUrl(req: any): string {
   let rawUrl = (req && req.url) || '/';
@@ -306,6 +309,22 @@ export function createApp(): express.Application {
   });
 
   const apiRouter = express.Router();
+
+  // Auto-flush middleware to ensure database state is written before responding to mutating requests
+  apiRouter.use((req, res, next) => {
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+      const originalJson = res.json.bind(res);
+      res.json = function (body: any) {
+        db.flush()
+          .catch((e) => console.warn('Database flush warning:', e?.message || e))
+          .finally(() => {
+            originalJson(body);
+          });
+        return res;
+      };
+    }
+    next();
+  });
 
   // ================= HEALTH CHECK (Diagnostic Endpoints) =================
   const handleHealthCheck = (req: express.Request, res: express.Response) => {
@@ -777,14 +796,24 @@ export function createApp(): express.Application {
   });
 
   // ================= DASHBOARD STATS =================
-  apiRouter.get('/dashboard/stats', (req, res) => {
+  apiRouter.get('/dashboard/stats', async (req, res) => {
+    const gmailAccounts = db.get('gmail_accounts');
+    const primary = gmailAccounts.find((a) => a.isConnected && a.accessToken) || gmailAccounts[0] || { isConnected: false };
+
+    // Auto-sync sent messages from Gmail if account is connected and sent_messages is empty
+    if (primary && primary.isConnected && primary.accessToken && !(primary as any).needsReauth && db.get('sent_messages').length === 0) {
+      try {
+        await syncGmailSent();
+      } catch (e) {
+        console.warn('Initial sent sync warning on dashboard load:', e);
+      }
+    }
+
     const contacts = db.get('contacts');
     const scheduled = db.get('scheduled_messages');
     const sent = db.get('sent_messages');
     const incoming = db.get('incoming_messages');
     const followUps = db.get('follow_ups');
-    const gmailAccounts = db.get('gmail_accounts');
-    const primary = gmailAccounts[0] || { isConnected: false };
     const userEmail = (req.headers['x-user-email'] as string) || primary.email || '';
     const isAdmin = isUserAdmin(userEmail || primary.email);
     const perm = checkSendingPermission(primary.email || userEmail);
@@ -1111,7 +1140,7 @@ export function createApp(): express.Application {
   });
 
   // ================= MESSAGES & OUTBOUND =================
-  const handleComposeMessage = (req: express.Request, res: express.Response) => {
+  const handleComposeMessage = async (req: express.Request, res: express.Response) => {
     const {
       recipientId,
       recipientEmail,
@@ -1136,16 +1165,55 @@ export function createApp(): express.Application {
     if (approvalAction === 'DRAFT') status = 'DRAFT';
     else if (approvalAction === 'READY_FOR_REVIEW') status = 'READY_FOR_REVIEW';
 
+    // Auto-resolve campaign to active default if not specified
+    let resolvedCampaignId = campaignId;
+    let resolvedCampaignName = campaignName;
+    if (!resolvedCampaignId) {
+      const defaultCamp = db.get('campaigns').find((c) => c.status === 'ACTIVE') || db.get('campaigns')[0];
+      if (defaultCamp) {
+        resolvedCampaignId = defaultCamp.id;
+        resolvedCampaignName = defaultCamp.name;
+      }
+    }
+
+    // Auto-create contact in directory if not present
+    let resolvedContactId = recipientId;
+    let contact = recipientId && recipientId !== 'custom'
+      ? db.get('contacts').find((c) => c.id === recipientId)
+      : db.get('contacts').find((c) => c.email.toLowerCase() === recipientEmail.toLowerCase());
+
+    if (!contact) {
+      const inferredOrg = inferOrganizationFromEmail(recipientEmail);
+      const newContact: Contact = {
+        id: 'c-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        name: recipientName || recipientEmail.split('@')[0],
+        email: recipientEmail,
+        organization: inferredOrg,
+        organizationType: 'Company',
+        role: 'Prospect',
+        country: 'United States',
+        tags: ['Outreach Contact'],
+        status: status === 'QUEUED' ? 'CONTACTED' : 'PROSPECT',
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+        lastContactedAt: status === 'QUEUED' ? now.toISOString() : undefined,
+        notes: 'Added from Compose message',
+      };
+      db.update('contacts', (prev) => [newContact, ...prev]);
+      contact = newContact;
+      resolvedContactId = newContact.id;
+    }
+
     const newMsg: ScheduledMessage = {
       id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
-      recipientId,
+      recipientId: resolvedContactId,
       recipientName: recipientName || recipientEmail.split('@')[0],
       recipientEmail,
       subject,
       messageBody,
       attachments: attachments || [],
-      campaignId,
-      campaignName,
+      campaignId: resolvedCampaignId,
+      campaignName: resolvedCampaignName,
       scheduledTime: scheduledDate.toISOString(),
       status,
       retryCount: 0,
@@ -1154,6 +1222,7 @@ export function createApp(): express.Application {
 
     db.update('scheduled_messages', (msgs) => [newMsg, ...msgs]);
     db.logAudit('MESSAGE_SCHEDULED', `Message to ${recipientEmail} queued (${status})`);
+    await db.flush();
     res.status(201).json(newMsg);
   };
 
@@ -1225,8 +1294,19 @@ export function createApp(): express.Application {
         });
       }
 
+      // Resolve campaign to active default if not specified
+      let resolvedCampaignId = campaignId;
+      let resolvedCampaignName = campaignName;
+      if (!resolvedCampaignId) {
+        const defaultCamp = db.get('campaigns').find((c) => c.status === 'ACTIVE') || db.get('campaigns')[0];
+        if (defaultCamp) {
+          resolvedCampaignId = defaultCamp.id;
+          resolvedCampaignName = defaultCamp.name;
+        }
+      }
+
       // Duplicate prevention check
-      if (campaignId && !forceSendAgain && isDuplicateSend(recipientEmail, campaignId)) {
+      if (resolvedCampaignId && !forceSendAgain && isDuplicateSend(recipientEmail, resolvedCampaignId)) {
         return res.status(409).json({
           success: false,
           error: `Duplicate send prevented: An email was already sent to ${recipientEmail} for this campaign. Check "Force Send" to bypass.`,
@@ -1235,10 +1315,44 @@ export function createApp(): express.Application {
 
       const settings = db.get('settings');
 
-      // Resolve contact context for variable interpolation
-      const contact = recipientId
+      // Resolve or auto-create contact in directory
+      let resolvedContactId = recipientId;
+      let contact = recipientId && recipientId !== 'custom'
         ? db.get('contacts').find((c) => c.id === recipientId)
         : db.get('contacts').find((c) => c.email.toLowerCase() === recipientEmail.toLowerCase());
+
+      const sentTime = new Date().toISOString();
+
+      if (!contact) {
+        const inferredOrg = inferOrganizationFromEmail(recipientEmail);
+        const newContact: Contact = {
+          id: 'c-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+          name: recipientName || recipientEmail.split('@')[0],
+          email: recipientEmail,
+          organization: inferredOrg,
+          organizationType: 'Company',
+          role: 'Prospect',
+          country: 'United States',
+          tags: ['Outreach Contact'],
+          status: 'CONTACTED',
+          createdAt: sentTime,
+          updatedAt: sentTime,
+          lastContactedAt: sentTime,
+          notes: 'Added from direct Compose dispatch',
+        };
+        db.update('contacts', (prev) => [newContact, ...prev]);
+        contact = newContact;
+        resolvedContactId = newContact.id;
+        db.logAudit('CONTACT_AUTO_CREATED', `Auto-created contact: ${newContact.name} (${recipientEmail})`);
+      } else {
+        db.update('contacts', (contacts) =>
+          contacts.map((c) =>
+            c.id === contact!.id
+              ? { ...c, status: 'CONTACTED', lastContactedAt: sentTime }
+              : c
+          )
+        );
+      }
 
       const finalSubject = interpolateVariables(subject, {
         contact,
@@ -1272,19 +1386,18 @@ export function createApp(): express.Application {
         fromEmail: primary.email,
       });
 
-      const sentTime = new Date().toISOString();
       const sentItem: SentMessage = {
         id: 'sent-' + Date.now(),
         gmailMessageId: sendResult.id,
         gmailThreadId: sendResult.threadId,
-        recipientId,
+        recipientId: resolvedContactId || contact.id,
         recipientName: recipientName || recipientEmail.split('@')[0],
         recipientEmail,
         subject: finalSubject,
         messageBody: finalBody,
         attachments: resolvedAttachments,
-        campaignId,
-        campaignName,
+        campaignId: resolvedCampaignId,
+        campaignName: resolvedCampaignName,
         sentAt: sentTime,
         status: 'DELIVERED',
       };
@@ -1297,23 +1410,46 @@ export function createApp(): express.Application {
         {
           threadId: sendResult.threadId,
           contactEmail: recipientEmail,
-          campaignId,
+          campaignId: resolvedCampaignId,
           lastMessageAt: sentTime,
           messageCount: 1,
         },
       ]);
 
-      // If sent as part of a campaign, increment sent counter
-      if (campaignId) {
+      // Increment campaign sent counter
+      if (resolvedCampaignId) {
         db.update('campaigns', (camps) =>
           camps.map((c) =>
-            c.id === campaignId ? { ...c, sentCount: (c.sentCount || 0) + 1 } : c
+            c.id === resolvedCampaignId ? { ...c, sentCount: (c.sentCount || 0) + 1 } : c
           )
         );
       }
 
+      // Schedule follow-up instance if automatic follow-ups are enabled
+      if (settings.automation?.automaticFollowUp !== false) {
+        const rules = db.get('follow_ups').filter((r) => r.status === 'ACTIVE' && (!r.campaignId || r.campaignId === resolvedCampaignId));
+        if (rules.length > 0) {
+          const firstRule = rules[0];
+          const scheduledFor = new Date(Date.now() + (firstRule.daysAfterPrevious || 3) * 24 * 60 * 60 * 1000).toISOString();
+          const followUpInstance: FollowUpInstance = {
+            id: 'fui-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            ruleId: firstRule.id,
+            contactId: resolvedContactId || contact.id,
+            contactEmail: recipientEmail,
+            contactName: recipientName || recipientEmail.split('@')[0],
+            campaignId: resolvedCampaignId || firstRule.campaignId,
+            scheduledFor,
+            status: 'SCHEDULED',
+            previousMessageId: sendResult.id,
+          };
+          db.update('follow_up_instances', (prev) => [...prev, followUpInstance]);
+        }
+      }
+
       db.logAudit('EMAIL_SENT', `Direct send to ${recipientName} <${recipientEmail}> (ID: ${sendResult.id})`);
       db.addNotification('success', 'Email Sent', `Successfully dispatched email to ${recipientName} (${recipientEmail})`);
+
+      await db.flush();
 
       res.status(200).json({
         success: true,
@@ -1381,8 +1517,23 @@ export function createApp(): express.Application {
 
   const handleSyncResponses = async (req: express.Request, res: express.Response) => {
     try {
-      const result = await syncGmailReplies();
-      res.status(200).json({ success: true, newReplies: result.newRepliesCount });
+      const [sentResult, replyResult] = await Promise.all([
+        syncGmailSent().catch((e) => {
+          console.warn('Sent sync error:', e);
+          return { newSentCount: 0, newContactsCount: 0 };
+        }),
+        syncGmailReplies().catch((e) => {
+          console.warn('Replies sync error:', e);
+          return { newRepliesCount: 0 };
+        }),
+      ]);
+      await db.flush();
+      res.status(200).json({
+        success: true,
+        newReplies: replyResult.newRepliesCount,
+        newSent: sentResult.newSentCount,
+        newContacts: sentResult.newContactsCount,
+      });
     } catch (err: any) {
       console.error('Error syncing replies:', err);
       res.status(500).json({ success: false, error: err.message || 'Failed to sync replies' });
@@ -1402,6 +1553,20 @@ export function createApp(): express.Application {
   apiRouter.get('/replies', handleGetResponses);
   apiRouter.post('/responses/sync', handleSyncResponses);
   apiRouter.post('/replies/sync', handleSyncResponses);
+  apiRouter.post('/gmail/sync-sent', async (req, res) => {
+    try {
+      const sentResult = await syncGmailSent();
+      await db.flush();
+      res.status(200).json({
+        success: true,
+        newSent: sentResult.newSentCount,
+        newContacts: sentResult.newContactsCount,
+      });
+    } catch (err: any) {
+      console.error('Error syncing sent messages:', err);
+      res.status(500).json({ success: false, error: err.message || 'Failed to sync sent messages' });
+    }
+  });
   apiRouter.put('/responses/:id/status', handleUpdateResponseStatus);
   apiRouter.put('/replies/:id/status', handleUpdateResponseStatus);
 

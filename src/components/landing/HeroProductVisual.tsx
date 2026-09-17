@@ -15,7 +15,6 @@ import {
   ShieldCheck,
   Repeat,
   Zap,
-  Sliders,
 } from 'lucide-react';
 
 export const HeroProductVisual: React.FC = () => {
@@ -36,13 +35,13 @@ export const HeroProductVisual: React.FC = () => {
 
       {/* 1. Section Header: UNIFIED OUTREACH ARCHITECTURE */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 25 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.15 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="text-center max-w-3xl mx-auto mb-10 sm:mb-12"
       >
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-indigo-50/90 dark:bg-zinc-900 border border-indigo-200/70 dark:border-zinc-800 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-wider mb-4 shadow-2xs">
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-indigo-50/90 dark:bg-[#0c0c0c] border border-indigo-200/70 dark:border-white/[0.08] text-indigo-700 dark:text-zinc-300 text-xs font-bold uppercase tracking-wider mb-4 shadow-2xs">
           <Layers className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
           <span>Unified Outreach Architecture</span>
         </div>
@@ -56,20 +55,20 @@ export const HeroProductVisual: React.FC = () => {
 
       {/* Interactive / Visual Pipeline Ribbon */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.97 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: false, amount: 0.2 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
+        initial={{ opacity: 0, y: 15 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.5, delay: 0.08 }}
         className="mb-8 overflow-x-auto pb-2 scrollbar-none"
       >
-        <div className="flex items-center justify-between min-w-[820px] px-5 py-3 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200/90 dark:border-zinc-850 shadow-2xs">
+        <div className="flex items-center justify-between min-w-[820px] px-5 py-3 rounded-xl bg-white dark:bg-[#060606] border border-slate-200/90 dark:border-white/[0.06] shadow-2xs">
           {workflowSteps.map((step, idx) => (
             <React.Fragment key={idx}>
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-zinc-900 border border-indigo-200/70 dark:border-zinc-800 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold flex items-center justify-center">
+                <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-[#0e0e0e] border border-indigo-200/70 dark:border-white/[0.08] text-indigo-700 dark:text-zinc-300 text-[10px] font-bold flex items-center justify-center">
                   {step.num}
                 </span>
-                <span className="text-xs font-semibold text-slate-700 dark:text-zinc-200 whitespace-nowrap">
+                <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 whitespace-nowrap">
                   {step.label}
                 </span>
               </div>
@@ -85,14 +84,14 @@ export const HeroProductVisual: React.FC = () => {
 
       {/* 2. Product Visualization: Large Premium Browser / Workspace Mockup */}
       <motion.div
-        initial={{ opacity: 0, y: 45, scale: 0.96 }}
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        viewport={{ once: false, amount: 0.15 }}
-        transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-        className="relative rounded-2xl border border-slate-200/90 dark:border-zinc-850 bg-white dark:bg-zinc-950 shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        className="relative rounded-2xl border border-slate-200/90 dark:border-white/[0.06] bg-white dark:bg-[#060606] shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden"
       >
         {/* Browser Chrome Header */}
-        <div className="h-12 bg-slate-100/90 dark:bg-zinc-900/90 border-b border-slate-200/80 dark:border-zinc-850 px-4 sm:px-6 flex items-center justify-between text-xs select-none">
+        <div className="h-12 bg-slate-100/90 dark:bg-[#080808] border-b border-slate-200/80 dark:border-white/[0.06] px-4 sm:px-6 flex items-center justify-between text-xs select-none">
           {/* Browser Window Controls */}
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-rose-400/80 border border-rose-500/20" />
@@ -101,10 +100,10 @@ export const HeroProductVisual: React.FC = () => {
           </div>
 
           {/* Browser URL Bar */}
-          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1 rounded-md bg-white dark:bg-zinc-950 border border-slate-200/70 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 text-[11px] font-mono shadow-2xs">
+          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1 rounded-md bg-white dark:bg-[#020202] border border-slate-200/70 dark:border-white/[0.06] text-slate-500 dark:text-zinc-400 text-[11px] font-mono shadow-2xs">
             <Lock className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
             <span>app.outreachos.com/compose</span>
-            <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-sans px-1 bg-slate-100 dark:bg-zinc-800 rounded">
+            <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-sans px-1 bg-slate-100 dark:bg-[#0f0f0f] rounded">
               Verified TLS 1.3
             </span>
           </div>
@@ -112,14 +111,14 @@ export const HeroProductVisual: React.FC = () => {
           {/* Top Status Indicators */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* AI Status */}
-            <div className="inline-flex items-center gap-1.5 text-[11px] text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-zinc-900 font-semibold px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-zinc-800">
+            <div className="inline-flex items-center gap-1.5 text-[11px] text-indigo-700 dark:text-zinc-300 bg-indigo-50 dark:bg-[#0c0c0c] font-semibold px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-white/[0.08]">
               <Sparkles className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
               <span>AI PERSONALIZATION</span>
               <span className="text-indigo-500 dark:text-indigo-400 font-normal">• Ready</span>
             </div>
 
             {/* Gmail Status */}
-            <div className="inline-flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-zinc-900 font-semibold px-2.5 py-1 rounded-lg border border-emerald-200/70 dark:border-zinc-800">
+            <div className="inline-flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-[#0c0c0c] font-semibold px-2.5 py-1 rounded-lg border border-emerald-200/70 dark:border-white/[0.08]">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Gmail API</span>
               <span className="text-emerald-600 dark:text-emerald-400 font-normal">• Connected</span>
@@ -128,16 +127,16 @@ export const HeroProductVisual: React.FC = () => {
         </div>
 
         {/* Interior Application Workspace: Bento Composition */}
-        <div className="p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-black/60">
+        <div className="p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-[#000000]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Main Left/Center Panel: Dominant Composer Cockpit */}
-            <div className="lg:col-span-7 xl:col-span-8 bg-white dark:bg-zinc-950 rounded-xl border border-slate-200/90 dark:border-zinc-850 p-5 sm:p-6 shadow-2xs space-y-4 flex flex-col justify-between">
+            <div className="lg:col-span-7 xl:col-span-8 bg-white dark:bg-[#060606] rounded-xl border border-slate-200/90 dark:border-white/[0.06] p-5 sm:p-6 shadow-2xs space-y-4 flex flex-col justify-between">
               <div className="space-y-4">
                 {/* Header: COMPOSE PERSONALIZED OUTREACH */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-zinc-850">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-white/[0.05]">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-lg bg-indigo-50 dark:bg-zinc-900 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-zinc-800">
+                    <div className="p-2 rounded-lg bg-indigo-50 dark:bg-[#0e0e0e] text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-white/[0.06]">
                       <Mail className="w-4 h-4" />
                     </div>
                     <div>
@@ -149,7 +148,7 @@ export const HeroProductVisual: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-zinc-900 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-zinc-800">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-[#0c0c0c] text-indigo-700 dark:text-zinc-300 border border-indigo-200/60 dark:border-white/[0.08]">
                     <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                     <span>98% Relevance Match</span>
                   </div>
@@ -166,9 +165,9 @@ export const HeroProductVisual: React.FC = () => {
                       Domain & MX Verified
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200/80 dark:border-white/[0.05] text-xs">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-zinc-800 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-xs">
+                      <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-[#121212] text-indigo-700 dark:text-zinc-200 flex items-center justify-center font-bold text-xs">
                         SJ
                       </div>
                       <div>
@@ -181,10 +180,10 @@ export const HeroProductVisual: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-white dark:bg-zinc-950 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-800 shadow-2xs">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-white dark:bg-[#040404] text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/[0.06] shadow-2xs">
                         Role: VP of Platform Infrastructure
                       </span>
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-white dark:bg-zinc-950 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-800 shadow-2xs">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-white dark:bg-[#040404] text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/[0.06] shadow-2xs">
                         Company: CloudScale Technologies
                       </span>
                     </div>
@@ -196,9 +195,9 @@ export const HeroProductVisual: React.FC = () => {
                   <span className="font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider text-[10px]">
                     Subject Line
                   </span>
-                  <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 font-medium text-slate-900 dark:text-white text-xs flex items-center justify-between">
+                  <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200/80 dark:border-white/[0.05] font-medium text-slate-900 dark:text-white text-xs flex items-center justify-between">
                     <span>High-throughput platform resilience & cross-cluster scaling</span>
-                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-zinc-900 px-2 py-0.5 rounded font-semibold border border-emerald-200/60 dark:border-zinc-800">
+                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-[#0c0c0c] px-2 py-0.5 rounded font-semibold border border-emerald-200/60 dark:border-white/[0.08]">
                       Zero Spam Trigger
                     </span>
                   </div>
@@ -209,7 +208,7 @@ export const HeroProductVisual: React.FC = () => {
                   <span className="font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider text-[10px]">
                     Personalized Message Content
                   </span>
-                  <div className="rounded-lg bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 p-4 sm:p-5 text-xs text-slate-800 dark:text-zinc-200 leading-relaxed space-y-3 font-sans shadow-2xs">
+                  <div className="rounded-lg bg-white dark:bg-[#020202] border border-slate-200 dark:border-white/[0.05] p-4 sm:p-5 text-xs text-slate-800 dark:text-zinc-300 leading-relaxed space-y-3 font-sans shadow-2xs">
                     <p className="font-semibold text-slate-900 dark:text-white">Hi Sarah,</p>
                     <p>
                       I noticed CloudScale's recent engineering benchmark on multi-region Kubernetes failover and your team's expansion in platform reliability. Having architected distributed pipelines processing 250k+ events/sec, I put together a brief technical breakdown on eliminating cross-cluster ingress latency.
@@ -217,18 +216,18 @@ export const HeroProductVisual: React.FC = () => {
                     <p>
                       I've attached my technical portfolio and systems architecture case study for your review. Would you be open to a brief 10-minute technical exchange next Tuesday at 10:00 AM PST?
                     </p>
-                    <div className="pt-2 border-t border-slate-100 dark:border-zinc-850">
-                      <p className="text-slate-500 dark:text-zinc-400">Best regards,</p>
+                    <div className="pt-2 border-t border-slate-100 dark:border-white/[0.05]">
+                      <p className="text-slate-500 dark:text-zinc-500">Best regards,</p>
                       <p className="font-semibold text-slate-900 dark:text-white">Alex Morgan</p>
-                      <p className="text-[11px] text-slate-500 dark:text-zinc-400">Principal Systems Architect</p>
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-500">Principal Systems Architect</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Document / Resume Attachment Card */}
-                <div className="p-3 rounded-lg bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between text-xs">
+                <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200/80 dark:border-white/[0.05] flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-zinc-900 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200/60 dark:border-zinc-800 shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-[#12080a] text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200/60 dark:border-rose-950/40 shrink-0">
                       <FileText className="w-4 h-4" />
                     </div>
                     <div>
@@ -240,7 +239,7 @@ export const HeroProductVisual: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-zinc-900 px-2.5 py-1 rounded border border-emerald-200/60 dark:border-zinc-800">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-[#0c0c0c] px-2.5 py-1 rounded border border-emerald-200/60 dark:border-white/[0.08]">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     <span>Attached</span>
                   </div>
@@ -248,7 +247,7 @@ export const HeroProductVisual: React.FC = () => {
               </div>
 
               {/* Bottom Action Bar */}
-              <div className="pt-4 border-t border-slate-100 dark:border-zinc-850 flex flex-wrap items-center justify-between gap-3 select-none">
+              <div className="pt-4 border-t border-slate-100 dark:border-white/[0.05] flex flex-wrap items-center justify-between gap-3 select-none">
                 <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">
                   <Clock className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   <span className="font-medium">Scheduled for Tuesday, 10:00 AM (Recipient Timezone)</span>
@@ -258,14 +257,14 @@ export const HeroProductVisual: React.FC = () => {
                   <button
                     type="button"
                     tabIndex={-1}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 text-xs font-semibold shadow-2xs hover:bg-slate-50 pointer-events-none"
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0c0c0c] text-slate-700 dark:text-zinc-300 text-xs font-semibold shadow-2xs pointer-events-none"
                   >
                     Save Draft
                   </button>
                   <button
                     type="button"
                     tabIndex={-1}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold shadow-2xs hover:bg-indigo-700 pointer-events-none"
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold shadow-2xs pointer-events-none"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Send via Gmail</span>
@@ -278,15 +277,15 @@ export const HeroProductVisual: React.FC = () => {
             <div className="lg:col-span-5 xl:col-span-4 space-y-4">
               
               {/* 1. Target Context Card */}
-              <div className="bg-white dark:bg-zinc-950 rounded-xl border border-slate-200/90 dark:border-zinc-850 p-4 sm:p-5 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-850">
+              <div className="bg-white dark:bg-[#060606] rounded-xl border border-slate-200/90 dark:border-white/[0.06] p-4 sm:p-5 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.05]">
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                     <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                       TARGET CONTEXT
                     </span>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-zinc-900 px-2 py-0.5 rounded border border-emerald-200/60 dark:border-zinc-800">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-[#0c0c0c] px-2 py-0.5 rounded border border-emerald-200/60 dark:border-white/[0.08]">
                     <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                     VERIFIED
                   </span>
@@ -320,15 +319,15 @@ export const HeroProductVisual: React.FC = () => {
               </div>
 
               {/* 2. Safety & Limits Card */}
-              <div className="bg-white dark:bg-zinc-950 rounded-xl border border-slate-200/90 dark:border-zinc-850 p-4 sm:p-5 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-850">
+              <div className="bg-white dark:bg-[#060606] rounded-xl border border-slate-200/90 dark:border-white/[0.06] p-4 sm:p-5 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.05]">
                   <div className="flex items-center gap-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                       SAFETY & LIMITS
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-zinc-900 px-2 py-0.5 rounded border border-emerald-200/60 dark:border-zinc-800">
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-[#0c0c0c] px-2 py-0.5 rounded border border-emerald-200/60 dark:border-white/[0.08]">
                     Active Shield
                   </span>
                 </div>
@@ -353,20 +352,20 @@ export const HeroProductVisual: React.FC = () => {
               </div>
 
               {/* 3. Follow-Up Rule Card */}
-              <div className="bg-white dark:bg-zinc-950 rounded-xl border border-slate-200/90 dark:border-zinc-850 p-4 sm:p-5 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-850">
+              <div className="bg-white dark:bg-[#060606] rounded-xl border border-slate-200/90 dark:border-white/[0.06] p-4 sm:p-5 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.05]">
                   <div className="flex items-center gap-1.5">
                     <Repeat className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                     <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                       FOLLOW-UP RULE
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-zinc-900 px-2 py-0.5 rounded border border-indigo-200/60 dark:border-zinc-800">
+                  <span className="text-[10px] font-bold text-indigo-700 dark:text-zinc-300 bg-indigo-50 dark:bg-[#0c0c0c] px-2 py-0.5 rounded border border-indigo-200/60 dark:border-white/[0.08]">
                     Automated Thread
                   </span>
                 </div>
                 <div className="space-y-2 text-xs">
-                  <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 space-y-1">
+                  <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200/80 dark:border-white/[0.05] space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="font-semibold text-slate-800 dark:text-zinc-200">Step 2 Trigger Condition:</span>
                       <span className="font-bold text-indigo-600 dark:text-indigo-400">After 3 business days</span>
@@ -383,15 +382,15 @@ export const HeroProductVisual: React.FC = () => {
               </div>
 
               {/* 4. Verified Gmail Connection Card */}
-              <div className="bg-white dark:bg-zinc-950 rounded-xl border border-slate-200/90 dark:border-zinc-850 p-4 sm:p-5 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-850">
+              <div className="bg-white dark:bg-[#060606] rounded-xl border border-slate-200/90 dark:border-white/[0.06] p-4 sm:p-5 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.05]">
                   <div className="flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-amber-500" />
                     <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                       GMAIL PROTOCOL
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-zinc-900 px-2 py-0.5 rounded border border-emerald-200/60 dark:border-zinc-800">
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-[#0c0c0c] px-2 py-0.5 rounded border border-emerald-200/60 dark:border-white/[0.08]">
                     OAuth 2.0
                   </span>
                 </div>
@@ -406,7 +405,7 @@ export const HeroProductVisual: React.FC = () => {
                   <ArrowRight className="w-3 h-3 text-slate-300 dark:text-zinc-700" />
                   <span className="text-indigo-600 dark:text-indigo-400 font-bold">Follow-Up</span>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-snug pt-1 border-t border-slate-100 dark:border-zinc-850">
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-snug pt-1 border-t border-slate-100 dark:border-white/[0.05]">
                   Official Google Workspace API integration. Direct from your mailbox with zero third-party branding.
                 </p>
               </div>

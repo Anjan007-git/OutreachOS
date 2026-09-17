@@ -207,6 +207,39 @@ const DEFAULT_SETTINGS: UserSettings = {
   },
 };
 
+export const DEFAULT_CAMPAIGN: Campaign = {
+  id: 'camp-direct-outreach',
+  name: 'Direct Cold Outreach',
+  description: 'Default outreach campaign for direct cold emails dispatched via connected Gmail.',
+  type: 'JOB_OUTREACH',
+  recipientIds: [],
+  subject: 'Inquiry regarding opportunities — {{my_name}}',
+  message: `Hi {{first_name}},\n\nI hope you are doing well.\n\nI am reaching out to explore potential opportunities at {{company}}. My background in cloud systems, software engineering, and infrastructure aligns well with your team's initiatives.\n\nBest regards,\n{{my_name}}`,
+  attachments: [],
+  scheduleType: 'immediate',
+  dailyLimit: 10,
+  delayMinutes: 10,
+  sentCount: 0,
+  replyCount: 0,
+  status: 'ACTIVE',
+  createdAt: '2026-09-08T14:36:16.953Z',
+  updatedAt: '2026-09-08T14:36:16.953Z',
+};
+
+export const DEFAULT_FOLLOW_UP_RULES: FollowUpRule[] = [
+  {
+    id: 'fu-default-1',
+    campaignId: 'camp-direct-outreach',
+    campaignName: 'Direct Cold Outreach',
+    stepNumber: 1,
+    daysAfterPrevious: 3,
+    subjectTemplate: 'Following up regarding my previous note — {{my_name}}',
+    messageTemplate: `Hi {{first_name}},\n\nI wanted to gently follow up on my note from earlier this week in case it got buried in your inbox. I'd still be delighted to connect briefly if you or your team have a few minutes.\n\nBest regards,\n{{my_name}}`,
+    status: 'ACTIVE',
+    stopOnReply: true,
+  },
+];
+
 export function getInitialData(): DatabaseSchema {
   return {
     _fresh_clean_v2: true,
@@ -219,7 +252,7 @@ export function getInitialData(): DatabaseSchema {
       },
     ],
     contacts: [],
-    campaigns: [],
+    campaigns: [DEFAULT_CAMPAIGN],
     campaign_recipients: [],
     messages: [],
     scheduled_messages: [],
@@ -236,7 +269,7 @@ export function getInitialData(): DatabaseSchema {
     ],
     email_threads: [],
     incoming_messages: [],
-    follow_ups: [],
+    follow_ups: DEFAULT_FOLLOW_UP_RULES,
     follow_up_instances: [],
     notifications: [],
     audit_logs: [],
@@ -253,7 +286,7 @@ function mergeWithSchemaDefaults(parsed: any): DatabaseSchema {
     ...(parsed || {}),
     _fresh_clean_v2: true,
     contacts: Array.isArray(parsed?.contacts) ? parsed.contacts : [],
-    campaigns: Array.isArray(parsed?.campaigns) ? parsed.campaigns : [],
+    campaigns: Array.isArray(parsed?.campaigns) && parsed.campaigns.length > 0 ? parsed.campaigns : [DEFAULT_CAMPAIGN],
     campaign_recipients: Array.isArray(parsed?.campaign_recipients) ? parsed.campaign_recipients : [],
     messages: Array.isArray(parsed?.messages) ? parsed.messages : [],
     scheduled_messages: Array.isArray(parsed?.scheduled_messages) ? parsed.scheduled_messages : [],
@@ -262,7 +295,7 @@ function mergeWithSchemaDefaults(parsed: any): DatabaseSchema {
     templates: Array.isArray(parsed?.templates) && parsed.templates.length > 0 ? parsed.templates : DEFAULT_TEMPLATES,
     email_threads: Array.isArray(parsed?.email_threads) ? parsed.email_threads : [],
     incoming_messages: Array.isArray(parsed?.incoming_messages) ? parsed.incoming_messages : [],
-    follow_ups: Array.isArray(parsed?.follow_ups) ? parsed.follow_ups : [],
+    follow_ups: Array.isArray(parsed?.follow_ups) && parsed.follow_ups.length > 0 ? parsed.follow_ups : DEFAULT_FOLLOW_UP_RULES,
     follow_up_instances: Array.isArray(parsed?.follow_up_instances) ? parsed.follow_up_instances : [],
     notifications: Array.isArray(parsed?.notifications) ? parsed.notifications : [],
     audit_logs: Array.isArray(parsed?.audit_logs) ? parsed.audit_logs : [],
@@ -312,6 +345,7 @@ function mergeWithSchemaDefaults(parsed: any): DatabaseSchema {
 class Database {
   private data: DatabaseSchema;
   private isLoadedFromStorage = false;
+  private lastLoadedTime = 0;
   private pendingSave: Promise<void> | null = null;
   private loadPromise: Promise<DatabaseSchema> | null = null;
 
@@ -330,6 +364,7 @@ class Database {
         const parsed = JSON.parse(raw);
         this.data = mergeWithSchemaDefaults(parsed);
         this.isLoadedFromStorage = true;
+        this.lastLoadedTime = Date.now();
       }
     } catch (err) {
       console.warn('Could not load local db.json, using default state:', err);
@@ -379,7 +414,8 @@ class Database {
       const redis = getRedisClient();
 
       if (redis) {
-        if (!this.isLoadedFromStorage || forceRefresh) {
+        const now = Date.now();
+        if (!this.isLoadedFromStorage || forceRefresh || now - this.lastLoadedTime > 3000) {
           let attempts = 0;
           const maxAttempts = 3;
           let lastErr: any = null;
@@ -403,6 +439,7 @@ class Database {
                 await redis.set(UPSTASH_DB_KEY, JSON.stringify(seedData));
               }
               this.isLoadedFromStorage = true;
+              this.lastLoadedTime = Date.now();
               return this.data;
             } catch (err: any) {
               lastErr = err;

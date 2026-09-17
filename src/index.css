@@ -16,20 +16,34 @@
     color: #f4f4f5;
   }
 
-  /* Custom crisp neutral scrollbar for pure black theme */
+  /* Coordinated smooth theme transition across entire interface */
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                fill 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                stroke 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition-delay: 0s !important;
+  }
+
+  /* Custom crisp neutral scrollbar for pure liquid black theme */
   html.dark ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   html.dark ::-webkit-scrollbar-track {
-    background: #09090b;
+    background: #000000;
   }
   html.dark ::-webkit-scrollbar-thumb {
-    background: #27272a;
+    background: #1c1c1f;
     border-radius: 4px;
   }
   html.dark ::-webkit-scrollbar-thumb:hover {
-    background: #3f3f46;
+    background: #2e2e33;
   }
 }
 

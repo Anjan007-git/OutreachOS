@@ -1,7 +1,15 @@
 import { db } from './db.js';
-import { sendGmailMessage, searchGmailMessages, getGmailMessage, getHeader, extractBodyText } from './gmail.js';
+import {
+  sendGmailMessage,
+  searchGmailMessages,
+  getGmailMessage,
+  getHeader,
+  extractBodyText,
+  parseEmailRecipient,
+  inferOrganizationFromEmail,
+} from './gmail.js';
 import { classifyIncomingReply } from './gemini.js';
-import { ScheduledMessage, SentMessage, IncomingMessage } from '../src/types.js';
+import { ScheduledMessage, SentMessage, IncomingMessage, Contact } from '../src/types.js';
 import { interpolateVariables } from '../src/lib/variables.js';
 import { resolveAttachmentsForEmail } from './attachments.js';
 
@@ -506,6 +514,160 @@ export async function syncGmailReplies(): Promise<{ newRepliesCount: number }> {
 }
 
 /**
+ * Synchronizes recent sent messages from Gmail into OutreachOS.
+ * Discovers any cold emails sent directly or during previous sessions,
+ * populates contacts, logs sent messages, tracks threads, and updates campaign stats.
+ */
+export async function syncGmailSent(): Promise<{ newSentCount: number; newContactsCount: number }> {
+  const gmailAccounts = db.get('gmail_accounts');
+  const account = gmailAccounts.find((a) => a.isConnected && a.accessToken);
+  if (!account || !account.accessToken || (account as any).needsReauth) {
+    return { newSentCount: 0, newContactsCount: 0 };
+  }
+
+  try {
+    // Search recent sent messages from this user's Gmail
+    const messages = await searchGmailMessages(account.accessToken, 'from:me newer_than:30d', 40);
+    if (!messages || messages.length === 0) {
+      return { newSentCount: 0, newContactsCount: 0 };
+    }
+
+    const sentMessages = db.get('sent_messages') || [];
+    const contacts = db.get('contacts') || [];
+    const defaultCamp = db.get('campaigns').find((c) => c.status === 'ACTIVE') || db.get('campaigns')[0];
+
+    let newSentCount = 0;
+    let newContactsCount = 0;
+
+    for (const m of messages) {
+      // Check if already in sent_messages
+      const alreadyStored = sentMessages.some((s) => s.gmailMessageId === m.id);
+      if (alreadyStored) continue;
+
+      try {
+        const fullMsg = await getGmailMessage(account.accessToken, m.id);
+        const headers = fullMsg.payload?.headers || [];
+        const toHeader = getHeader(headers, 'To');
+        const subjectHeader = getHeader(headers, 'Subject') || '(No Subject)';
+        const dateHeader = getHeader(headers, 'Date');
+        const threadId = fullMsg.threadId || m.threadId;
+
+        if (!toHeader) continue;
+
+        const recipient = parseEmailRecipient(toHeader);
+        if (!recipient.email || recipient.email.toLowerCase() === account.email.toLowerCase()) {
+          continue; // Skip self-sent or invalid
+        }
+
+        const internalMs = parseInt(fullMsg.internalDate, 10);
+        const sentTime = !isNaN(internalMs)
+          ? new Date(internalMs).toISOString()
+          : (dateHeader ? new Date(dateHeader).toISOString() : new Date().toISOString());
+
+        // Check if contact already exists
+        let contact = contacts.find((c) => c.email.toLowerCase() === recipient.email.toLowerCase());
+        let contactId = contact?.id;
+
+        if (!contact) {
+          const inferredOrg = inferOrganizationFromEmail(recipient.email);
+          contactId = 'c-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
+          const newContact: Contact = {
+            id: contactId,
+            name: recipient.name || recipient.email.split('@')[0],
+            email: recipient.email,
+            organization: inferredOrg,
+            organizationType: 'Company',
+            role: 'Prospect',
+            country: 'United States',
+            tags: ['Outreach Contact', 'Gmail Sent'],
+            status: 'CONTACTED',
+            createdAt: sentTime,
+            updatedAt: sentTime,
+            lastContactedAt: sentTime,
+            notes: 'Imported from connected Gmail sent history',
+          };
+          db.update('contacts', (prev) => [newContact, ...prev]);
+          contacts.unshift(newContact);
+          newContactsCount++;
+        } else {
+          // Update status if needed
+          if (contact.status === 'PROSPECT') {
+            db.update('contacts', (prev) =>
+              prev.map((c) => (c.id === contact!.id ? { ...c, status: 'CONTACTED', lastContactedAt: sentTime } : c))
+            );
+          }
+        }
+
+        const bodyText = extractBodyText(fullMsg.payload) || fullMsg.snippet || '';
+        const sentItem: SentMessage = {
+          id: 'sent-' + m.id,
+          gmailMessageId: m.id,
+          gmailThreadId: threadId,
+          recipientId: contactId || 'contact-' + recipient.email,
+          recipientName: recipient.name || recipient.email.split('@')[0],
+          recipientEmail: recipient.email,
+          subject: subjectHeader,
+          messageBody: bodyText,
+          attachments: [],
+          campaignId: defaultCamp?.id,
+          campaignName: defaultCamp?.name,
+          sentAt: sentTime,
+          status: 'DELIVERED',
+        };
+
+        db.update('sent_messages', (prev) => [sentItem, ...prev]);
+        sentMessages.unshift(sentItem);
+        newSentCount++;
+
+        // Thread tracking
+        db.update('email_threads', (threads) => {
+          const existing = threads.find((t) => t.threadId === threadId);
+          if (existing) {
+            return threads.map((t) =>
+              t.threadId === threadId ? { ...t, lastMessageAt: sentTime, messageCount: t.messageCount + 1 } : t
+            );
+          }
+          return [
+            ...threads,
+            {
+              threadId,
+              contactEmail: recipient.email,
+              campaignId: defaultCamp?.id,
+              lastMessageAt: sentTime,
+              messageCount: 1,
+            },
+          ];
+        });
+
+        // If default campaign exists, increment sent count
+        if (defaultCamp) {
+          db.update('campaigns', (camps) =>
+            camps.map((c) =>
+              c.id === defaultCamp.id ? { ...c, sentCount: (c.sentCount || 0) + 1 } : c
+            )
+          );
+        }
+      } catch (msgErr: any) {
+        console.warn(`Could not parse sent message ${m.id}:`, msgErr?.message || msgErr);
+      }
+    }
+
+    if (newSentCount > 0) {
+      db.logAudit(
+        'GMAIL_SENT_SYNCED',
+        `Synchronized ${newSentCount} sent messages and ${newContactsCount} contacts from Gmail`
+      );
+      await db.flush();
+    }
+
+    return { newSentCount, newContactsCount };
+  } catch (err: any) {
+    console.error('Error in syncGmailSent:', err);
+    return { newSentCount: 0, newContactsCount: 0 };
+  }
+}
+
+/**
  * Initializes the background queue runner
  */
 export function startScheduler() {
@@ -520,16 +682,17 @@ export function startScheduler() {
     }
   }, 30 * 1000);
 
-  // Poll Gmail replies every 3 minutes
+  // Poll Gmail sent & replies every 2 minutes
   setInterval(async () => {
     try {
       const now = Date.now();
-      if (now - lastSyncTimestamp > 3 * 60 * 1000) {
+      if (now - lastSyncTimestamp > 2 * 60 * 1000) {
         lastSyncTimestamp = now;
+        await syncGmailSent();
         await syncGmailReplies();
       }
     } catch (e) {
-      console.error('Scheduler reply sync error:', e);
+      console.error('Scheduler sync error:', e);
     }
   }, 60 * 1000);
 }

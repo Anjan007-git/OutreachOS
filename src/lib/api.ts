@@ -179,7 +179,14 @@ export const api = {
 
   // Responses
   getResponses: () => fetchJson<IncomingMessage[]>('/api/responses'),
-  syncResponses: () => fetchJson<{ success: boolean; newReplies: number }>('/api/responses/sync', { method: 'POST' }),
+  syncResponses: () =>
+    fetchJson<{ success: boolean; newReplies: number; newSent?: number; newContacts?: number }>('/api/responses/sync', {
+      method: 'POST',
+    }),
+  syncSent: () =>
+    fetchJson<{ success: boolean; newSent: number; newContacts: number }>('/api/gmail/sync-sent', {
+      method: 'POST',
+    }),
   updateResponseStatus: (id: string, userResponseStatus: 'PENDING' | 'DRAFTED' | 'SENT' | 'IGNORED') =>
     fetchJson<{ success: boolean }>(`/api/responses/${id}/status`, {
       method: 'PUT',
