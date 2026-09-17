@@ -24,9 +24,10 @@ import {
   AlertCircle,
   FileCheck,
 } from 'lucide-react';
-import { Contact, Campaign, Template, StoredFile, AttachmentRef } from '../types';
+import { Contact, Campaign, Template, StoredFile, AttachmentRef, UserSettings } from '../types';
 import { COMMON_VARIABLES, interpolateVariables } from '../lib/variables.js';
 import { GoogleDrivePickerModal } from './GoogleDrivePickerModal';
+import { TemplateLibraryModal } from './TemplateLibraryModal';
 import { api } from '../lib/api';
 
 interface ComposeViewProps {
@@ -34,6 +35,8 @@ interface ComposeViewProps {
   campaigns: Campaign[];
   templates: Template[];
   files: StoredFile[];
+  settings?: UserSettings | null;
+  onSelectContact?: (contact: Contact) => void;
   preselectedContact?: Contact | null;
   preselectedCampaign?: Campaign | null;
   initialDraft?: { subject?: string; body?: string; attachments?: AttachmentRef[] } | null;
@@ -79,6 +82,8 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
   campaigns,
   templates,
   files,
+  settings = null,
+  onSelectContact,
   preselectedContact,
   preselectedCampaign,
   initialDraft,
@@ -96,6 +101,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
   const [customEmail, setCustomEmail] = useState(preselectedContact?.email || '');
   const [customName, setCustomName] = useState(preselectedContact?.name || '');
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(preselectedCampaign?.id || '');
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
   // Message fields
   const [subject, setSubject] = useState(initialDraft?.subject || '');
@@ -390,12 +396,40 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
     }
   };
 
-  // Insert template
+  // Insert template & map variables seamlessly
   const handleSelectTemplate = (templateId: string) => {
     const tpl = templates.find((t) => t.id === templateId);
     if (!tpl) return;
-    setSubject(tpl.subject);
-    setMessageBody(tpl.body);
+
+    // Seamlessly map variables like {{first_name}} and {{company}} into the Compose editor
+    const context = {
+      contact: activeContact,
+      customName,
+      customEmail,
+      settings,
+    };
+    const mappedSubject = interpolateVariables(tpl.subject, context, false);
+    const mappedBody = interpolateVariables(tpl.body, context, false);
+
+    setSubject(mappedSubject);
+    setMessageBody(mappedBody);
+    setStatusFeedback({
+      type: 'success',
+      text: activeContact
+        ? `Applied "${tpl.name}" & personalized for ${activeContact.name} (${activeContact.organization || 'Target Company'})`
+        : `Applied "${tpl.name}" with personalized variables mapped`,
+    });
+  };
+
+  const handleApplyFromModal = (tpl: Template, mappedSubject: string, mappedBody: string) => {
+    setSubject(mappedSubject);
+    setMessageBody(mappedBody);
+    setStatusFeedback({
+      type: 'success',
+      text: activeContact
+        ? `Applied "${tpl.name}" & personalized for ${activeContact.name} (${activeContact.organization || 'Target Company'})`
+        : `Applied "${tpl.name}" to editor`,
+    });
   };
 
   // Variable replacement logic
@@ -974,21 +1008,36 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
 
           {/* Template Selection */}
           <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm space-y-3">
-            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
-              Load Outreach Template
-            </span>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
+                Load Outreach Template
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsTemplateModalOpen(true)}
+                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>Browse All ({templates.length})</span>
+              </button>
+            </div>
+            <div className="space-y-2 max-h-56 overflow-y-auto">
               {templates.map((tpl) => (
                 <button
                   key={tpl.id}
                   type="button"
                   onClick={() => handleSelectTemplate(tpl.id)}
-                  className="w-full text-left p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-zinc-700 transition-colors group cursor-pointer"
+                  className="w-full text-left p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900 border border-slate-200 dark:border-zinc-850 hover:border-indigo-300 dark:hover:border-zinc-700 transition-colors group cursor-pointer"
                 >
-                  <div className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                    {tpl.title || tpl.name}
+                  <div className="flex items-center justify-between gap-1 mb-0.5">
+                    <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 truncate">
+                      {tpl.title || tpl.name}
+                    </span>
+                    <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-xs bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 whitespace-nowrap">
+                      {tpl.category}
+                    </span>
                   </div>
-                  <div className="text-[10px] text-slate-400 dark:text-zinc-500 truncate mt-0.5">{tpl.subject}</div>
+                  <div className="text-[10px] text-slate-400 dark:text-zinc-500 truncate">{tpl.subject}</div>
                 </button>
               ))}
             </div>
@@ -1291,6 +1340,23 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Interactive Template Library Modal */}
+      <TemplateLibraryModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        templates={templates}
+        activeContact={activeContact}
+        contacts={contacts}
+        settings={settings}
+        onSelectContact={(c) => {
+          setSelectedContactId(c.id);
+          setCustomEmail(c.email);
+          setCustomName(c.name);
+          if (onSelectContact) onSelectContact(c);
+        }}
+        onApplyTemplate={handleApplyFromModal}
+      />
     </div>
   );
 };

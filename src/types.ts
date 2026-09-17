@@ -13,6 +13,8 @@ export type OrganizationType =
 
 export interface Contact {
   id: string;
+  userId?: string;
+  userEmail?: string;
   name: string;
   email: string;
   organization: string;
@@ -58,6 +60,8 @@ export interface AttachmentRef {
 
 export interface Campaign {
   id: string;
+  userId?: string;
+  userEmail?: string;
   name: string;
   description: string;
   type: CampaignType;
@@ -90,14 +94,19 @@ export type MessageApprovalStatus =
 
 export interface ScheduledMessage {
   id: string;
+  userId?: string;
+  userEmail?: string;
   recipientId: string;
   recipientEmail: string;
   recipientName: string;
   campaignId?: string;
   campaignName?: string;
+  templateId?: string;
   subject: string;
   messageBody: string;
+  body?: string;
   attachments: AttachmentRef[];
+  attachmentIds?: string[];
   scheduledTime: string; // ISO string
   status: MessageApprovalStatus;
   retryCount: number;
@@ -110,18 +119,26 @@ export interface ScheduledMessage {
 
 export interface SentMessage {
   id: string;
+  userId?: string;
+  userEmail?: string;
   recipientId: string;
   recipientEmail: string;
   recipientName: string;
   campaignId?: string;
   campaignName?: string;
+  templateId?: string;
   subject: string;
   messageBody: string;
+  body?: string;
   attachments: AttachmentRef[];
+  attachmentIds?: string[];
   gmailMessageId: string;
   gmailThreadId: string;
   sentAt: string;
-  status: 'DELIVERED' | 'REPLIED' | 'BOUNCED';
+  status: 'DELIVERED' | 'REPLIED' | 'BOUNCED' | 'SENT';
+  scheduledTime?: string;
+  followUpConfig?: any;
+  providerMetadata?: any;
 }
 
 export type ReplyClassification =
@@ -137,6 +154,8 @@ export type ReplyClassification =
 
 export interface IncomingMessage {
   id: string;
+  userId?: string;
+  userEmail?: string;
   contactId?: string;
   contactName?: string;
   contactEmail: string;
@@ -158,6 +177,8 @@ export interface IncomingMessage {
 
 export interface FollowUpRule {
   id: string;
+  userId?: string;
+  userEmail?: string;
   campaignId: string;
   campaignName: string;
   stepNumber: number;
@@ -170,6 +191,8 @@ export interface FollowUpRule {
 
 export interface FollowUpInstance {
   id: string;
+  userId?: string;
+  userEmail?: string;
   ruleId: string;
   contactId: string;
   contactEmail: string;
@@ -182,13 +205,17 @@ export interface FollowUpInstance {
 
 export interface Template {
   id: string;
-  title: string;
-  name?: string;
+  userId?: string;
+  userEmail?: string;
+  title?: string;
+  name: string;
   category: 'Job Outreach' | 'University' | 'Follow-up' | 'Networking' | string;
   subject: string;
   body: string;
   variables: string[];
+  isGlobal?: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export type FileCategory = 'Resume/CV' | 'Cover Letter' | 'SOP' | 'Transcript' | 'Certificates' | 'Portfolio' | 'Other';
@@ -300,6 +327,36 @@ export interface DashboardStats {
   outreachBreakdown: { name: string; count: number }[];
   topCountries: { country: string; count: number }[];
   contactsAddedThisWeek?: number;
+  campaignSummaries?: Array<{
+    campaignId: string;
+    campaignName: string;
+    campaignType: string;
+    status: string;
+    totalRecipients: number;
+    sentCount: number;
+    repliesCount: number;
+    replyRatePercentage: number;
+    queuedCount: number;
+    failedCount: number;
+    lastSentAt?: string;
+  }>;
+  contactEngagements?: Array<{
+    contactId: string;
+    name: string;
+    email: string;
+    organization: string;
+    organizationType: string;
+    role: string;
+    country: string;
+    status: 'REPLIED' | 'DELIVERED' | 'QUEUED' | 'FAILED' | 'NO_OUTREACH';
+    campaigns: Array<{ id: string; name: string }>;
+    sentCount: number;
+    lastSentAt?: string;
+    replyCount: number;
+    lastReplyAt?: string;
+    lastClassification?: string;
+    queuedCount: number;
+  }>;
   role?: UserRole;
   isAdmin?: boolean;
   dailyLimit?: number | 'UNLIMITED';

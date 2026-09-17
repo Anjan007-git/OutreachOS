@@ -43,6 +43,7 @@ import { SettingsView } from './components/SettingsView';
 import { AiAssistantDrawer } from './components/AiAssistantDrawer';
 
 import { api } from './lib/api';
+import { interpolateVariables } from './lib/variables';
 import { connectGoogleAccount, disconnectGoogleAccount, initAuth } from './lib/auth';
 import {
   Contact,
@@ -275,14 +276,14 @@ export default function App() {
   // UI state
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info' | 'warning'; text: string } | null>(null);
 
   // Preselection for Compose view
   const [composeContact, setComposeContact] = useState<Contact | null>(null);
   const [composeCampaign, setComposeCampaign] = useState<Campaign | null>(null);
   const [aiDraft, setAiDraft] = useState<{ subject?: string; body?: string } | null>(null);
 
-  const showToast = (type: 'success' | 'error' | 'info', text: string) => {
+  const showToast = (type: 'success' | 'error' | 'info' | 'warning', text: string) => {
     setToast({ type, text });
     setTimeout(() => setToast(null), 4000);
   };
@@ -454,7 +455,9 @@ export default function App() {
         parts.push(`Added ${res.newContacts} contact${res.newContacts > 1 ? 's' : ''}`);
       }
 
-      if (parts.length > 0) {
+      if ((res as any)?.needsReauth) {
+        showToast('warning', 'Gmail session expired or requires authorization. Please click "Authorize Gmail" to reconnect.');
+      } else if (parts.length > 0) {
         showToast('success', parts.join(' • '));
       } else {
         showToast('info', 'Gmail synced. Sent messages, replies, and contacts are up to date.');
@@ -486,6 +489,12 @@ export default function App() {
   };
 
   const handleNavigateToComposeWithTemplate = (template: Template) => {
+    const mappedSubject = interpolateVariables(template.subject, { settings }, false);
+    const mappedBody = interpolateVariables(template.body, { settings }, false);
+    setAiDraft({
+      subject: mappedSubject,
+      body: mappedBody,
+    });
     setComposeContact(null);
     setComposeCampaign(null);
     navigateToPage('compose');
@@ -600,11 +609,14 @@ export default function App() {
                 ? 'bg-emerald-900 text-white border-emerald-700'
                 : toast.type === 'error'
                 ? 'bg-rose-900 text-white border-rose-700'
+                : toast.type === 'warning'
+                ? 'bg-amber-950 text-amber-100 border-amber-700'
                 : 'bg-zinc-900 text-white border-zinc-750'
             }`}
           >
             {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
             {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-400" />}
+            {toast.type === 'warning' && <AlertCircle className="w-4 h-4 text-amber-400" />}
             {toast.type === 'info' && <RefreshCw className="w-4 h-4 text-indigo-400" />}
             <span>{toast.text}</span>
           </div>
@@ -775,7 +787,7 @@ export default function App() {
             <div className="flex items-center space-x-2.5">
               <AlertCircle className="w-4 h-4 shrink-0 text-white" />
               <span>
-                <strong>Gmail Permissions Updated:</strong> OAuth send & read scopes were approved. Please re-authorize your account to dispatch emails and sync replies.
+                <strong>Gmail Authorization Required:</strong> Your Gmail OAuth session has expired or requires authorization to dispatch emails and sync messages.
               </span>
             </div>
             <button
@@ -789,7 +801,17 @@ export default function App() {
 
         {/* Scrollable Page Body */}
         <div className="flex-1 p-6 md:p-8 space-y-6 overflow-y-auto">
-          {isLoading ? (
+          {isLoading && currentPage === 'dashboard' ? (
+            <DashboardView
+              stats={null}
+              isLoading={true}
+              onNavigate={(page) => navigateToPage(page as NavPage)}
+              onSyncReplies={handleSyncReplies}
+              isSyncing={isSyncing}
+              recentResponses={responses}
+              upcomingScheduled={scheduledMessages}
+            />
+          ) : isLoading ? (
             <div className="flex flex-col items-center justify-center min-h-[400px] space-y-3">
               <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
               <span className="text-xs text-slate-500 font-medium">Loading OutreachOS Workspace...</span>
@@ -800,6 +822,7 @@ export default function App() {
               {currentPage === 'dashboard' && (
                 <DashboardView
                   stats={stats}
+                  isLoading={false}
                   onNavigate={(page) => navigateToPage(page as NavPage)}
                   onSyncReplies={handleSyncReplies}
                   isSyncing={isSyncing}
@@ -868,6 +891,7 @@ export default function App() {
                   campaigns={campaigns}
                   templates={templates}
                   files={files}
+                  settings={settings}
                   preselectedContact={composeContact}
                   preselectedCampaign={composeCampaign}
                   initialDraft={aiDraft}
@@ -1039,6 +1063,8 @@ export default function App() {
               {currentPage === 'templates' && (
                 <TemplatesView
                   templates={templates}
+                  contacts={contacts}
+                  settings={settings}
                   onCreateTemplate={async (tpl) => {
                     await api.createTemplate(tpl);
                     showToast('success', 'Template saved');

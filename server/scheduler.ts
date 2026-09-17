@@ -228,18 +228,28 @@ export async function processOutboundQueue(): Promise<{ processed: number; reaso
       // Record in sent_messages
       const sentItem: SentMessage = {
         id: 'sent-' + Date.now(),
+        userId: msg.userId || 'user-1',
+        userEmail: msg.userEmail || primaryAccount.email,
         recipientId: msg.recipientId,
         recipientEmail: msg.recipientEmail,
         recipientName: msg.recipientName,
         campaignId: msg.campaignId,
         campaignName: msg.campaignName,
+        templateId: msg.templateId,
         subject: finalSubject,
         messageBody: finalBody,
+        body: finalBody,
         attachments: resolvedAttachments,
+        attachmentIds: (msg.attachments || []).map((a: any) => a.id || a.fileId).filter(Boolean),
         gmailMessageId: sendResult.id,
         gmailThreadId: sendResult.threadId,
         sentAt: sentTime,
         status: 'DELIVERED',
+        scheduledTime: msg.scheduledTime,
+        providerMetadata: {
+          id: sendResult.id,
+          threadId: sendResult.threadId,
+        },
       };
 
       db.update('sent_messages', (sent) => [sentItem, ...sent]);
@@ -323,17 +333,28 @@ export async function processOutboundQueue(): Promise<{ processed: number; reaso
         errMsg.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') ||
         errMsg.includes('invalid_grant');
 
-      if (isScopeError) {
+      const is401Error =
+        errMsg.includes('401') ||
+        errMsg.includes('invalid authentication credentials') ||
+        errMsg.includes('Token has been expired') ||
+        errMsg.includes('invalid_token') ||
+        sendErr?.status === 401;
+
+      if (isScopeError || is401Error) {
         db.update('gmail_accounts', (accs) =>
           accs.map((a) => (a.email === primaryAccount.email ? { ...a, needsReauth: true } : a))
         );
         db.addNotification(
           'warning',
           'Gmail Authorization Required',
-          'Updated Workspace permissions are required to dispatch emails. Please reconnect your Gmail account.'
+          isScopeError
+            ? 'Updated Workspace permissions are required to dispatch emails. Please reconnect your Gmail account.'
+            : 'Your Gmail access token has expired. Please click "Authorize Gmail" in Settings or the header to resume sending.'
         );
-      } else if (errMsg.includes('401')) {
-        console.warn('Gmail access token expired. Client will refresh on next interaction.');
+        console.warn(`Gmail outbound queue paused: Account ${primaryAccount.email} credentials expired or require re-authorization.`);
+        try {
+          db.flush();
+        } catch {}
       }
 
       db.update('scheduled_messages', (list) =>
@@ -371,7 +392,7 @@ export async function processOutboundQueue(): Promise<{ processed: number; reaso
 /**
  * Periodically polls Gmail for incoming replies and matches them to campaigns & sent messages
  */
-export async function syncGmailReplies(): Promise<{ newRepliesCount: number }> {
+export async function syncGmailReplies(targetUserId?: string, targetUserEmail?: string): Promise<{ newRepliesCount: number }> {
   const gmailAccounts = db.get('gmail_accounts');
   const account = gmailAccounts.find((a) => a.isConnected && a.accessToken);
   if (!account || !account.accessToken || (account as any).needsReauth) {
@@ -434,6 +455,8 @@ export async function syncGmailReplies(): Promise<{ newRepliesCount: number }> {
 
           const newInc: IncomingMessage = {
             id: 'inc-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+            userId: targetUserId || matchedSent?.userId || matchedContact?.userId || 'user-1',
+            userEmail: targetUserEmail || account.email,
             contactId: matchedContact?.id || matchedSent?.recipientId,
             contactName: matchedContact?.name || matchedSent?.recipientName || fromHeader,
             contactEmail: senderEmail,
@@ -482,8 +505,24 @@ export async function syncGmailReplies(): Promise<{ newRepliesCount: number }> {
             `Received response from ${matchedContact?.name || senderEmail} (${classificationResult.classification})`
           );
         }
-      } catch (msgErr) {
-        console.error('Error parsing message ' + m.id, msgErr);
+      } catch (msgErr: any) {
+        const msgErrMsg = msgErr?.message || String(msgErr);
+        if (
+          msgErrMsg.includes('401') ||
+          msgErrMsg.includes('invalid authentication credentials') ||
+          msgErrMsg.includes('invalid_token') ||
+          msgErr?.status === 401
+        ) {
+          db.update('gmail_accounts', (accs) =>
+            accs.map((a) => (a.email === account.email ? { ...a, needsReauth: true } : a))
+          );
+          console.warn(`Gmail token expired while fetching reply message ${m.id}. Marked account for re-authorization.`);
+          try {
+            db.flush();
+          } catch {}
+          break;
+        }
+        console.warn('Could not parse incoming message ' + m.id, msgErrMsg);
       }
     }
 
@@ -493,19 +532,27 @@ export async function syncGmailReplies(): Promise<{ newRepliesCount: number }> {
 
     return { newRepliesCount: newCount };
   } catch (err: any) {
-    const errMsg = err.message || '';
+    const errMsg = err?.message || String(err);
     const isScopeError =
       errMsg.includes('insufficient authentication scopes') ||
       errMsg.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') ||
       errMsg.includes('invalid_grant');
 
-    if (isScopeError) {
+    const is401Error =
+      errMsg.includes('401') ||
+      errMsg.includes('invalid authentication credentials') ||
+      errMsg.includes('Token has been expired') ||
+      errMsg.includes('invalid_token') ||
+      err?.status === 401;
+
+    if (isScopeError || is401Error) {
       db.update('gmail_accounts', (accs) =>
         accs.map((a) => (a.email === account.email ? { ...a, needsReauth: true } : a))
       );
-      console.warn('Gmail reply sync paused: Gmail account requires re-authorization with new scopes.');
-    } else if (errMsg.includes('401')) {
-      console.warn('Gmail access token expired during reply sync. Refresh pending.');
+      console.warn(`Gmail reply sync paused for ${account.email}: ${isScopeError ? 'scopes updated' : 'credentials expired'}. Requires re-authorization.`);
+      try {
+        db.flush();
+      } catch {}
     } else {
       console.error('Error during Gmail reply sync:', err);
     }
@@ -518,7 +565,7 @@ export async function syncGmailReplies(): Promise<{ newRepliesCount: number }> {
  * Discovers any cold emails sent directly or during previous sessions,
  * populates contacts, logs sent messages, tracks threads, and updates campaign stats.
  */
-export async function syncGmailSent(): Promise<{ newSentCount: number; newContactsCount: number }> {
+export async function syncGmailSent(targetUserId?: string, targetUserEmail?: string): Promise<{ newSentCount: number; newContactsCount: number }> {
   const gmailAccounts = db.get('gmail_accounts');
   const account = gmailAccounts.find((a) => a.isConnected && a.accessToken);
   if (!account || !account.accessToken || (account as any).needsReauth) {
@@ -573,6 +620,8 @@ export async function syncGmailSent(): Promise<{ newSentCount: number; newContac
           contactId = 'c-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
           const newContact: Contact = {
             id: contactId,
+            userId: targetUserId || 'user-1',
+            userEmail: targetUserEmail || account.email,
             name: recipient.name || recipient.email.split('@')[0],
             email: recipient.email,
             organization: inferredOrg,
@@ -601,6 +650,8 @@ export async function syncGmailSent(): Promise<{ newSentCount: number; newContac
         const bodyText = extractBodyText(fullMsg.payload) || fullMsg.snippet || '';
         const sentItem: SentMessage = {
           id: 'sent-' + m.id,
+          userId: targetUserId || 'user-1',
+          userEmail: targetUserEmail || account.email,
           gmailMessageId: m.id,
           gmailThreadId: threadId,
           recipientId: contactId || 'contact-' + recipient.email,
@@ -608,6 +659,7 @@ export async function syncGmailSent(): Promise<{ newSentCount: number; newContac
           recipientEmail: recipient.email,
           subject: subjectHeader,
           messageBody: bodyText,
+          body: bodyText,
           attachments: [],
           campaignId: defaultCamp?.id,
           campaignName: defaultCamp?.name,
@@ -648,7 +700,23 @@ export async function syncGmailSent(): Promise<{ newSentCount: number; newContac
           );
         }
       } catch (msgErr: any) {
-        console.warn(`Could not parse sent message ${m.id}:`, msgErr?.message || msgErr);
+        const msgErrMsg = msgErr?.message || String(msgErr);
+        if (
+          msgErrMsg.includes('401') ||
+          msgErrMsg.includes('invalid authentication credentials') ||
+          msgErrMsg.includes('invalid_token') ||
+          msgErr?.status === 401
+        ) {
+          db.update('gmail_accounts', (accs) =>
+            accs.map((a) => (a.email === account.email ? { ...a, needsReauth: true } : a))
+          );
+          console.warn(`Gmail token expired while fetching sent message ${m.id}. Marked account for re-authorization.`);
+          try {
+            db.flush();
+          } catch {}
+          break;
+        }
+        console.warn(`Could not parse sent message ${m.id}:`, msgErrMsg);
       }
     }
 
@@ -662,7 +730,30 @@ export async function syncGmailSent(): Promise<{ newSentCount: number; newContac
 
     return { newSentCount, newContactsCount };
   } catch (err: any) {
-    console.error('Error in syncGmailSent:', err);
+    const errMsg = err?.message || String(err);
+    const isScopeError =
+      errMsg.includes('insufficient authentication scopes') ||
+      errMsg.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') ||
+      errMsg.includes('invalid_grant');
+
+    const is401Error =
+      errMsg.includes('401') ||
+      errMsg.includes('invalid authentication credentials') ||
+      errMsg.includes('Token has been expired') ||
+      errMsg.includes('invalid_token') ||
+      err?.status === 401;
+
+    if (isScopeError || is401Error) {
+      db.update('gmail_accounts', (accs) =>
+        accs.map((a) => (a.email === account.email ? { ...a, needsReauth: true } : a))
+      );
+      console.warn(`Gmail sent sync paused for ${account.email}: ${isScopeError ? 'scopes updated' : 'credentials expired'}. Requires re-authorization.`);
+      try {
+        db.flush();
+      } catch {}
+    } else {
+      console.error('Error in syncGmailSent:', err);
+    }
     return { newSentCount: 0, newContactsCount: 0 };
   }
 }

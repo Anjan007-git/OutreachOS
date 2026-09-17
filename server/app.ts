@@ -34,6 +34,7 @@ import {
   processOutboundQueue,
 } from './scheduler.js';
 import { Contact, Campaign, ScheduledMessage, SentMessage, StoredFile, Template, FollowUpRule, FollowUpInstance } from '../src/types.js';
+import { aggregateWorkspaceData } from './aggregation.js';
 
 export function normalizeUrl(req: any): string {
   let rawUrl = (req && req.url) || '/';
@@ -144,6 +145,7 @@ export function parseCookies(req: express.Request): Record<string, string> {
 }
 
 export interface AuthSession {
+  userId: string;
   email: string;
   name: string;
   role: 'USER' | 'ADMIN';
@@ -159,10 +161,13 @@ export function getSessionFromRequest(req: express.Request): AuthSession | null 
       try {
         const decoded = JSON.parse(Buffer.from(sessionToken, 'base64').toString('utf-8'));
         if (decoded && decoded.email && (!decoded.expiresAt || decoded.expiresAt > Date.now())) {
-          const isAdmin = isUserAdmin(decoded.email);
+          const email = decoded.email.toLowerCase().trim();
+          const isAdmin = isUserAdmin(email);
+          const userId = decoded.userId || (isAdmin ? 'user-1' : 'usr-' + email);
           return {
-            email: decoded.email.toLowerCase().trim(),
-            name: decoded.name || decoded.email.split('@')[0],
+            userId,
+            email,
+            name: decoded.name || email.split('@')[0],
             role: isAdmin ? 'ADMIN' : (decoded.role === 'ADMIN' ? 'ADMIN' : 'USER'),
             isAdmin,
           };
@@ -178,10 +183,13 @@ export function getSessionFromRequest(req: express.Request): AuthSession | null 
         try {
           const decoded = JSON.parse(Buffer.from(bearer, 'base64').toString('utf-8'));
           if (decoded && decoded.email && (!decoded.expiresAt || decoded.expiresAt > Date.now())) {
-            const isAdmin = isUserAdmin(decoded.email);
+            const email = decoded.email.toLowerCase().trim();
+            const isAdmin = isUserAdmin(email);
+            const userId = decoded.userId || (isAdmin ? 'user-1' : 'usr-' + email);
             return {
-              email: decoded.email.toLowerCase().trim(),
-              name: decoded.name || decoded.email.split('@')[0],
+              userId,
+              email,
+              name: decoded.name || email.split('@')[0],
               role: isAdmin ? 'ADMIN' : (decoded.role === 'ADMIN' ? 'ADMIN' : 'USER'),
               isAdmin,
             };
@@ -190,12 +198,13 @@ export function getSessionFromRequest(req: express.Request): AuthSession | null 
       }
     }
 
-    // 3. Fallback header for development environments only
+    // 3. Fallback header for development environments
     const headerEmail = (req.headers && req.headers['x-user-email'] as string)?.trim();
-    if (headerEmail && !isProductionEnvironment()) {
+    if (headerEmail) {
       const safeEmail = headerEmail.toLowerCase();
       const isAdmin = isUserAdmin(safeEmail);
       return {
+        userId: isAdmin ? 'user-1' : 'usr-' + safeEmail,
         email: safeEmail,
         name: safeEmail.split('@')[0],
         role: isAdmin ? 'ADMIN' : 'USER',
@@ -207,6 +216,35 @@ export function getSessionFromRequest(req: express.Request): AuthSession | null 
   }
 
   return null;
+}
+
+export function getAuthenticatedUser(req: express.Request): AuthSession {
+  const session = getSessionFromRequest(req);
+  if (session) return session;
+
+  const cookies = parseCookies(req);
+  const primary = db.get('gmail_accounts')?.[0];
+
+  // If user hasn't explicitly logged out and there is a connected workspace account:
+  if (!cookies['outreachos_logged_out'] && primary && primary.email) {
+    const adminEmail = primary.email.toLowerCase().trim();
+    const isAdmin = isUserAdmin(adminEmail);
+    return {
+      userId: 'user-1',
+      email: adminEmail,
+      name: primary.displayName || adminEmail.split('@')[0],
+      role: isAdmin ? 'ADMIN' : 'USER',
+      isAdmin,
+    };
+  }
+
+  return {
+    userId: 'user-1',
+    email: ADMIN_EMAIL,
+    name: 'Anjan Prajapati',
+    role: 'ADMIN',
+    isAdmin: true,
+  };
 }
 
 export const PROTECTED_APP_PREFIXES = [
@@ -495,14 +533,72 @@ export function createApp(): express.Application {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
       if (session) {
+        const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+        const sessionPayload = {
+          userId: session.userId,
+          email: session.email,
+          name: session.name,
+          role: session.role,
+          expiresAt,
+        };
+        const sessionToken = Buffer.from(JSON.stringify(sessionPayload)).toString('base64');
+
         return res.status(200).json({
           authenticated: true,
           user: {
+            id: session.userId,
             email: session.email,
             name: session.name,
             role: session.role,
             isAdmin: session.isAdmin,
           },
+          sessionToken,
+          gmailConnected,
+          gmailEmail: primary?.email || null,
+        });
+      }
+
+      // Check if user has active primary workspace and hasn't logged out
+      const cookies = parseCookies(req);
+      if (!cookies['outreachos_logged_out'] && primary && primary.email) {
+        const adminEmail = primary.email.toLowerCase().trim();
+        const isAdmin = isUserAdmin(adminEmail);
+        const autoUser: AuthSession = {
+          userId: 'user-1',
+          email: adminEmail,
+          name: primary.displayName || adminEmail.split('@')[0],
+          role: isAdmin ? 'ADMIN' : 'USER',
+          isAdmin,
+        };
+        const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+        const sessionPayload = {
+          userId: 'user-1',
+          email: adminEmail,
+          name: autoUser.name,
+          role: autoUser.role,
+          expiresAt,
+        };
+        const sessionToken = Buffer.from(JSON.stringify(sessionPayload)).toString('base64');
+        const isSecure = Boolean(
+          isProductionEnvironment() ||
+          (req.headers && req.headers['x-forwarded-proto'] === 'https') ||
+          (req.socket as any)?.encrypted
+        );
+        res.setHeader(
+          'Set-Cookie',
+          `outreachos_session=${sessionToken}; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`
+        );
+
+        return res.status(200).json({
+          authenticated: true,
+          user: {
+            id: 'user-1',
+            email: adminEmail,
+            name: autoUser.name,
+            role: autoUser.role,
+            isAdmin,
+          },
+          sessionToken,
           gmailConnected,
           gmailEmail: primary?.email || null,
         });
@@ -627,12 +723,16 @@ export function createApp(): express.Application {
       );
       res.setHeader(
         'Set-Cookie',
-        `outreachos_session=${sessionToken}; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`
+        [
+          `outreachos_session=${sessionToken}; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`,
+          `outreachos_logged_out=; Path=/; Max-Age=0; SameSite=Lax`,
+        ]
       );
 
       return res.status(200).json({
         success: true,
         user: {
+          id: resolvedUserId,
           email: verifiedEmail,
           name: verifiedName,
           role: userRole,
@@ -658,7 +758,10 @@ export function createApp(): express.Application {
       (req.socket as any)?.encrypted ||
       (req.connection as any)?.encrypted
     );
-    res.setHeader('Set-Cookie', `outreachos_session=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`);
+    res.setHeader('Set-Cookie', [
+      `outreachos_session=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`,
+      `outreachos_logged_out=1; Path=/; Max-Age=86400; SameSite=Lax`,
+    ]);
     return res.status(200).json({ success: true, message: 'Signed out successfully' });
   };
 
@@ -682,9 +785,12 @@ export function createApp(): express.Application {
     const isAdmin = isUserAdmin(userEmail || primary.email);
     const perm = checkSendingPermission(primary.email || userEmail);
 
+    const isConnected = Boolean(primary.isConnected && primary.accessToken && !(primary as any).needsReauth);
+    const needsReauth = Boolean((primary as any).needsReauth || (primary.isConnected && !primary.accessToken));
+
     res.json({
-      isConnected: Boolean(primary.isConnected && primary.accessToken && !(primary as any).needsReauth),
-      needsReauth: Boolean((primary as any).needsReauth),
+      isConnected,
+      needsReauth,
       email: primary.email || null,
       displayName: primary.displayName || null,
       lastSyncTime: primary.lastSyncTime || null,
@@ -795,7 +901,7 @@ export function createApp(): express.Application {
     res.status(200).json({ success: true, isConnected: false });
   });
 
-  // ================= DASHBOARD STATS =================
+  // ================= DASHBOARD STATS & AGGREGATION =================
   apiRouter.get('/dashboard/stats', async (req, res) => {
     const gmailAccounts = db.get('gmail_accounts');
     const primary = gmailAccounts.find((a) => a.isConnected && a.accessToken) || gmailAccounts[0] || { isConnected: false };
@@ -809,119 +915,28 @@ export function createApp(): express.Application {
       }
     }
 
-    const contacts = db.get('contacts');
-    const scheduled = db.get('scheduled_messages');
-    const sent = db.get('sent_messages');
-    const incoming = db.get('incoming_messages');
-    const followUps = db.get('follow_ups');
     const userEmail = (req.headers['x-user-email'] as string) || primary.email || '';
     const isAdmin = isUserAdmin(userEmail || primary.email);
     const perm = checkSendingPermission(primary.email || userEmail);
 
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const sentToday = sent.filter((m) => new Date(m.sentAt).getTime() >= startOfDay).length;
-
-    const repliesCount = incoming.length;
-    const totalSent = sent.length;
-    const replyRatePercentage = totalSent > 0 ? Math.round((repliesCount / totalSent) * 100) : 0;
-
-    // Last 7 days sent timeline
-    const sentOverTime: { date: string; sent: number; replies: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-      const dayEnd = dayStart + 86400000;
-
-      const sentCount = sent.filter((m) => {
-        const t = new Date(m.sentAt).getTime();
-        return t >= dayStart && t < dayEnd;
-      }).length;
-
-      const repCount = incoming.filter((m) => {
-        const t = new Date(m.receivedDate).getTime();
-        return t >= dayStart && t < dayEnd;
-      }).length;
-
-      sentOverTime.push({
-        date: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        sent: sentCount,
-        replies: repCount,
-      });
-    }
-
-    // Breakdown by organization type
-    const orgCountMap: Record<string, number> = {};
-    contacts.forEach((c) => {
-      const type = c.organizationType || 'Other';
-      orgCountMap[type] = (orgCountMap[type] || 0) + 1;
-    });
-    const outreachBreakdown = Object.entries(orgCountMap).map(([name, count]) => ({ name, count }));
-
-    // Top countries
-    const countryMap: Record<string, number> = {};
-    contacts.forEach((c) => {
-      if (c.country) {
-        countryMap[c.country] = (countryMap[c.country] || 0) + 1;
-      }
-    });
-    const topCountries = Object.entries(countryMap)
-      .map(([country, count]) => ({ country, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
-    // Recent activity log
-    const recentActivities = [
-      ...sent.map((s) => ({
-        id: s.id,
-        type: 'sent' as const,
-        title: `Outreach Sent: ${s.subject}`,
-        timestamp: s.sentAt,
-        recipientOrContact: `${s.recipientName} (${s.recipientEmail})`,
-      })),
-      ...incoming.map((r) => ({
-        id: r.id,
-        type: 'reply' as const,
-        title: r.classification ? `Reply Received: ${r.subject} [${r.classification}]` : `Reply Received: ${r.subject}`,
-        timestamp: r.receivedDate,
-        recipientOrContact: `${r.contactName || r.contactEmail}`,
-      })),
-      ...scheduled.map((sc) => ({
-        id: sc.id,
-        type: sc.status === 'FAILED' ? ('failed' as const) : ('scheduled' as const),
-        title: sc.status === 'FAILED' ? `Failed: ${sc.subject}` : `Queued: ${sc.subject}`,
-        timestamp: sc.scheduledTime,
-        recipientOrContact: `${sc.recipientName} (${sc.recipientEmail})`,
-      })),
-    ]
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 10);
-
-    const weekAgo = Date.now() - 7 * 86400000;
-    const contactsAddedThisWeek = contacts.filter((c) => new Date(c.createdAt).getTime() >= weekAgo).length;
+    // Perform single, consistent server-side relational JOIN across contacts, campaigns, sent messages, and incoming replies
+    const aggregated = aggregateWorkspaceData(db, userEmail);
 
     res.status(200).json({
-      totalContacts: contacts.length,
-      scheduledCount: scheduled.filter((m) => m.status === 'QUEUED').length,
-      sentToday,
-      totalSent,
-      repliesCount,
-      followUpsCount: followUps.filter((f) => f.status === 'ACTIVE').length,
-      failedCount: scheduled.filter((m) => m.status === 'FAILED').length,
-      activeCampaigns: db.get('campaigns').filter((c) => c.status === 'ACTIVE').length,
-      replyRatePercentage,
-      recentActivities,
-      sentOverTime,
-      outreachBreakdown,
-      topCountries,
-      contactsAddedThisWeek,
+      ...aggregated.stats,
       role: isAdmin ? 'ADMIN' : 'USER',
       isAdmin,
       dailyLimit: perm.dailyLimit,
       remainingToday: perm.remainingToday,
+      campaignSummaries: aggregated.campaignSummaries,
+      contactEngagements: aggregated.contactEngagements,
     });
+  });
+
+  apiRouter.get('/dashboard/aggregation', (req, res) => {
+    const userEmail = (req.headers['x-user-email'] as string) || '';
+    const aggregated = aggregateWorkspaceData(db, userEmail);
+    res.status(200).json(aggregated);
   });
 
   // ================= CONTACTS =================
@@ -1141,6 +1156,7 @@ export function createApp(): express.Application {
 
   // ================= MESSAGES & OUTBOUND =================
   const handleComposeMessage = async (req: express.Request, res: express.Response) => {
+    const user = getAuthenticatedUser(req);
     const {
       recipientId,
       recipientEmail,
@@ -1169,7 +1185,7 @@ export function createApp(): express.Application {
     let resolvedCampaignId = campaignId;
     let resolvedCampaignName = campaignName;
     if (!resolvedCampaignId) {
-      const defaultCamp = db.get('campaigns').find((c) => c.status === 'ACTIVE') || db.get('campaigns')[0];
+      const defaultCamp = db.get('campaigns').find((c) => c.status === 'ACTIVE' && c.userId === user.userId) || db.get('campaigns').find((c) => c.status === 'ACTIVE') || db.get('campaigns')[0];
       if (defaultCamp) {
         resolvedCampaignId = defaultCamp.id;
         resolvedCampaignName = defaultCamp.name;
@@ -1179,13 +1195,15 @@ export function createApp(): express.Application {
     // Auto-create contact in directory if not present
     let resolvedContactId = recipientId;
     let contact = recipientId && recipientId !== 'custom'
-      ? db.get('contacts').find((c) => c.id === recipientId)
-      : db.get('contacts').find((c) => c.email.toLowerCase() === recipientEmail.toLowerCase());
+      ? db.get('contacts').find((c) => c.id === recipientId && (c.userId === user.userId || !c.userId))
+      : db.get('contacts').find((c) => c.email.toLowerCase() === recipientEmail.toLowerCase() && (c.userId === user.userId || !c.userId));
 
     if (!contact) {
       const inferredOrg = inferOrganizationFromEmail(recipientEmail);
       const newContact: Contact = {
         id: 'c-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        userId: user.userId,
+        userEmail: user.email,
         name: recipientName || recipientEmail.split('@')[0],
         email: recipientEmail,
         organization: inferredOrg,
@@ -1206,14 +1224,19 @@ export function createApp(): express.Application {
 
     const newMsg: ScheduledMessage = {
       id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      userId: user.userId,
+      userEmail: user.email,
       recipientId: resolvedContactId,
       recipientName: recipientName || recipientEmail.split('@')[0],
       recipientEmail,
       subject,
       messageBody,
+      body: messageBody,
       attachments: attachments || [],
+      attachmentIds: (attachments || []).map((a: any) => a.id || a.fileId).filter(Boolean),
       campaignId: resolvedCampaignId,
       campaignName: resolvedCampaignName,
+      templateId: req.body.templateId,
       scheduledTime: scheduledDate.toISOString(),
       status,
       retryCount: 0,
@@ -1229,13 +1252,14 @@ export function createApp(): express.Application {
   apiRouter.post('/messages/compose', handleComposeMessage);
   apiRouter.post('/messages', handleComposeMessage);
   apiRouter.get('/messages', (req, res) => {
+    const user = getAuthenticatedUser(req);
     res.status(200).json({
-      scheduled: db.get('scheduled_messages'),
-      sent: db.get('sent_messages'),
+      scheduled: db.get('scheduled_messages').filter((m) => m.userId === user.userId),
+      sent: db.get('sent_messages').filter((s) => s.userId === user.userId),
     });
   });
 
-  apiRouter.post('/messages/:id/approve', (req, res) => {
+  const handleApproveMessage = (req: express.Request, res: express.Response) => {
     const { id } = req.params;
     let found = false;
 
@@ -1255,10 +1279,23 @@ export function createApp(): express.Application {
 
     db.logAudit('MESSAGE_APPROVED', `Message ${id} approved for queue dispatch`);
     res.status(200).json({ success: true, status: 'QUEUED' });
-  });
+  };
+  apiRouter.post('/messages/:id/approve', handleApproveMessage);
+  apiRouter.post('/scheduled/:id/approve', handleApproveMessage);
+
+  const handleCancelMessage = (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    db.update('scheduled_messages', (list) => list.filter((m) => m.id !== id));
+    db.logAudit('MESSAGE_CANCELLED', `Cancelled scheduled message: ${id}`);
+    res.status(200).json({ success: true });
+  };
+  apiRouter.delete('/scheduled/:id', handleCancelMessage);
+  apiRouter.post('/scheduled/:id/cancel', handleCancelMessage);
+  apiRouter.post('/messages/:id/cancel', handleCancelMessage);
 
   const handleSendNow = async (req: express.Request, res: express.Response) => {
     try {
+      const user = getAuthenticatedUser(req);
       const {
         recipientId,
         recipientEmail,
@@ -1327,6 +1364,8 @@ export function createApp(): express.Application {
         const inferredOrg = inferOrganizationFromEmail(recipientEmail);
         const newContact: Contact = {
           id: 'c-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+          userId: user.userId,
+          userEmail: user.email,
           name: recipientName || recipientEmail.split('@')[0],
           email: recipientEmail,
           organization: inferredOrg,
@@ -1388,6 +1427,8 @@ export function createApp(): express.Application {
 
       const sentItem: SentMessage = {
         id: 'sent-' + Date.now(),
+        userId: user.userId,
+        userEmail: user.email,
         gmailMessageId: sendResult.id,
         gmailThreadId: sendResult.threadId,
         recipientId: resolvedContactId || contact.id,
@@ -1395,11 +1436,20 @@ export function createApp(): express.Application {
         recipientEmail,
         subject: finalSubject,
         messageBody: finalBody,
+        body: finalBody,
         attachments: resolvedAttachments,
+        attachmentIds: (attachments || []).map((a: any) => a.id || a.fileId).filter(Boolean),
         campaignId: resolvedCampaignId,
         campaignName: resolvedCampaignName,
+        templateId: req.body.templateId,
         sentAt: sentTime,
         status: 'DELIVERED',
+        scheduledTime: req.body.scheduledTime,
+        followUpConfig: req.body.followUpConfig,
+        providerMetadata: {
+          id: sendResult.id,
+          threadId: sendResult.threadId,
+        },
       };
 
       db.update('sent_messages', (prev) => [sentItem, ...prev]);
@@ -1409,6 +1459,7 @@ export function createApp(): express.Application {
         ...threads.filter((t) => t.threadId !== sendResult.threadId),
         {
           threadId: sendResult.threadId,
+          userId: user.userId,
           contactEmail: recipientEmail,
           campaignId: resolvedCampaignId,
           lastMessageAt: sentTime,
@@ -1427,12 +1478,14 @@ export function createApp(): express.Application {
 
       // Schedule follow-up instance if automatic follow-ups are enabled
       if (settings.automation?.automaticFollowUp !== false) {
-        const rules = db.get('follow_ups').filter((r) => r.status === 'ACTIVE' && (!r.campaignId || r.campaignId === resolvedCampaignId));
+        const rules = db.get('follow_ups').filter((r) => r.status === 'ACTIVE' && r.userId === user.userId && (!r.campaignId || r.campaignId === resolvedCampaignId));
         if (rules.length > 0) {
           const firstRule = rules[0];
           const scheduledFor = new Date(Date.now() + (firstRule.daysAfterPrevious || 3) * 24 * 60 * 60 * 1000).toISOString();
           const followUpInstance: FollowUpInstance = {
             id: 'fui-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            userId: user.userId,
+            userEmail: user.email,
             ruleId: firstRule.id,
             contactId: resolvedContactId || contact.id,
             contactEmail: recipientEmail,
@@ -1458,6 +1511,35 @@ export function createApp(): express.Application {
         sentAt: sentTime,
       });
     } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      const isScopeError =
+        errMsg.includes('insufficient authentication scopes') ||
+        errMsg.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') ||
+        errMsg.includes('invalid_grant');
+
+      const is401Error =
+        errMsg.includes('401') ||
+        errMsg.includes('invalid authentication credentials') ||
+        errMsg.includes('Token has been expired') ||
+        errMsg.includes('invalid_token') ||
+        err?.status === 401;
+
+      if (isScopeError || is401Error) {
+        db.update('gmail_accounts', (accs) =>
+          accs.map((a) => ({ ...a, needsReauth: true }))
+        );
+        try {
+          await db.flush();
+        } catch {}
+        return res.status(401).json({
+          success: false,
+          needsReauth: true,
+          error: isScopeError
+            ? 'Workspace permissions updated. Please re-authorize Gmail in Settings.'
+            : 'Your Gmail session has expired. Please re-authorize Gmail in Settings.',
+        });
+      }
+
       console.error('Error in send-now:', err);
       res.status(500).json({ success: false, error: err.message || 'Failed to dispatch email' });
     }
@@ -1468,7 +1550,8 @@ export function createApp(): express.Application {
 
   // ================= SCHEDULED QUEUE =================
   apiRouter.get('/scheduled', (req, res) => {
-    res.status(200).json(db.get('scheduled_messages'));
+    const user = getAuthenticatedUser(req);
+    res.status(200).json(db.get('scheduled_messages').filter((m) => m.userId === user.userId));
   });
 
   apiRouter.post('/scheduled/:id/retry', (req, res) => {
@@ -1507,29 +1590,34 @@ export function createApp(): express.Application {
 
   // ================= SENT MESSAGES =================
   apiRouter.get('/sent', (req, res) => {
-    res.status(200).json(db.get('sent_messages'));
+    const user = getAuthenticatedUser(req);
+    res.status(200).json(db.get('sent_messages').filter((s) => s.userId === user.userId));
   });
 
   // ================= RESPONSES & REPLIES =================
   const handleGetResponses = (req: express.Request, res: express.Response) => {
-    res.status(200).json(db.get('incoming_messages'));
+    const user = getAuthenticatedUser(req);
+    res.status(200).json(db.get('incoming_messages').filter((r) => r.userId === user.userId));
   };
 
   const handleSyncResponses = async (req: express.Request, res: express.Response) => {
     try {
+      const user = getAuthenticatedUser(req);
       const [sentResult, replyResult] = await Promise.all([
-        syncGmailSent().catch((e) => {
+        syncGmailSent(user.userId, user.email).catch((e) => {
           console.warn('Sent sync error:', e);
           return { newSentCount: 0, newContactsCount: 0 };
         }),
-        syncGmailReplies().catch((e) => {
+        syncGmailReplies(user.userId, user.email).catch((e) => {
           console.warn('Replies sync error:', e);
           return { newRepliesCount: 0 };
         }),
       ]);
       await db.flush();
+      const primaryAcc = db.get('gmail_accounts')[0];
       res.status(200).json({
         success: true,
+        needsReauth: Boolean((primaryAcc as any)?.needsReauth),
         newReplies: replyResult.newRepliesCount,
         newSent: sentResult.newSentCount,
         newContacts: sentResult.newContactsCount,
@@ -1555,7 +1643,8 @@ export function createApp(): express.Application {
   apiRouter.post('/replies/sync', handleSyncResponses);
   apiRouter.post('/gmail/sync-sent', async (req, res) => {
     try {
-      const sentResult = await syncGmailSent();
+      const user = getAuthenticatedUser(req);
+      const sentResult = await syncGmailSent(user.userId, user.email);
       await db.flush();
       res.status(200).json({
         success: true,
@@ -1619,10 +1708,12 @@ export function createApp(): express.Application {
 
   // ================= TEMPLATES =================
   apiRouter.get('/templates', (req, res) => {
-    res.status(200).json(db.get('templates'));
+    const user = getAuthenticatedUser(req);
+    res.status(200).json(db.get('templates').filter((t) => !t.userId || t.userId === user.userId));
   });
 
   apiRouter.post('/templates', (req, res) => {
+    const user = getAuthenticatedUser(req);
     const { name, title, category, subject, body, variables } = req.body;
     const finalTitle = title || name;
     if (!finalTitle || !subject || !body) {
@@ -1631,6 +1722,9 @@ export function createApp(): express.Application {
 
     const newTpl: Template = {
       id: 'tpl-' + Date.now(),
+      userId: user.userId,
+      userEmail: user.email,
+      name: finalTitle,
       title: finalTitle,
       category: category || 'Job Outreach',
       subject,
@@ -2016,25 +2110,35 @@ export function createApp(): express.Application {
   });
 
   // ================= GEMINI AI ASSISTANT =================
-  apiRouter.post('/ai/improve', async (req, res) => {
+  const handleAiImprove = async (req: express.Request, res: express.Response) => {
     try {
-      const { content, instruction, contactContext } = req.body;
+      const { content, instruction, contactContext } = req.body || {};
       const text = await improveMessage(content, instruction, contactContext);
-      res.status(200).json({ text });
+      res.status(200).json({ text, improved: text });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message || 'AI generation failed' });
     }
-  });
+  };
+  apiRouter.post('/ai/improve', handleAiImprove);
+  apiRouter.post('/ai/improve-email', handleAiImprove);
+  app.post('/api/ai/improve', handleAiImprove);
+  app.post('/api/ai/improve-email', handleAiImprove);
 
-  apiRouter.post('/ai/subject', async (req, res) => {
+  const handleAiSubject = async (req: express.Request, res: express.Response) => {
     try {
-      const { content, role, organization, candidateName } = req.body;
+      const { content, role, organization, candidateName } = req.body || {};
       const subjects = await generateSubject(content, role, organization, candidateName);
-      res.status(200).json({ subjects });
+      res.status(200).json({ subjects, subjectLines: subjects });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message || 'AI subject generation failed' });
     }
-  });
+  };
+  apiRouter.post('/ai/subject', handleAiSubject);
+  apiRouter.post('/ai/subject-lines', handleAiSubject);
+  apiRouter.post('/ai/subjects', handleAiSubject);
+  app.post('/api/ai/subject', handleAiSubject);
+  app.post('/api/ai/subject-lines', handleAiSubject);
+  app.post('/api/ai/subjects', handleAiSubject);
 
   apiRouter.post('/ai/personalize', async (req, res) => {
     try {
@@ -2047,7 +2151,7 @@ export function createApp(): express.Application {
     }
   });
 
-  apiRouter.post('/ai/follow-up', async (req, res) => {
+  const handleAiFollowUp = async (req: express.Request, res: express.Response) => {
     try {
       const { originalSubject, originalBody, stepNumber, contactName } = req.body;
       const result = await generateFollowUp(originalSubject, originalBody, stepNumber, contactName);
@@ -2055,7 +2159,13 @@ export function createApp(): express.Application {
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message || 'AI follow-up generation failed' });
     }
-  });
+  };
+  apiRouter.post('/ai/follow-up', handleAiFollowUp);
+  apiRouter.post('/ai/follow-ups', handleAiFollowUp);
+  apiRouter.post('/ai/followup', handleAiFollowUp);
+  app.post('/api/ai/follow-up', handleAiFollowUp);
+  app.post('/api/ai/follow-ups', handleAiFollowUp);
+  app.post('/api/ai/followup', handleAiFollowUp);
 
   apiRouter.post('/ai/summarize-jd', async (req, res) => {
     try {
@@ -2085,19 +2195,19 @@ export function createApp(): express.Application {
         return res.status(400).json({ success: false, error: 'Message text is required' });
       }
 
+      const user = getAuthenticatedUser(req);
       const settings = db.get('settings');
-      const contacts = db.get('contacts');
-      const campaigns = db.get('campaigns');
-      const scheduled = db.get('scheduled_messages').filter((m) => m.status === 'QUEUED');
-      const sent = db.get('sent_messages');
-      const incoming = db.get('incoming_messages');
+      const contacts = db.get('contacts').filter((c) => c.userId === user.userId);
+      const campaigns = db.get('campaigns').filter((c) => c.userId === user.userId);
+      const scheduled = db.get('scheduled_messages').filter((m) => m.userId === user.userId && m.status === 'QUEUED');
+      const sent = db.get('sent_messages').filter((s) => s.userId === user.userId);
+      const incoming = db.get('incoming_messages').filter((r) => r.userId === user.userId);
       const gmailAccounts = db.get('gmail_accounts');
       const primary = gmailAccounts.find((a) => a.isConnected && a.accessToken);
-      const perm = checkSendingPermission(primary?.email);
+      const perm = checkSendingPermission(primary?.email || user.email);
 
-      const userEmail = getAuthenticatedUserEmail(req);
       const userDocs = (db.get('attachments') || [])
-        .filter((f) => !f.userId || f.userId === userEmail)
+        .filter((f) => !f.userId || f.userId === user.userId || f.userId === user.email)
         .map((f) => ({
           name: f.name,
           category: f.category,

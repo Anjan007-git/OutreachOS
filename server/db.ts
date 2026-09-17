@@ -128,41 +128,120 @@ export function isUpstashConfigured(): boolean {
 }
 
 export const DEFAULT_TEMPLATES: Template[] = [
+  // --- Category: HR & Recruitment ---
   {
-    id: 'tpl-1',
-    title: 'Job Outreach — Engineering & Cloud Infrastructure',
-    category: 'Job Outreach',
-    subject: 'Inquiry regarding {{role}} role at {{company}} — {{my_name}}',
-    body: `Hi {{first_name}},\n\nI hope you're having a productive week.\n\nI've been following {{company}}'s engineering advancements and wanted to reach out regarding the {{role}} opening. As a {{my_title}} with expertise in cloud infrastructure, Kubernetes, and distributed systems, I'm very impressed by how your team approaches technical scalability.\n\nI've attached my resume for your review. Would you be open to a brief 10-minute conversation next week to explore how my background could support {{company}}?\n\nThank you for your time,\n{{my_name}}\n{{my_title}}\n{{my_email}}`,
+    id: 'tpl-hr-1',
+    name: 'HR Recruiter — Senior Engineering Role Inquiry',
+    title: 'HR Recruiter — Senior Engineering Role Inquiry',
+    category: 'HR & Recruitment',
+    subject: 'Inquiry regarding {{role}} opening at {{company}} — {{my_name}}',
+    body: `Hi {{first_name}},\n\nI hope you are having a productive week.\n\nI have been closely following {{company}}'s recent growth and engineering initiatives. I am reaching out to explore potential opportunities for the {{role}} position on your team.\n\nWith my background as a {{my_title}} specializing in high-availability systems, automated delivery pipelines, and cloud architecture, I am confident my experience would create immediate value for {{company}}.\n\nI have attached my resume for your review. Would you or someone from the recruitment team be available for a brief 10-minute introductory call next week?\n\nThank you for your time and consideration,\n{{my_name}}\n{{my_title}}\n{{my_email}}`,
     variables: ['first_name', 'company', 'role', 'my_name', 'my_title', 'my_email'],
-    createdAt: new Date().toISOString(),
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
   },
   {
-    id: 'tpl-2',
-    title: 'Executive Engineering Introduction',
-    category: 'Job Outreach',
-    subject: '{{my_name}} — Experienced {{my_title}} exploring {{role}} at {{company}}',
-    body: `Dear {{first_name}},\n\nI hope this note finds you well.\n\nI am reaching out directly because of my strong interest in {{company}}'s mission. Over the past several years, I have architected and operated production cloud platforms, prioritizing high availability, automation, and developer productivity.\n\nI would welcome the opportunity to connect with you or the hiring team regarding {{role}} initiatives at {{company}}. My resume is attached for your consideration.\n\nBest regards,\n{{my_name}}\n{{my_email}}`,
-    variables: ['first_name', 'company', 'role', 'my_name', 'my_email'],
-    createdAt: new Date().toISOString(),
+    id: 'tpl-hr-2',
+    name: 'Talent Acquisition — Direct Candidate Application',
+    title: 'Talent Acquisition — Direct Candidate Application',
+    category: 'HR & Recruitment',
+    subject: 'Application: {{role}} position at {{company}} — {{my_name}}',
+    body: `Dear {{first_name}},\n\nI hope this message finds you well.\n\nI am writing to submit my candidacy for the {{role}} opportunity at {{company}}. Your team's emphasis on engineering rigor and scalable technology resonates deeply with my professional values.\n\nAs a {{my_title}} with expertise in modern infrastructure and resilient distributed systems, I have delivered critical projects that decreased operational costs while accelerating deployment frequency. I would be thrilled to bring this dedication to {{company}}.\n\nMy resume is attached for your consideration. I would welcome the chance to discuss how my skill set aligns with {{company}}'s upcoming milestones.\n\nWarm regards,\n{{my_name}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'role', 'my_title', 'my_name', 'my_email'],
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
   },
   {
-    id: 'tpl-3',
-    title: 'Polite 3-Day Follow-Up',
-    category: 'Follow-up',
-    subject: 'Following up on note regarding {{company}} — {{my_name}}',
-    body: `Hi {{first_name}},\n\nI wanted to gently follow up on my note from earlier this week in case it got buried in your inbox. I know your calendar is packed, so no rush at all.\n\nI'd still be delighted to connect briefly if you or your team have a few minutes to chat about {{role}} opportunities at {{company}}.\n\nBest regards,\n{{my_name}}`,
-    variables: ['first_name', 'company', 'role', 'my_name'],
-    createdAt: new Date().toISOString(),
+    id: 'tpl-hr-3',
+    name: 'Executive Search & Hiring Manager Introduction',
+    title: 'Executive Search & Hiring Manager Introduction',
+    category: 'HR & Recruitment',
+    subject: '{{role}} Talent — {{my_name}} exploring opportunities at {{company}}',
+    body: `Hi {{first_name}},\n\nI hope your week is off to a great start.\n\nGiven your focus leading talent acquisition and recruitment strategy at {{company}}, I wanted to reach out directly. Over the past several years as a {{my_title}}, I have spearheaded cloud infrastructure, systems automation, and cross-functional engineering teams.\n\nI have been following {{company}}'s developments in {{country}} with admiration. I would welcome an introductory conversation regarding strategic technical roles within {{company}} where my expertise can deliver measurable impact.\n\nI've attached my CV for your review. If your schedule allows, I'd be honored to connect briefly.\n\nBest regards,\n{{my_name}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'role', 'my_title', 'country', 'my_name', 'my_email'],
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
+  },
+
+  // --- Category: Engineering ---
+  {
+    id: 'tpl-eng-1',
+    name: 'Cloud & Systems Infrastructure Outreach',
+    title: 'Cloud & Systems Infrastructure Outreach',
+    category: 'Engineering',
+    subject: 'Cloud Architecture & Scalability at {{company}} — {{my_name}}',
+    body: `Hi {{first_name}},\n\nI hope you're having a great week.\n\nI've been following {{company}}'s engineering advancements, particularly your focus on scalable infrastructure and service reliability. As a {{my_title}} with extensive hands-on experience designing cloud-native platforms, Kubernetes clusters, and automated CI/CD pipelines, I wanted to reach out regarding the {{role}} opening.\n\nIn my previous initiatives, I've successfully optimized cloud expenditures and boosted deployment velocity while maintaining 99.99% uptime. I am eager to apply these methodologies to help scale {{company}}'s engineering platforms.\n\nI've attached my resume highlighting technical projects and architectural achievements. Would you be open to a brief chat to discuss how I can contribute to {{company}}'s infrastructure?\n\nThanks for your time,\n{{my_name}}\n{{my_title}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'role', 'my_name', 'my_title', 'my_email'],
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
   },
   {
-    id: 'tpl-4',
-    title: 'Academic & Research Fellowship Outreach',
-    category: 'University',
-    subject: 'Inquiry: Research Opportunities at {{company}} — {{my_name}}',
-    body: `Dear Professor {{last_name}},\n\nI hope you are well. I have been following your laboratory's published work on cloud systems and distributed architecture at {{company}} with great interest.\n\nI am writing to inquire about potential research opportunities or graduate positions in your group. I have attached my CV detailing my academic and systems engineering experience for your review.\n\nThank you for your guidance and consideration.\n\nSincerely,\n{{my_name}}\n{{my_email}}`,
-    variables: ['last_name', 'company', 'my_name', 'my_email'],
-    createdAt: new Date().toISOString(),
+    id: 'tpl-eng-2',
+    name: 'Distributed Systems & Backend Engineering',
+    title: 'Distributed Systems & Backend Engineering',
+    category: 'Engineering',
+    subject: 'High-Performance Distributed Systems at {{company}} — {{my_name}}',
+    body: `Dear {{first_name}},\n\nI am reaching out because {{company}}'s technical architecture resonates strongly with my engineering philosophy.\n\nOver the past several years, I have architected distributed backend services, high-throughput message streaming pipelines, and fault-tolerant APIs. I thrive on untangling complex concurrency challenges, optimizing tail latencies, and delivering clean, maintainable systems code.\n\nI would love to learn more about the technical roadmap at {{company}} and explore how my expertise as a {{my_title}} could solve active challenges for the {{role}} team.\n\nAttached is my resume for your review. Thank you for your consideration, and I look forward to the possibility of speaking soon.\n\nSincerely,\n{{my_name}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'role', 'my_title', 'my_name', 'my_email'],
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
+  },
+  {
+    id: 'tpl-eng-3',
+    name: 'Engineering Manager & Tech Lead Outreach',
+    title: 'Engineering Manager & Tech Lead Outreach',
+    category: 'Engineering',
+    subject: '{{company}} Engineering: {{role}} inquiry from {{my_name}}',
+    body: `Hi {{first_name}},\n\nI hope all is well with you and your engineering team at {{company}}.\n\nI noticed that {{company}} is expanding its {{department}} engineering team. Having led systems initiatives and mentored engineers in fast-paced production environments, I admire the high engineering bar your organization maintains.\n\nWhether modernizing legacy pipelines or architecting distributed microservices, my focus as a {{my_title}} has always been pairing architectural rigor with rapid business delivery. I would be thrilled to bring this background to {{company}} for the {{role}} opening.\n\nMy resume is attached for your convenience. Would you be open to connecting for 10 minutes next week?\n\nBest regards,\n{{my_name}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'department', 'role', 'my_title', 'my_name', 'my_email'],
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
+  },
+  {
+    id: 'tpl-eng-4',
+    name: 'Site Reliability Engineering & DevOps Outreach',
+    title: 'Site Reliability Engineering & DevOps Outreach',
+    category: 'Engineering',
+    subject: 'SRE & Platform Reliability at {{company}} — {{my_name}}',
+    body: `Hi {{first_name}},\n\nI hope you're having a productive week.\n\nI'm reaching out because I've been admiring {{company}}'s engineering uptime and technical reliability. As a {{my_title}} passionate about observability, infrastructure-as-code, and automated incident recovery, I am eager to explore the {{role}} opening.\n\nIn my recent engagements, I've designed automated rollback mechanisms, Terraform infrastructure, and zero-downtime release pipelines. I would love the chance to support {{company}}'s mission with these capabilities.\n\nI've attached my CV for your review. Looking forward to connecting if your schedule allows.\n\nBest regards,\n{{my_name}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'role', 'my_title', 'my_name', 'my_email'],
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
+  },
+
+  // --- Category: International University ---
+  {
+    id: 'tpl-univ-1',
+    name: 'Graduate Research & Lab Assistantship Inquiry',
+    title: 'Graduate Research & Lab Assistantship Inquiry',
+    category: 'International University',
+    subject: 'Prospective Graduate Researcher: {{department}} at {{company}} — {{my_name}}',
+    body: `Dear Professor {{first_name}},\n\nI hope this email finds you well.\n\nI have been following your research group's publications at {{company}} with keen admiration, especially your recent work in {{department}}. Your contributions to the academic community have significantly inspired my own research ambitions.\n\nWith an extensive background in systems engineering and computational analysis, I am preparing my application for graduate studies at {{company}} in {{country}}. I am writing to inquire if you anticipate openings for graduate research assistants or Ph.D. advisees in your laboratory for the upcoming academic cycle.\n\nI have attached my academic CV, research statement, and publication summaries for your review. Thank you very much for your time and guidance.\n\nRespectfully yours,\n{{my_name}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'department', 'country', 'my_name', 'my_email'],
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
+  },
+  {
+    id: 'tpl-univ-2',
+    name: 'Faculty Fellowship & Postdoctoral Inquiry',
+    title: 'Faculty Fellowship & Postdoctoral Inquiry',
+    category: 'International University',
+    subject: 'Inquiry regarding Research Fellowships in {{department}} — {{my_name}}',
+    body: `Dear Dr. {{first_name}},\n\nI hope you are having a wonderful semester at {{company}}.\n\nI am writing to inquire about potential visiting researcher or postdoctoral fellowship opportunities within the {{department}} at {{company}}. Having led technical and research projects in distributed computing and systems engineering, I believe my methodology would synergize effectively with your group's ongoing research initiatives.\n\nI have attached my curriculum vitae detailing my publications, technical patents, and academic milestones. I would be deeply grateful for the opportunity to discuss how I might contribute to {{company}}'s academic research.\n\nThank you very much for your consideration.\n\nWarm regards,\n{{my_name}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'department', 'my_name', 'my_email'],
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
+  },
+  {
+    id: 'tpl-univ-3',
+    name: 'International Admissions & Scholarship Office Inquiry',
+    title: 'International Admissions & Scholarship Office Inquiry',
+    category: 'International University',
+    subject: 'International Graduate Admissions Inquiry: {{department}} — {{my_name}}',
+    body: `Dear Admissions Team at {{company}},\n\nI hope this message finds you well.\n\nI am preparing my graduate application for the {{department}} program at {{company}} for the upcoming academic year. As an international applicant from {{country}}, I am writing to confirm specific prerequisite requirements, international merit scholarship deadlines, and potential tuition assistantship avenues.\n\nI have attached my academic transcripts and preliminary CV for reference. Any guidance or informational materials you could share regarding international candidate funding would be immensely appreciated.\n\nThank you for your assistance and support.\n\nSincerely,\n{{my_name}}\n{{my_email}}`,
+    variables: ['first_name', 'company', 'department', 'country', 'my_name', 'my_email'],
+    isGlobal: true,
+    createdAt: '2026-09-17T00:00:00.000Z',
   },
 ];
 
@@ -281,21 +360,89 @@ function mergeWithSchemaDefaults(parsed: any): DatabaseSchema {
   const initial = getInitialData();
   const loadedSettings = parsed?.settings || {};
 
+  const ADMIN_ID = 'user-1';
+  const ADMIN_EMAIL = 'anjanp93722@gmail.com';
+
+  const rawContacts = Array.isArray(parsed?.contacts) ? parsed.contacts : [];
+  const contacts = rawContacts.map((c: any) => ({
+    ...c,
+    userId: c.userId || ADMIN_ID,
+    userEmail: c.userEmail || ADMIN_EMAIL,
+  }));
+
+  const rawCampaigns = Array.isArray(parsed?.campaigns) && parsed.campaigns.length > 0 ? parsed.campaigns : [DEFAULT_CAMPAIGN];
+  const campaigns = rawCampaigns.map((c: any) => ({
+    ...c,
+    userId: c.userId || ADMIN_ID,
+    userEmail: c.userEmail || ADMIN_EMAIL,
+  }));
+
+  const rawSent = Array.isArray(parsed?.sent_messages) ? parsed.sent_messages : [];
+  const sent_messages = rawSent.map((s: any) => ({
+    ...s,
+    userId: s.userId || ADMIN_ID,
+    userEmail: s.userEmail || ADMIN_EMAIL,
+    body: s.body || s.messageBody,
+  }));
+
+  const existingTemplates = Array.isArray(parsed?.templates) ? parsed.templates : [];
+  const existingIds = new Set(existingTemplates.map((t: any) => t.id));
+  const missingDefaults = DEFAULT_TEMPLATES.filter((dt) => !existingIds.has(dt.id));
+  const rawTemplates = [...existingTemplates, ...missingDefaults];
+  const templates = rawTemplates.map((t: any) => ({
+    ...t,
+    name: t.name || t.title || 'Untitled Template',
+    title: t.title || t.name || 'Untitled Template',
+    category: t.category || 'Job Outreach',
+    userId: t.userId || ADMIN_ID,
+    isGlobal: t.isGlobal !== undefined ? t.isGlobal : true,
+  }));
+
+  const rawScheduled = Array.isArray(parsed?.scheduled_messages) ? parsed.scheduled_messages : [];
+  const scheduled_messages = rawScheduled.map((m: any) => ({
+    ...m,
+    userId: m.userId || ADMIN_ID,
+    userEmail: m.userEmail || ADMIN_EMAIL,
+  }));
+
+  const rawIncoming = Array.isArray(parsed?.incoming_messages) ? parsed.incoming_messages : [];
+  const incoming_messages = rawIncoming.map((r: any) => ({
+    ...r,
+    userId: r.userId || ADMIN_ID,
+    userEmail: r.userEmail || ADMIN_EMAIL,
+  }));
+
+  const rawFollowUps = Array.isArray(parsed?.follow_ups) && parsed.follow_ups.length > 0 ? parsed.follow_ups : DEFAULT_FOLLOW_UP_RULES;
+  const follow_ups = rawFollowUps.map((f: any) => ({
+    ...f,
+    userId: f.userId || ADMIN_ID,
+    userEmail: f.userEmail || ADMIN_EMAIL,
+  }));
+
   return {
     ...initial,
     ...(parsed || {}),
     _fresh_clean_v2: true,
-    contacts: Array.isArray(parsed?.contacts) ? parsed.contacts : [],
-    campaigns: Array.isArray(parsed?.campaigns) && parsed.campaigns.length > 0 ? parsed.campaigns : [DEFAULT_CAMPAIGN],
+    users: [
+      {
+        id: ADMIN_ID,
+        email: ADMIN_EMAIL,
+        name: 'Anjan Prajapati',
+        role: 'ADMIN',
+      },
+      ...(Array.isArray(parsed?.users) ? parsed.users.filter((u: any) => u.email !== ADMIN_EMAIL) : []),
+    ],
+    contacts,
+    campaigns,
     campaign_recipients: Array.isArray(parsed?.campaign_recipients) ? parsed.campaign_recipients : [],
     messages: Array.isArray(parsed?.messages) ? parsed.messages : [],
-    scheduled_messages: Array.isArray(parsed?.scheduled_messages) ? parsed.scheduled_messages : [],
-    sent_messages: Array.isArray(parsed?.sent_messages) ? parsed.sent_messages : [],
+    scheduled_messages,
+    sent_messages,
     attachments: Array.isArray(parsed?.attachments) ? parsed.attachments : [],
-    templates: Array.isArray(parsed?.templates) && parsed.templates.length > 0 ? parsed.templates : DEFAULT_TEMPLATES,
+    templates,
     email_threads: Array.isArray(parsed?.email_threads) ? parsed.email_threads : [],
-    incoming_messages: Array.isArray(parsed?.incoming_messages) ? parsed.incoming_messages : [],
-    follow_ups: Array.isArray(parsed?.follow_ups) && parsed.follow_ups.length > 0 ? parsed.follow_ups : DEFAULT_FOLLOW_UP_RULES,
+    incoming_messages,
+    follow_ups,
     follow_up_instances: Array.isArray(parsed?.follow_up_instances) ? parsed.follow_up_instances : [],
     notifications: Array.isArray(parsed?.notifications) ? parsed.notifications : [],
     audit_logs: Array.isArray(parsed?.audit_logs) ? parsed.audit_logs : [],
@@ -342,7 +489,7 @@ function mergeWithSchemaDefaults(parsed: any): DatabaseSchema {
   };
 }
 
-class Database {
+export class Database {
   private data: DatabaseSchema;
   private isLoadedFromStorage = false;
   private lastLoadedTime = 0;

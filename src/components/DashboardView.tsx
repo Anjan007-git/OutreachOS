@@ -1,22 +1,22 @@
 import React from 'react';
 import {
-  Users,
   Clock,
   Send,
   CheckCheck,
   MessageSquareReply,
   Repeat,
-  AlertTriangle,
-  Flame,
   ArrowUpRight,
   Globe2,
   Briefcase,
   GraduationCap,
+  Layers,
+  Sparkles,
 } from 'lucide-react';
 import { DashboardStats, IncomingMessage, ScheduledMessage } from '../types';
 
 interface DashboardViewProps {
   stats: DashboardStats | null;
+  isLoading?: boolean;
   onNavigate: (page: string) => void;
   onSyncReplies: () => void;
   isSyncing: boolean;
@@ -26,42 +26,142 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   stats,
+  isLoading = false,
   onNavigate,
   recentResponses = [],
   upcomingScheduled = [],
 }) => {
-  const effectiveStats: DashboardStats = stats || {
-    totalContacts: 0,
-    scheduledCount: upcomingScheduled.length,
-    sentToday: 0,
-    totalSent: 0,
-    repliesCount: recentResponses.length,
-    followUpsCount: 0,
-    failedCount: 0,
-    activeCampaigns: 0,
-    replyRatePercentage: 0,
-    recentActivities: [],
-    sentOverTime: [
-      { date: 'Mon', sent: 0, replies: 0 },
-      { date: 'Tue', sent: 0, replies: 0 },
-      { date: 'Wed', sent: 0, replies: 0 },
-      { date: 'Thu', sent: 0, replies: 0 },
-      { date: 'Fri', sent: 0, replies: 0 },
-      { date: 'Sat', sent: 0, replies: 0 },
-      { date: 'Sun', sent: 0, replies: 0 },
-    ],
-    outreachBreakdown: [],
-    topCountries: [],
-  };
+  // If loading or stats haven't arrived from server yet, display comprehensive skeletons
+  if (isLoading || !stats) {
+    return (
+      <div className="space-y-6" id="dashboard-loading-skeletons">
+        {/* Top 4 Primary Metric Cards Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white dark:bg-black p-5 rounded-2xl border border-slate-200/80 dark:border-zinc-850 shadow-sm animate-pulse"
+            >
+              <div className="h-3 w-24 bg-slate-200 dark:bg-zinc-800 rounded-md mb-3" />
+              <div className="h-8 w-20 bg-slate-200 dark:bg-zinc-800 rounded-md mb-3" />
+              <div className="h-3.5 w-32 bg-slate-100 dark:bg-zinc-850 rounded-md" />
+            </div>
+          ))}
+        </div>
 
-  // Use genuine incoming responses and upcoming scheduled queue items (no mock/sample fallback)
+        {/* 4 Secondary Operational Cards Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white dark:bg-black px-4 py-3.5 rounded-xl border border-slate-200/80 dark:border-zinc-850 shadow-2xs animate-pulse flex items-center justify-between"
+            >
+              <div className="space-y-2">
+                <div className="h-2.5 w-20 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                <div className="h-5 w-24 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+              </div>
+              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-850" />
+            </div>
+          ))}
+        </div>
+
+        {/* Main Grid Skeletons */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column Skeletons */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Table Skeleton */}
+            <div className="bg-white dark:bg-black rounded-2xl border border-slate-200/80 dark:border-zinc-850 shadow-sm overflow-hidden animate-pulse p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div className="h-5 w-36 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                <div className="h-4 w-16 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+              </div>
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map((row) => (
+                  <div key={row} className="flex items-center justify-between py-3 border-b border-slate-100 dark:border-zinc-850/60 last:border-0">
+                    <div className="space-y-1.5">
+                      <div className="h-4 w-32 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                      <div className="h-3 w-48 bg-slate-100 dark:bg-zinc-850 rounded-md" />
+                    </div>
+                    <div className="h-4 w-24 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                    <div className="h-6 w-24 bg-slate-100 dark:bg-zinc-850 rounded-md" />
+                    <div className="h-3 w-16 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Chart Skeleton */}
+            <div className="bg-white dark:bg-black rounded-2xl border border-slate-200/80 dark:border-zinc-850 shadow-sm p-6 animate-pulse">
+              <div className="flex items-center justify-between mb-6">
+                <div className="space-y-2">
+                  <div className="h-4 w-44 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                  <div className="h-3 w-56 bg-slate-100 dark:bg-zinc-850 rounded-md" />
+                </div>
+                <div className="flex gap-4">
+                  <div className="h-3 w-12 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                  <div className="h-3 w-12 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                </div>
+              </div>
+              <div className="h-44 flex items-end justify-between gap-3 pt-6 border-b border-slate-100 dark:border-zinc-850 pb-2">
+                {[40, 65, 30, 80, 50, 70, 90].map((h, idx) => (
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-2">
+                    <div className="w-full flex items-end justify-center gap-1.5 h-32">
+                      <div style={{ height: `${h}%` }} className="w-3.5 bg-slate-200 dark:bg-zinc-800 rounded-t-xs" />
+                      <div style={{ height: `${Math.max(15, h - 25)}%` }} className="w-3.5 bg-slate-100 dark:bg-zinc-850 rounded-t-xs" />
+                    </div>
+                    <div className="h-2.5 w-6 bg-slate-200 dark:bg-zinc-800 rounded-xs" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column Skeletons */}
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-black rounded-2xl border border-slate-200/80 dark:border-zinc-850 shadow-sm p-6 animate-pulse space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="h-4 w-28 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                <div className="h-3 w-16 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+              </div>
+              <div className="space-y-4">
+                {[1, 2, 3].map((q) => (
+                  <div key={q} className="pl-4 border-l-2 border-slate-200 dark:border-zinc-800 space-y-1.5">
+                    <div className="h-3 w-16 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                    <div className="h-4 w-36 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                    <div className="h-3 w-28 bg-slate-100 dark:bg-zinc-850 rounded-md" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-black rounded-2xl border border-slate-200/80 dark:border-zinc-850 shadow-sm p-6 animate-pulse space-y-4">
+              <div className="h-4 w-36 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+              <div className="h-3 w-48 bg-slate-100 dark:bg-zinc-850 rounded-md mb-2" />
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="flex justify-between">
+                    <div className="h-3 w-24 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                    <div className="h-3 w-8 bg-slate-200 dark:bg-zinc-800 rounded-md" />
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-100 dark:bg-zinc-850 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loaded real-time calculated metrics directly from server-side JOIN
+  const effectiveStats = stats;
   const displayResponses = recentResponses.slice(0, 5);
   const displayQueue = upcomingScheduled.slice(0, 4);
 
   const getClassificationBadge = (classification?: string) => {
     if (!classification) {
       return (
-        <span className="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md uppercase tracking-wider">
+        <span className="px-2 py-1 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 text-[10px] font-bold rounded-md uppercase tracking-wider">
           RECEIVED
         </span>
       );
@@ -70,33 +170,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     switch (normalized) {
       case 'INTERVIEW_REQUEST':
         return (
-          <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-md uppercase tracking-wider">
+          <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-md uppercase tracking-wider">
             INTERVIEW REQUEST
           </span>
         );
       case 'REQUEST_FOR_INFORMATION':
       case 'INFO_REQUEST':
         return (
-          <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-md uppercase tracking-wider">
+          <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 text-[10px] font-bold rounded-md uppercase tracking-wider">
             INFO REQUEST
           </span>
         );
       case 'MEETING_REQUEST':
       case 'POSITIVE':
         return (
-          <span className="px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-md uppercase tracking-wider">
+          <span className="px-2 py-1 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 text-[10px] font-bold rounded-md uppercase tracking-wider">
             FOLLOW-UP REQ
           </span>
         );
       case 'REJECTION':
         return (
-          <span className="px-2 py-1 bg-rose-100 text-rose-700 text-[10px] font-bold rounded-md uppercase tracking-wider">
+          <span className="px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 text-[10px] font-bold rounded-md uppercase tracking-wider">
             REJECTION
           </span>
         );
       default:
         return (
-          <span className="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md uppercase tracking-wider">
+          <span className="px-2 py-1 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 text-[10px] font-bold rounded-md uppercase tracking-wider">
             {String(classification).replace(/_/g, ' ')}
           </span>
         );
@@ -129,8 +229,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const maxChartSent = Math.max(...chartData.map((d) => Math.max(d.sent, d.replies, 1)), 5);
 
   return (
-    <div className="space-y-6">
-      {/* 4 Primary Metric Cards (matching Sleek Interface design grid) */}
+    <div className="space-y-6" id="dashboard-realtime-view">
+      {/* 4 Primary Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Card 1: Total Contacts */}
         <div
@@ -142,7 +242,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{effectiveStats.totalContacts.toLocaleString()}</div>
           <div className="text-xs text-slate-500 dark:text-zinc-400 mt-2 font-medium flex items-center justify-between">
             <span>{effectiveStats.totalContacts > 0 ? `${effectiveStats.totalContacts} saved contacts` : '0 saved contacts'}</span>
-            <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" />
           </div>
         </div>
 
@@ -156,7 +256,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{effectiveStats.activeCampaigns}</div>
           <div className="text-xs text-indigo-600 dark:text-indigo-400 mt-2 font-medium flex items-center justify-between">
             <span>{effectiveStats.activeCampaigns > 0 ? `${effectiveStats.activeCampaigns} automated runs` : 'Ready to start'}</span>
-            <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-400" />
           </div>
         </div>
 
@@ -169,8 +269,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="text-slate-400 dark:text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-1">Reply Rate</div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{effectiveStats.replyRatePercentage}%</div>
           <div className="text-xs text-slate-500 dark:text-zinc-400 mt-2 font-medium flex items-center justify-between">
-            <span>Avg. 3 days response</span>
-            <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span>{effectiveStats.repliesCount} total replies</span>
+            <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" />
           </div>
         </div>
 
@@ -183,8 +283,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="text-slate-400 dark:text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-1">Total Sent</div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{effectiveStats.totalSent.toLocaleString()}</div>
           <div className="text-xs text-slate-500 dark:text-zinc-400 mt-2 font-medium flex items-center justify-between">
-            <span>Total outreaches</span>
-            <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span>Real-time from database</span>
+            <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" />
           </div>
         </div>
       </div>
@@ -192,6 +292,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Secondary Operational Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div
+          id="op-outbound-queue"
           onClick={() => onNavigate('scheduled')}
           className="bg-white dark:bg-black px-4 py-3.5 rounded-xl border border-slate-200/80 dark:border-zinc-850 shadow-2xs hover:border-slate-300 dark:hover:border-zinc-700 transition-all cursor-pointer flex items-center justify-between"
         >
@@ -205,6 +306,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div
+          id="op-sent-today"
           onClick={() => onNavigate('sent')}
           className="bg-white dark:bg-black px-4 py-3.5 rounded-xl border border-slate-200/80 dark:border-zinc-850 shadow-2xs hover:border-slate-300 dark:hover:border-zinc-700 transition-all cursor-pointer flex items-center justify-between"
         >
@@ -218,6 +320,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div
+          id="op-followups-active"
           onClick={() => onNavigate('followups')}
           className="bg-white dark:bg-black px-4 py-3.5 rounded-xl border border-slate-200/80 dark:border-zinc-850 shadow-2xs hover:border-slate-300 dark:hover:border-zinc-700 transition-all cursor-pointer flex items-center justify-between"
         >
@@ -231,6 +334,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div
+          id="op-safety-status"
           onClick={() => onNavigate('scheduled')}
           className="bg-white dark:bg-black px-4 py-3.5 rounded-xl border border-slate-200/80 dark:border-zinc-850 shadow-2xs hover:border-slate-300 dark:hover:border-zinc-700 transition-all cursor-pointer flex items-center justify-between"
         >
@@ -246,14 +350,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Main 2-Column + 1-Column Layout (Matching Sleek Interface Design) */}
+      {/* Main 2-Column + 1-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Columns: Recent Responses & Trends */}
         <div className="lg:col-span-2 space-y-6">
           {/* Recent Responses Card */}
           <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 shadow-sm flex flex-col overflow-hidden">
             <div className="p-5 border-b border-slate-100 dark:border-zinc-850 flex items-center justify-between">
-              <h2 className="font-bold text-slate-800 dark:text-zinc-100 text-base">Recent Responses</h2>
+              <div>
+                <h2 className="font-bold text-slate-800 dark:text-zinc-100 text-base">Recent Responses</h2>
+                <p className="text-xs text-slate-400 dark:text-zinc-500 mt-0.5">Aggregated incoming replies and AI classifications</p>
+              </div>
               <button
                 onClick={() => onNavigate('responses')}
                 className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline cursor-pointer"
@@ -322,7 +429,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white">Outreach & Replies Over Time</h2>
-                <p className="text-xs text-slate-500 dark:text-zinc-400">Last 7 days delivery and response metrics</p>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">Last 7 days delivery and response metrics calculated in real-time</p>
               </div>
               <div className="flex items-center space-x-4 text-xs">
                 <div className="flex items-center space-x-1.5">
@@ -379,6 +486,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Server-Joined Campaign Summaries (Real-Time from Aggregation Service) */}
+          {effectiveStats.campaignSummaries && effectiveStats.campaignSummaries.length > 0 && (
+            <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-indigo-600" />
+                    <span>Relational Campaign Performance</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400">Single consistent JOIN across campaigns, sent history, and replies</p>
+                </div>
+                <button
+                  onClick={() => onNavigate('campaigns')}
+                  className="text-indigo-600 dark:text-indigo-400 text-xs font-semibold hover:underline cursor-pointer"
+                >
+                  Manage Campaigns &rarr;
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {effectiveStats.campaignSummaries.map((camp) => (
+                  <div
+                    key={camp.campaignId}
+                    className="p-3.5 rounded-xl bg-slate-50/70 dark:bg-zinc-950 border border-slate-200/60 dark:border-zinc-850/80 flex flex-col md:flex-row md:items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm text-slate-900 dark:text-zinc-100">{camp.campaignName}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-400">
+                          {camp.status}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+                        Type: <span className="font-medium text-slate-700 dark:text-zinc-300">{camp.campaignType.replace(/_/g, ' ')}</span> &bull; Targets: {camp.totalRecipients} contacts
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs">
+                      <div className="text-center px-2 py-1 bg-white dark:bg-zinc-900 rounded-lg border border-slate-200/60 dark:border-zinc-800">
+                        <div className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase font-semibold">Sent</div>
+                        <div className="font-bold text-slate-900 dark:text-white">{camp.sentCount}</div>
+                      </div>
+                      <div className="text-center px-2 py-1 bg-white dark:bg-zinc-900 rounded-lg border border-slate-200/60 dark:border-zinc-800">
+                        <div className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase font-semibold">Replies</div>
+                        <div className="font-bold text-purple-600 dark:text-purple-400">{camp.repliesCount}</div>
+                      </div>
+                      <div className="text-center px-2 py-1 bg-white dark:bg-zinc-900 rounded-lg border border-slate-200/60 dark:border-zinc-800">
+                        <div className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase font-semibold">Reply Rate</div>
+                        <div className="font-bold text-emerald-600 dark:text-emerald-400">{camp.replyRatePercentage}%</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right 1 Column: Upcoming Queue & Quick Action & Distribution */}
@@ -434,18 +597,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             {/* Quick Action Callout Box */}
             <div className="bg-zinc-900 dark:bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-white flex flex-col gap-2 shadow-sm">
-              <div className="text-xs text-zinc-400 font-medium">Quick Action</div>
-              <button
-                onClick={() => onNavigate('campaigns')}
-                className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-bold text-white transition-all cursor-pointer text-center"
-              >
-                + Create New Campaign
-              </button>
+              <div className="text-xs text-zinc-400 font-medium flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Quick Actions</span>
+              </div>
               <button
                 onClick={() => onNavigate('compose')}
+                className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-bold text-white transition-all cursor-pointer text-center"
+              >
+                Compose Personalized Email
+              </button>
+              <button
+                onClick={() => onNavigate('templates')}
                 className="w-full py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-xs font-semibold text-white transition-all cursor-pointer text-center"
               >
-                Write Custom Message
+                Browse Template Library (10 Templates)
               </button>
             </div>
           </div>
@@ -461,7 +627,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div key={idx}>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-medium text-slate-700 dark:text-zinc-300 flex items-center space-x-1.5">
-                      {item.name.includes('Job') ? (
+                      {item.name.toLowerCase().includes('job') || item.name.toLowerCase().includes('company') ? (
                         <Briefcase className="w-3.5 h-3.5 text-blue-500" />
                       ) : (
                         <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />

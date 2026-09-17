@@ -158,7 +158,9 @@ export async function searchGmailMessages(accessToken: string, query: string, ma
       const errJson = JSON.parse(errText);
       errorDetail = errJson.error?.message || errText;
     } catch {}
-    throw new Error(`Failed to search Gmail messages (${response.status}): ${errorDetail}`);
+    const error: any = new Error(`Failed to search Gmail messages (${response.status}): ${errorDetail}`);
+    error.status = response.status;
+    throw error;
   }
 
   const data = await response.json();
@@ -183,7 +185,9 @@ export async function getGmailMessage(accessToken: string, messageId: string): P
       const errJson = JSON.parse(errText);
       errorDetail = errJson.error?.message || errText;
     } catch {}
-    throw new Error(`Failed to get Gmail message (${response.status}): ${errorDetail}`);
+    const error: any = new Error(`Failed to get Gmail message (${response.status}): ${errorDetail}`);
+    error.status = response.status;
+    throw error;
   }
 
   return await response.json();
