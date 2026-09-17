@@ -75,8 +75,8 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Email Template Library</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Email Template Library</h1>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
             Pre-crafted outreach formulas with dynamic contact variable merge tags.
           </p>
         </div>
@@ -85,7 +85,7 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs py-2 px-3.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-2xs"
+            className="text-xs py-2 px-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 font-medium text-slate-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-2xs"
           >
             <option value="ALL">All Categories ({templates.length})</option>
             <option value="JOB_OUTREACH">Job Outreach</option>
@@ -107,12 +107,12 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
       {/* Templates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filtered.length === 0 ? (
-          <div className="col-span-full bg-white rounded-2xl border border-slate-200 p-16 text-center shadow-sm">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mx-auto mb-3">
+          <div className="col-span-full bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-16 text-center shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mx-auto mb-3">
               <FileText className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-bold text-slate-800">No email templates found</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-100">No email templates found</h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto mt-1 mb-4">
               Create reusable message templates with variable tokens like {'{{name}}'}, {'{{organization}}'}, and {'{{role}}'}.
             </p>
             <button
@@ -127,13 +127,13 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
           filtered.map((t) => (
             <div
               key={t.id}
-              className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-slate-300 transition-all flex flex-col justify-between"
+              className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all flex flex-col justify-between"
             >
             <div>
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 leading-tight">{t.title || t.name}</h3>
-                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md uppercase tracking-wider inline-block mt-1">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{t.title || t.name}</h3>
+                  <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 rounded-md uppercase tracking-wider inline-block mt-1">
                     {String(t.category || 'GENERAL').replace(/_/g, ' ')}
                   </span>
                 </div>
@@ -145,10 +145,10 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
                       setTimeout(() => setCopiedId(null), 2000);
                     }}
                     title="Copy Body"
-                    className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-900 cursor-pointer transition-colors"
                   >
                     {copiedId === t.id ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     ) : (
                       <Copy className="w-3.5 h-3.5" />
                     )}
@@ -160,19 +160,19 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
                       }
                     }}
                     title="Delete Template"
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 cursor-pointer transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
-              <div className="text-xs font-semibold text-slate-800 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100 mb-3">
-                <span className="text-slate-400 font-normal">Subject: </span>
+              <div className="text-xs font-semibold text-slate-800 dark:text-zinc-200 bg-slate-50 dark:bg-zinc-900/60 px-3.5 py-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 mb-3">
+                <span className="text-slate-400 dark:text-zinc-500 font-normal">Subject: </span>
                 {t.subject}
               </div>
 
-              <div className="text-xs text-slate-600 font-sans leading-relaxed line-clamp-6 bg-slate-50/60 p-3.5 rounded-xl border border-slate-100 whitespace-pre-wrap mb-4">
+              <div className="text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed line-clamp-6 bg-slate-50/60 dark:bg-zinc-900/40 p-3.5 rounded-xl border border-slate-100 dark:border-zinc-800 whitespace-pre-wrap mb-4">
                 {t.body}
               </div>
 
@@ -181,7 +181,7 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
                   {t.variables.map((v, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold"
+                      className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900 font-semibold"
                     >
                       {v}
                     </span>
@@ -190,7 +190,7 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
               )}
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
+            <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 flex justify-end">
               <button
                 onClick={() => onUseTemplate(t)}
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-sm flex items-center space-x-1.5 transition-colors cursor-pointer"
@@ -206,11 +206,11 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
 
       {/* Create Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-black rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-zinc-850">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-slate-900">Create New Outreach Template</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Create New Outreach Template</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -218,22 +218,22 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
             <form onSubmit={handleCreate} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Template Name *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Template Name *</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Senior Backend Role Outreach"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50 dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Category</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as Template['category'])}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 bg-white font-medium cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-zinc-900 font-medium text-slate-900 dark:text-zinc-100 cursor-pointer"
                   >
                     <option value="JOB_OUTREACH">Job Outreach</option>
                     <option value="UNIVERSITY_ADMISSIONS">University Admissions</option>
@@ -245,7 +245,7 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
 
               {/* Variable Token Clickers */}
               <div>
-                <span className="font-semibold text-slate-700 block mb-1">
+                <span className="font-semibold text-slate-700 dark:text-zinc-300 block mb-1">
                   Insert Dynamic Variables (Click to insert):
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -254,7 +254,7 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
                       key={tok}
                       type="button"
                       onClick={() => setBody(body + ' ' + tok)}
-                      className="px-2 py-1 rounded-lg text-[10px] font-mono bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 border border-slate-200 font-semibold transition-colors cursor-pointer"
+                      className="px-2 py-1 rounded-lg text-[10px] font-mono bg-slate-100 dark:bg-zinc-800 hover:bg-indigo-50 dark:hover:bg-indigo-950 hover:text-indigo-700 dark:hover:text-indigo-300 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 font-semibold transition-colors cursor-pointer"
                     >
                       + {tok}
                     </button>
@@ -263,34 +263,34 @@ export const TemplatesView: React.FC<TemplatesViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Subject Line *</label>
+                <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Subject Line *</label>
                 <input
                   type="text"
                   required
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   placeholder="e.g. Inquiry regarding {{role}} at {{organization}}"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50 dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Email Body *</label>
+                <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Email Body *</label>
                 <textarea
                   rows={8}
                   required
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   placeholder="Write your email body..."
-                  className="w-full p-3 font-sans leading-relaxed rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 bg-slate-50/70"
+                  className="w-full p-3 font-sans leading-relaxed rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 bg-slate-50/70 dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end space-x-2">
+              <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-700 hover:bg-slate-100 font-medium cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-900 font-medium cursor-pointer"
                 >
                   Cancel
                 </button>

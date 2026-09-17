@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { ArrowRight, Sparkles, Check } from 'lucide-react';
 
 interface FinalCTAProps {
@@ -13,21 +14,26 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({
   onSignIn,
 }) => {
   return (
-    <section className="relative py-20 sm:py-28 bg-slate-950 text-white overflow-hidden">
-      {/* Background Ambient Glow & Subtle Grid */}
+    <section className="relative py-20 sm:py-28 bg-black text-white border-t border-zinc-850 overflow-hidden">
+      {/* Subtle Grid */}
       <div
-        className="absolute inset-0 opacity-15 pointer-events-none"
+        className="absolute inset-0 opacity-10 pointer-events-none"
         style={{
           backgroundImage:
-            'radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px)',
+            'radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
         }}
       />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-80 bg-radial from-indigo-600/25 via-indigo-900/10 to-transparent blur-3xl pointer-events-none" />
 
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 35 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.2 }}
+        transition={{ duration: 0.6 }}
+        className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8"
+      >
         {/* Eyebrow Pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-700/60 text-xs font-semibold text-indigo-300 shadow-2xs">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-300 shadow-2xs">
           <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
           <span>Start Reaching Out Professionally</span>
         </div>
@@ -39,7 +45,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({
         </h2>
 
         {/* Supporting Copy */}
-        <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+        <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto font-normal leading-relaxed">
           Build thoughtful outreach, automate the repetitive work, and spend more time on the conversations that matter.
         </p>
 
@@ -55,7 +61,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({
           {!isAuthenticated && (
             <button
               onClick={onSignIn}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 text-sm font-semibold border border-slate-700 transition-colors cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-semibold border border-zinc-800 transition-colors cursor-pointer"
             >
               <span>Sign In</span>
             </button>
@@ -63,7 +69,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({
         </div>
 
         {/* Value Micro-Points */}
-        <div className="flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs text-slate-400 font-medium pt-4">
+        <div className="flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs text-zinc-400 font-medium pt-4">
           <div className="flex items-center gap-1.5">
             <Check className="w-3.5 h-3.5 text-indigo-400" />
             <span>Connect your Gmail in seconds</span>
@@ -77,7 +83,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({
             <span>Private cloud document vault</span>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

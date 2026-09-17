@@ -11,3 +11,5 @@ export { SecuritySection } from './SecuritySection';
 export { UseCasesSection } from './UseCasesSection';
 export { FinalCTA } from './FinalCTA';
 export { Footer } from './Footer';
+export { AwesomeScrollSection } from './AwesomeScrollSection';
+export { ScrollProgressBar } from './ScrollProgressBar';

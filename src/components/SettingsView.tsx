@@ -127,15 +127,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Application Settings & Configuration</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Application Settings & Configuration</h1>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
             Configure sender identity, daily sending caps, time windows, and audit security logs.
           </p>
         </div>
 
         {isSaved && (
-          <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-xl border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+          <span className="inline-flex items-center text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-3.5 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800">
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600 dark:text-emerald-400" />
             Settings Saved
           </span>
         )}
@@ -143,15 +143,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       <form onSubmit={handleSubmit} className="space-y-6 text-xs">
         {/* Profile Card */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
-            <User className="w-4 h-4 text-indigo-600" />
+        <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm space-y-4">
+          <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-sm">
+            <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>Sender Profile Information</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Full Name</label>
+              <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Full Name</label>
               <input
                 type="text"
                 value={formData.profile.name}
@@ -161,12 +161,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     profile: { ...formData.profile, name: e.target.value },
                   })
                 }
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50 dark:bg-zinc-900/60 text-slate-800 dark:text-zinc-100"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Professional Title</label>
+              <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Professional Title</label>
               <input
                 type="text"
                 value={formData.profile.title}
@@ -176,12 +176,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     profile: { ...formData.profile, title: e.target.value },
                   })
                 }
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50 dark:bg-zinc-900/60 text-slate-800 dark:text-zinc-100"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">LinkedIn Profile URL</label>
+              <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">LinkedIn Profile URL</label>
               <input
                 type="text"
                 value={formData.profile.linkedin || ''}
@@ -191,12 +191,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     profile: { ...formData.profile, linkedin: e.target.value },
                   })
                 }
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 font-medium font-mono text-[11px] bg-slate-50/50"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 font-medium font-mono text-[11px] bg-slate-50/50 dark:bg-zinc-900/60 text-slate-800 dark:text-zinc-100"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">GitHub Profile URL</label>
+              <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">GitHub Profile URL</label>
               <input
                 type="text"
                 value={formData.profile.github || ''}
@@ -206,22 +206,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     profile: { ...formData.profile, github: e.target.value },
                   })
                 }
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 font-medium font-mono text-[11px] bg-slate-50/50"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 font-medium font-mono text-[11px] bg-slate-50/50 dark:bg-zinc-900/60 text-slate-800 dark:text-zinc-100"
               />
             </div>
           </div>
         </div>
 
         {/* Sending Safety Limits & Pacing */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
-            <Clock className="w-4 h-4 text-indigo-600" />
+        <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm space-y-4">
+          <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-sm">
+            <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>Sending Limits & Anti-Spam Safeguards</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">
                 Daily Sending Limit (Emails / Day)
               </label>
               <input
@@ -245,13 +245,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     },
                   });
                 }}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50 dark:bg-zinc-900/60 text-slate-800 dark:text-zinc-100"
               />
-              <span className="text-[10px] text-slate-400 mt-1 block">Recommended: 5-15 for high deliverability</span>
+              <span className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1 block">Recommended: 5-15 for high deliverability</span>
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">
                 Delay Between Emails (Seconds)
               </label>
               <input
@@ -275,28 +275,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     },
                   });
                 }}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 font-medium bg-slate-50/50 dark:bg-zinc-900/60 text-slate-800 dark:text-zinc-100"
               />
-              <span className="text-[10px] text-slate-400 mt-1 block">Randomized jitter applied automatically</span>
+              <span className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1 block">Randomized jitter applied automatically</span>
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Timezone</label>
+              <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Timezone</label>
               <input
                 type="text"
                 readOnly
                 value={formData.sendingLimits?.timezone || formData.automation?.timezone || 'Asia/Kolkata'}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100/70 font-medium text-slate-800"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-100/70 dark:bg-zinc-900 font-medium text-slate-800 dark:text-zinc-200"
               />
-              <span className="text-[10px] text-slate-400 mt-1 block">Configured to Asia/Kolkata (IST)</span>
+              <span className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1 block">Configured to Asia/Kolkata (IST)</span>
             </div>
           </div>
         </div>
 
         {/* Default Email Signature */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
-            <Mail className="w-4 h-4 text-indigo-600" />
+        <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm space-y-4">
+          <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-sm">
+            <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>Default Email Signature</span>
           </div>
 
@@ -313,14 +313,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 },
               })
             }
-            className="w-full p-3.5 font-sans leading-relaxed rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 bg-slate-50/70"
+            className="w-full p-3.5 font-sans leading-relaxed rounded-xl border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 bg-slate-50/70 dark:bg-zinc-900/60 text-slate-800 dark:text-zinc-100"
           />
         </div>
 
         {/* AI & Automation Features */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
-            <Sparkles className="w-4 h-4 text-indigo-600" />
+        <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm space-y-4">
+          <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-sm">
+            <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>Gemini AI Intelligence Settings</span>
           </div>
 
@@ -346,10 +346,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 className="rounded-md text-indigo-600 focus:ring-indigo-500 w-4 h-4"
               />
               <div>
-                <span className="font-semibold text-slate-800 block">
+                <span className="font-semibold text-slate-800 dark:text-zinc-100 block">
                   Automated Reply Intent Classification
                 </span>
-                <span className="text-slate-500 text-[11px]">
+                <span className="text-slate-500 dark:text-zinc-400 text-[11px]">
                   Automatically classify incoming Gmail replies into Interview Requests, Positive, Rejections, etc.
                 </span>
               </div>
@@ -372,10 +372,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 className="rounded-md text-indigo-600 focus:ring-indigo-500 w-4 h-4"
               />
               <div>
-                <span className="font-semibold text-slate-800 block">
+                <span className="font-semibold text-slate-800 dark:text-zinc-100 block">
                   Follow-up Reminder Suggestions
                 </span>
-                <span className="text-slate-500 text-[11px]">
+                <span className="text-slate-500 dark:text-zinc-400 text-[11px]">
                   Generate intelligent cadence suggestions based on recruiter company type and history.
                 </span>
               </div>
@@ -397,15 +397,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* Administrator & System Controls */}
       {isAdmin && (
-        <div className="bg-white rounded-2xl border border-indigo-200 p-6 shadow-sm space-y-5 bg-gradient-to-b from-indigo-50/40 to-white">
+        <div className="bg-white dark:bg-black rounded-2xl border border-indigo-200 dark:border-zinc-850 p-6 shadow-sm space-y-5 bg-gradient-to-b from-indigo-50/40 dark:from-zinc-950/60 to-white dark:to-black">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700">
+              <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-zinc-900 border border-transparent dark:border-zinc-800 flex items-center justify-center text-indigo-700 dark:text-indigo-400">
                 <Shield className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Administrator Privileges & System Engine</h3>
-                <p className="text-xs text-slate-500">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Administrator Privileges & System Engine</h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
                   Full control over OutreachOS sending engine, system workers, and database state.
                 </p>
               </div>
@@ -416,22 +416,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 bg-white rounded-xl border border-slate-200">
-              <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Admin Account</div>
-              <div className="font-semibold text-slate-800 font-mono text-[11px] truncate">
+            <div className="p-3 bg-white dark:bg-zinc-900/70 rounded-xl border border-slate-200 dark:border-zinc-800">
+              <div className="text-slate-400 dark:text-zinc-500 text-[10px] font-bold uppercase tracking-wider mb-0.5">Admin Account</div>
+              <div className="font-semibold text-slate-800 dark:text-zinc-200 font-mono text-[11px] truncate">
                 {gmailStatus.email || 'anjanp93722@gmail.com'}
               </div>
             </div>
-            <div className="p-3 bg-white rounded-xl border border-slate-200">
-              <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Outreach Engine Limit</div>
-              <div className="font-bold text-emerald-600 flex items-center gap-1">
+            <div className="p-3 bg-white dark:bg-zinc-900/70 rounded-xl border border-slate-200 dark:border-zinc-800">
+              <div className="text-slate-400 dark:text-zinc-500 text-[10px] font-bold uppercase tracking-wider mb-0.5">Outreach Engine Limit</div>
+              <div className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Unlimited (No Daily Cap)</span>
               </div>
             </div>
-            <div className="p-3 bg-white rounded-xl border border-slate-200">
-              <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Background Scheduler</div>
-              <div className="font-bold text-indigo-600 flex items-center gap-1">
+            <div className="p-3 bg-white dark:bg-zinc-900/70 rounded-xl border border-slate-200 dark:border-zinc-800">
+              <div className="text-slate-400 dark:text-zinc-500 text-[10px] font-bold uppercase tracking-wider mb-0.5">Background Scheduler</div>
+              <div className="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
                 <Cpu className="w-3.5 h-3.5" />
                 <span>Active (15s Polling)</span>
               </div>
@@ -439,16 +439,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           {resetMessage && (
-            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>{resetMessage}</span>
             </div>
           )}
 
-          <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="pt-3 border-t border-slate-200/80 dark:border-zinc-850 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="text-xs font-bold text-slate-800">Database & System Storage</div>
-              <div className="text-[11px] text-slate-500">
+              <div className="text-xs font-bold text-slate-800 dark:text-zinc-100">Database & System Storage</div>
+              <div className="text-[11px] text-slate-500 dark:text-zinc-400">
                 Download a raw JSON database backup or reset all outreach records to start completely fresh.
               </div>
             </div>
@@ -456,19 +456,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <a
                 href="/api/db/download"
                 download="db.json"
-                className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs shrink-0"
+                className="px-3.5 py-2 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs shrink-0"
                 title="Download raw db.json file"
               >
-                <Download className="w-3.5 h-3.5 text-indigo-600" />
+                <Download className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                 <span>Download db.json</span>
               </a>
               <button
                 type="button"
                 onClick={handleResetData}
                 disabled={isResetting}
-                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center space-x-2 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                className="px-4 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-bold flex items-center space-x-2 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
               >
-                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <Trash2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                 <span>{isResetting ? 'Resetting System Data...' : 'Reset to Zero'}</span>
               </button>
             </div>
@@ -477,25 +477,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       )}
 
       {/* Security & Audit Logs */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
-            <History className="w-4 h-4 text-slate-600" />
+          <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-sm">
+            <History className="w-4 h-4 text-slate-600 dark:text-zinc-400" />
             <span>Security & Outreach Audit Trail</span>
           </div>
-          <span className="text-xs text-slate-400 font-mono">Last 15 records</span>
+          <span className="text-xs text-slate-400 dark:text-zinc-500 font-mono">Last 15 records</span>
         </div>
 
-        <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
+        <div className="divide-y divide-slate-100 dark:divide-zinc-850 max-h-60 overflow-y-auto">
           {auditLogs.slice(0, 15).map((log) => (
             <div key={log.id} className="py-3 flex items-center justify-between text-xs">
               <div>
-                <span className="font-mono text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100 mr-2">
+                <span className="font-mono text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded-md border border-indigo-100 dark:border-indigo-900 mr-2">
                   {log.action}
                 </span>
-                <span className="text-slate-700 font-medium">{log.details}</span>
+                <span className="text-slate-700 dark:text-zinc-300 font-medium">{log.details}</span>
               </div>
-              <span className="text-slate-400 font-mono text-[10px]">
+              <span className="text-slate-400 dark:text-zinc-500 font-mono text-[10px]">
                 {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>

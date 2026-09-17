@@ -586,8 +586,8 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Email Composer & Review</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Email Composer & Review</h1>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
             Write, personalize with AI, attach documents, and route through the user approval workflow.
           </p>
         </div>
@@ -599,8 +599,8 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
             onClick={() => setIsPreviewMode(!isPreviewMode)}
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 border transition-colors cursor-pointer ${
               isPreviewMode
-                ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300'
+                : 'bg-white dark:bg-black border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-900'
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
@@ -613,19 +613,19 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
         <div
           className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between ${
             statusFeedback.type === 'success'
-              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-              : 'bg-rose-50 text-rose-800 border border-rose-200'
+              ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+              : 'bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
           }`}
         >
           <div className="flex items-center space-x-2">
             {statusFeedback.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             ) : (
-              <AlertTriangle className="w-4 h-4 text-rose-600" />
+              <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
             )}
             <span>{statusFeedback.text}</span>
           </div>
-          <button onClick={() => setStatusFeedback(null)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+          <button onClick={() => setStatusFeedback(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -635,11 +635,11 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Form & Editor */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm space-y-4">
             {/* Recipient & Campaign Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
                   Recipient Contact
                 </label>
                 <select
@@ -654,7 +654,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                       setCustomName(found.name);
                     }
                   }}
-                  className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50 font-medium text-slate-800 cursor-pointer"
+                  className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50 dark:bg-zinc-900 font-medium text-slate-800 dark:text-zinc-200 cursor-pointer"
                 >
                   <option value="">-- Manual Recipient --</option>
                   {contacts.map((c) => (
@@ -666,14 +666,14 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
                   Assign to Campaign (Optional)
                 </label>
                 <select
                   id="select-compose-campaign"
                   value={selectedCampaignId}
                   onChange={(e) => setSelectedCampaignId(e.target.value)}
-                  className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50 font-medium text-slate-800 cursor-pointer"
+                  className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50 dark:bg-zinc-900 font-medium text-slate-800 dark:text-zinc-200 cursor-pointer"
                 >
                   <option value="">-- No Campaign (One-off Outreach) --</option>
                   {campaigns.map((c) => (
@@ -687,26 +687,26 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
 
             {/* Manual email/name inputs if no contact selected */}
             {!selectedContactId && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-zinc-800">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Recipient Email *</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">Recipient Email *</label>
                   <input
                     type="email"
                     required
                     value={customEmail}
                     onChange={(e) => setCustomEmail(e.target.value)}
                     placeholder="recruiter@targetcompany.com"
-                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono bg-slate-50/50"
+                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono bg-slate-50/50 dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Recipient Name</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">Recipient Name</label>
                   <input
                     type="text"
                     value={customName}
                     onChange={(e) => setCustomName(e.target.value)}
                     placeholder="e.g. Rachel Adams"
-                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50"
+                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50 dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                   />
                 </div>
               </div>
@@ -715,12 +715,12 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
             {/* Subject Line Field */}
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="text-xs font-semibold text-slate-700">Subject Line *</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Subject Line *</label>
                 <button
                   type="button"
                   onClick={handleGenerateAiSubjects}
                   disabled={isAiLoading}
-                  className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold flex items-center space-x-1 cursor-pointer"
+                  className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-semibold flex items-center space-x-1 cursor-pointer"
                 >
                   <Sparkles className="w-3 h-3" />
                   <span>Suggest AI Subjects</span>
@@ -734,15 +734,15 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                 readOnly={isPreviewMode}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="e.g. Experienced Cloud Architect — Inquiry regarding {{role}} at {{organization}}"
-                className={`w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium ${
-                  isPreviewMode ? 'bg-slate-50 text-slate-800' : 'bg-slate-50/50'
+                className={`w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 ${
+                  isPreviewMode ? 'bg-slate-50 dark:bg-zinc-900 text-slate-800 dark:text-zinc-100' : 'bg-slate-50/50 dark:bg-zinc-900'
                 }`}
               />
 
               {/* AI Subject Suggestions */}
               {aiSubjects.length > 0 && (
-                <div className="mt-2.5 p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 space-y-2">
-                  <span className="text-[10px] font-bold text-indigo-800 uppercase tracking-wider block">
+                <div className="mt-2.5 p-3 bg-indigo-50/60 dark:bg-indigo-950/50 rounded-xl border border-indigo-100 dark:border-indigo-900 space-y-2">
+                  <span className="text-[10px] font-bold text-indigo-800 dark:text-indigo-300 uppercase tracking-wider block">
                     Select AI Suggested Subject:
                   </span>
                   {aiSubjects.map((s, idx) => (
@@ -752,7 +752,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                         setSubject(s);
                         setAiSubjects([]);
                       }}
-                      className="text-xs p-2 bg-white hover:bg-indigo-50/80 border border-slate-200 hover:border-indigo-300 rounded-lg text-slate-800 cursor-pointer font-medium transition-colors shadow-2xs"
+                      className="text-xs p-2 bg-white dark:bg-zinc-900 hover:bg-indigo-50/80 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-indigo-300 rounded-lg text-slate-800 dark:text-zinc-100 cursor-pointer font-medium transition-colors shadow-2xs"
                     >
                       {s}
                     </div>
@@ -762,16 +762,16 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
             </div>
 
             {/* AI Assistant Toolbar */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+            <div className="p-4 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-850 space-y-2.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-900">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-900 dark:text-white">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   <span>Gemini Assistant Tools</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowJdModal(true)}
-                  className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                  className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 cursor-pointer"
                 >
                   Analyze Job Description
                 </button>
@@ -782,7 +782,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                   type="button"
                   onClick={() => handleRunAiImprove('Make it more professional, confident, and persuasive')}
                   disabled={isAiLoading}
-                  className="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors shadow-2xs cursor-pointer"
+                  className="px-3 py-1.5 bg-white dark:bg-black hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-slate-700 dark:text-zinc-200 transition-colors shadow-2xs cursor-pointer"
                 >
                   Professional Tone
                 </button>
@@ -790,7 +790,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                   type="button"
                   onClick={() => handleRunAiImprove('Make it concise, punchy, and under 150 words')}
                   disabled={isAiLoading}
-                  className="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors shadow-2xs cursor-pointer"
+                  className="px-3 py-1.5 bg-white dark:bg-black hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-slate-700 dark:text-zinc-200 transition-colors shadow-2xs cursor-pointer"
                 >
                   Make Concise
                 </button>
@@ -798,7 +798,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                   type="button"
                   onClick={() => handleRunAiImprove('Fix any grammar or punctuation mistakes while keeping my style')}
                   disabled={isAiLoading}
-                  className="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors shadow-2xs cursor-pointer"
+                  className="px-3 py-1.5 bg-white dark:bg-black hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-slate-700 dark:text-zinc-200 transition-colors shadow-2xs cursor-pointer"
                 >
                   Fix Grammar
                 </button>
@@ -813,7 +813,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
               </div>
 
               {isAiLoading && (
-                <div className="flex items-center space-x-2 text-xs text-indigo-600 pt-1 font-medium">
+                <div className="flex items-center space-x-2 text-xs text-indigo-600 dark:text-indigo-400 pt-1 font-medium">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                   <span>Gemini is refining your message...</span>
                 </div>
@@ -823,15 +823,15 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
             {/* Message Body Field */}
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="text-xs font-semibold text-slate-700">Email Message Body *</label>
-                <span className="text-[11px] text-slate-400">
+                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Email Message Body *</label>
+                <span className="text-[11px] text-slate-400 dark:text-zinc-500">
                   {messageBody.length} characters &bull; {messageBody.split(/\s+/).filter(Boolean).length} words
                 </span>
               </div>
 
               {/* Variable Quick Insert Chips */}
-              <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 text-[11px] text-slate-500 scrollbar-thin">
-                <span className="font-semibold text-slate-600 shrink-0 text-[10px] uppercase tracking-wider">
+              <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 text-[11px] text-slate-500 dark:text-zinc-400 scrollbar-thin">
+                <span className="font-semibold text-slate-600 dark:text-zinc-300 shrink-0 text-[10px] uppercase tracking-wider">
                   Insert Tag:
                 </span>
                 {COMMON_VARIABLES.slice(0, 6).map((v) => (
@@ -839,7 +839,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                     key={v.key}
                     type="button"
                     onClick={() => handleInsertVariable(v.key)}
-                    className="px-2 py-0.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200 rounded-md font-mono text-[10px] text-slate-700 transition-colors cursor-pointer shrink-0"
+                    className="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 hover:bg-indigo-50 dark:hover:bg-indigo-950 hover:text-indigo-700 dark:hover:text-indigo-300 hover:border-indigo-200 border border-slate-200 dark:border-zinc-700 rounded-md font-mono text-[10px] text-slate-700 dark:text-zinc-300 transition-colors cursor-pointer shrink-0"
                     title={`Insert ${v.label} (e.g. ${v.example})`}
                   >
                     {v.key}
@@ -855,32 +855,32 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                 readOnly={isPreviewMode}
                 onChange={(e) => setMessageBody(e.target.value)}
                 placeholder={`Dear {{first_name}},\n\nI hope this email finds you well.\n\nI am writing to express my strong interest in joining {{organization}} as a {{role}}...\n\nBest regards,\n{{my_name}}`}
-                className={`w-full text-xs p-3.5 font-sans leading-relaxed rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none ${
-                  isPreviewMode ? 'bg-slate-50 text-slate-800' : 'bg-slate-50/50'
+                className={`w-full text-xs p-3.5 font-sans leading-relaxed rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 ${
+                  isPreviewMode ? 'bg-slate-50 dark:bg-zinc-900 text-slate-800 dark:text-zinc-100' : 'bg-slate-50/50 dark:bg-zinc-900'
                 }`}
               />
             </div>
 
             {/* Selected Attachments Display */}
             {selectedAttachments.length > 0 && (
-              <div className="pt-3 border-t border-slate-100">
-                <span className="text-xs font-semibold text-slate-700 block mb-2">
+              <div className="pt-3 border-t border-slate-100 dark:border-zinc-800">
+                <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 block mb-2">
                   Attached Documents ({selectedAttachments.length}):
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {selectedAttachments.map((att, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 font-medium"
+                      className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs text-slate-800 dark:text-zinc-200 font-medium"
                     >
-                      <Paperclip className="w-3.5 h-3.5 text-slate-500" />
+                      <Paperclip className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
                       <span>{att.name}</span>
                       <button
                         type="button"
                         onClick={() =>
                           setSelectedAttachments(selectedAttachments.filter((_, i) => i !== idx))
                         }
-                        className="text-slate-400 hover:text-slate-600 ml-1 cursor-pointer"
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 ml-1 cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -895,20 +895,20 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
         {/* Right 1 Col: Workflow Actions & Templates & Attachments */}
         <div className="space-y-6">
           {/* Approval Workflow Box */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm space-y-4">
             <div>
-              <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Outreach Approval Workflow
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 Emails require explicit user approval before entering the sending queue.
               </p>
             </div>
 
             {/* Schedule Time Selector */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center space-x-1">
-                <Clock className="w-3 h-3 text-slate-400" />
+              <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5 flex items-center space-x-1">
+                <Clock className="w-3 h-3 text-slate-400 dark:text-zinc-500" />
                 <span>Schedule For (Asia/Kolkata):</span>
               </label>
               <input
@@ -916,12 +916,12 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                 type="datetime-local"
                 value={scheduledDate}
                 onChange={(e) => setScheduledDate(e.target.value)}
-                className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800 bg-slate-50/50"
+                className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800 dark:text-zinc-100 bg-slate-50/50 dark:bg-zinc-900"
               />
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-2.5 pt-2 border-t border-slate-100">
+            <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-zinc-800">
               <button
                 id="btn-approve-and-schedule"
                 type="button"
@@ -938,7 +938,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                 type="button"
                 onClick={handleTriggerSendNow}
                 disabled={isSending}
-                className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                className="w-full py-2.5 px-4 bg-slate-900 dark:bg-zinc-900 hover:bg-slate-800 dark:hover:bg-zinc-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center space-x-2 transition-all cursor-pointer border border-transparent dark:border-zinc-700"
               >
                 <Send className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Send Immediately (Gmail API)</span>
@@ -950,7 +950,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                   type="button"
                   onClick={() => handleSaveApprovalWorkflow('READY_FOR_REVIEW')}
                   disabled={isSending}
-                  className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center"
+                  className="py-2 px-3 bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center border border-transparent dark:border-zinc-800"
                 >
                   Ready for Review
                 </button>
@@ -959,7 +959,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                   type="button"
                   onClick={() => handleSaveApprovalWorkflow('DRAFT')}
                   disabled={isSending}
-                  className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center"
+                  className="py-2 px-3 bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center border border-transparent dark:border-zinc-800"
                 >
                   Save Draft
                 </button>
@@ -968,8 +968,8 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
           </div>
 
           {/* Template Selection */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
-            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+          <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm space-y-3">
+            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
               Load Outreach Template
             </span>
             <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -978,12 +978,12 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                   key={tpl.id}
                   type="button"
                   onClick={() => handleSelectTemplate(tpl.id)}
-                  className="w-full text-left p-3 rounded-xl hover:bg-slate-50 border border-slate-200 hover:border-indigo-300 transition-colors group cursor-pointer"
+                  className="w-full text-left p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-zinc-700 transition-colors group cursor-pointer"
                 >
-                  <div className="text-xs font-bold text-slate-800 group-hover:text-indigo-600">
+                  <div className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                     {tpl.title || tpl.name}
                   </div>
-                  <div className="text-[10px] text-slate-400 truncate mt-0.5">{tpl.subject}</div>
+                  <div className="text-[10px] text-slate-400 dark:text-zinc-500 truncate mt-0.5">{tpl.subject}</div>
                 </button>
               ))}
             </div>
@@ -994,20 +994,20 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`bg-white rounded-2xl border transition-all p-6 shadow-sm space-y-4 ${
-              isDraggingOver ? 'border-indigo-500 bg-indigo-50/20 ring-2 ring-indigo-200' : 'border-slate-200'
+            className={`bg-white dark:bg-black rounded-2xl border transition-all p-6 shadow-sm space-y-4 ${
+              isDraggingOver ? 'border-indigo-500 bg-indigo-50/20 ring-2 ring-indigo-200' : 'border-slate-200 dark:border-zinc-850'
             }`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
                   Attach Documents
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                   Select verified PDF/DOC documents from your repository:
                 </p>
               </div>
-              <Paperclip className="w-4 h-4 text-slate-400" />
+              <Paperclip className="w-4 h-4 text-slate-400 dark:text-zinc-500" />
             </div>
 
             {/* Hidden File Input for .pdf, .doc, .docx */}
@@ -1043,17 +1043,17 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsDriveModalOpen(true)}
-                className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+                className="w-full py-2 px-3 bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-semibold shadow-2xs flex items-center justify-center space-x-1.5 transition-colors cursor-pointer border border-transparent dark:border-zinc-800"
               >
-                <HardDrive className="w-3.5 h-3.5 text-indigo-600" />
+                <HardDrive className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                 <span>Choose from Google Drive</span>
               </button>
             </div>
 
             {/* Format & Size Limits Notice */}
-            <div className="text-[11px] text-slate-400 flex items-center justify-between px-0.5">
+            <div className="text-[11px] text-slate-400 dark:text-zinc-500 flex items-center justify-between px-0.5">
               <span>Supported: PDF, DOC, DOCX</span>
-              <span className="font-medium text-slate-500">Max file size: 25 MB</span>
+              <span className="font-medium text-slate-500 dark:text-zinc-400">Max file size: 25 MB</span>
             </div>
 
             {/* Primary Resume 1-Click Quick Attach */}
@@ -1062,13 +1062,13 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                 <button
                   type="button"
                   onClick={handleAttachPrimaryResume}
-                  className="w-full p-2 bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200/80 rounded-xl text-xs font-semibold text-amber-800 flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
+                  className="w-full p-2 bg-amber-50/70 dark:bg-amber-950/40 hover:bg-amber-100/70 dark:hover:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/60 rounded-xl text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
                 >
                   <span className="flex items-center space-x-1.5 truncate pr-2">
-                    <Star className="w-3.5 h-3.5 text-amber-600 fill-amber-500 shrink-0" />
+                    <Star className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 fill-amber-500 shrink-0" />
                     <span className="truncate">Primary Resume: {defaultResume.name}</span>
                   </span>
-                  <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wider shrink-0">
+                  <span className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400 tracking-wider shrink-0">
                     + Quick Attach
                   </span>
                 </button>
@@ -1077,36 +1077,36 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
 
             {/* Feedback Notifications */}
             {uploadSuccess && (
-              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center space-x-2 animate-in fade-in">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center space-x-2 animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span className="flex-1 font-medium">{uploadSuccess}</span>
-                <button onClick={() => setUploadSuccess(null)} className="text-emerald-500 hover:text-emerald-700">
+                <button onClick={() => setUploadSuccess(null)} className="text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
 
             {uploadError && (
-              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center space-x-2 animate-in fade-in">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-300 flex items-center space-x-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                 <span className="flex-1 font-medium">{uploadError}</span>
-                <button onClick={() => setUploadError(null)} className="text-rose-500 hover:text-rose-700">
+                <button onClick={() => setUploadError(null)} className="text-rose-500 hover:text-rose-700 dark:hover:text-rose-300">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
 
             {/* Attached Documents List */}
-            <div className="space-y-2 pt-2 border-t border-slate-100">
+            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-700">
+                <span className="font-semibold text-slate-700 dark:text-zinc-300">
                   Selected Attachments ({selectedAttachments.length})
                 </span>
                 {files.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setShowRepoSelector(!showRepoSelector)}
-                    className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer"
+                    className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 cursor-pointer"
                   >
                     {showRepoSelector ? 'Hide Repository' : `Browse Repository (${files.length})`}
                   </button>
@@ -1114,7 +1114,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
               </div>
 
               {selectedAttachments.length === 0 ? (
-                <div className="py-4 px-3 rounded-xl border border-dashed border-slate-200 text-center bg-slate-50/50 text-slate-400 text-xs">
+                <div className="py-4 px-3 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800 text-center bg-slate-50/50 dark:bg-zinc-900/50 text-slate-400 dark:text-zinc-500 text-xs">
                   No documents attached
                 </div>
               ) : (
@@ -1133,23 +1133,23 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-white shadow-2xs hover:border-slate-300 transition-colors"
+                        className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs hover:border-slate-300 dark:hover:border-zinc-700 transition-colors"
                       >
                         <div className="flex items-center space-x-2.5 min-w-0 pr-2">
                           <div
                             className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[10px] shrink-0 ${
                               isPdf
-                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                : 'bg-blue-50 text-blue-700 border border-blue-200'
+                                ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
+                                : 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
                             }`}
                           >
                             {typeLabel}
                           </div>
                           <div className="min-w-0">
-                            <div className="text-xs font-semibold text-slate-800 truncate" title={att.name}>
+                            <div className="text-xs font-semibold text-slate-800 dark:text-zinc-200 truncate" title={att.name}>
                               {att.name}
                             </div>
-                            <div className="text-[10px] text-slate-400">
+                            <div className="text-[10px] text-slate-400 dark:text-zinc-500">
                               {typeLabel} &bull; {formattedSize}
                             </div>
                           </div>
@@ -1160,7 +1160,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                           onClick={() =>
                             setSelectedAttachments(selectedAttachments.filter((_, i) => i !== idx))
                           }
-                          className="text-xs font-semibold text-slate-400 hover:text-rose-600 px-2 py-1 rounded-md hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+                          className="text-xs font-semibold text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 px-2 py-1 rounded-md hover:bg-rose-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer shrink-0"
                         >
                           Remove
                         </button>
@@ -1172,8 +1172,8 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
 
               {/* Collapsible Repository Selector */}
               {showRepoSelector && files.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5 max-h-44 overflow-y-auto pr-1">
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-zinc-800 space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
                     Select from Verified Documents:
                   </span>
                   {files.map((file) => {
@@ -1183,8 +1183,8 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                         key={file.id}
                         className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition-colors ${
                           isSelected
-                            ? 'bg-indigo-50/70 border-indigo-300 text-indigo-900'
-                            : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                            ? 'bg-indigo-50/70 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200'
+                            : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300'
                         }`}
                       >
                         <div className="flex items-center space-x-2.5 truncate pr-2">
@@ -1216,7 +1216,7 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
                           />
                           <span className="truncate font-medium">{file.name}</span>
                         </div>
-                        <span className="text-[10px] text-slate-400 shrink-0 uppercase font-semibold">
+                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 shrink-0 uppercase font-semibold">
                           {file.category}
                         </span>
                       </label>
@@ -1240,19 +1240,19 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
 
       {/* Job Description Analyzer Modal */}
       {showJdModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-black rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 dark:border-zinc-850 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center space-x-2">
-                <Sparkles className="w-5 h-5 text-indigo-600" />
-                <h3 className="text-base font-bold text-slate-900">Analyze Job Description</h3>
+                <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Analyze Job Description</h3>
               </div>
-              <button onClick={() => setShowJdModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+              <button onClick={() => setShowJdModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 mb-3">
+            <p className="text-xs text-slate-600 dark:text-zinc-400 mb-3">
               Paste the target job description or requirements. Gemini will extract key skills and adapt
               your message angle accordingly.
             </p>
@@ -1262,14 +1262,14 @@ export const ComposeView: React.FC<ComposeViewProps> = ({
               value={jdInput}
               onChange={(e) => setJdInput(e.target.value)}
               placeholder="Paste job description text here..."
-              className="w-full text-xs p-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50"
+              className="w-full text-xs p-3.5 rounded-xl border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50 dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
             />
 
-            <div className="mt-5 pt-3 border-t border-slate-100 flex justify-end space-x-2">
+            <div className="mt-5 pt-3 border-t border-slate-100 dark:border-zinc-800 flex justify-end space-x-2">
               <button
                 type="button"
                 onClick={() => setShowJdModal(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-900 cursor-pointer transition-colors"
               >
                 Cancel
               </button>

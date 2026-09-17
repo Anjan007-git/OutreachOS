@@ -574,7 +574,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans overflow-hidden antialiased selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="flex h-screen w-full bg-slate-50 dark:bg-black text-slate-900 dark:text-zinc-100 font-sans overflow-hidden antialiased selection:bg-indigo-100 selection:text-indigo-900 transition-colors">
       {/* Floating Feedback Toast */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 animate-in fade-in slide-in-from-bottom-3 duration-200">
@@ -584,7 +584,7 @@ export default function App() {
                 ? 'bg-emerald-900 text-white border-emerald-700'
                 : toast.type === 'error'
                 ? 'bg-rose-900 text-white border-rose-700'
-                : 'bg-slate-900 text-white border-slate-700'
+                : 'bg-zinc-900 text-white border-zinc-750'
             }`}
           >
             {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
@@ -599,26 +599,26 @@ export default function App() {
       {isMobileNavOpen && (
         <div
           onClick={() => setIsMobileNavOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/40 dark:bg-black/80 backdrop-blur-xs md:hidden"
         />
       )}
 
       {/* Sleek Left Sidebar Navigation (Matching Sleek Interface theme) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-slate-200 bg-white flex flex-col transition-transform duration-200 ease-in-out md:static md:translate-x-0 shrink-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-slate-200 dark:border-zinc-850 bg-white dark:bg-black flex flex-col transition-transform duration-200 ease-in-out md:static md:translate-x-0 shrink-0 ${
           isMobileNavOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Brand Logo & Title */}
-        <div className="p-6 flex items-center justify-between border-b border-slate-100">
+        <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-zinc-850">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-base shadow-sm">
               O
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight text-slate-800 leading-tight">OutreachOS</span>
+              <span className="text-xl font-bold tracking-tight text-slate-800 dark:text-white leading-tight">OutreachOS</span>
               {gmailStatus.isAdmin && (
-                <span className="text-[9px] font-extrabold text-indigo-600 uppercase tracking-wider leading-none mt-0.5">
+                <span className="text-[9px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider leading-none mt-0.5">
                   ADMIN CONSOLE
                 </span>
               )}
@@ -626,7 +626,7 @@ export default function App() {
           </div>
           <button
             onClick={() => setIsMobileNavOpen(false)}
-            className="md:hidden p-1 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
+            className="md:hidden p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -647,11 +647,11 @@ export default function App() {
                 }}
                 className={`w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                   isActive
-                    ? 'bg-indigo-50 text-indigo-700 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-indigo-50 dark:bg-zinc-900 text-indigo-700 dark:text-indigo-300 font-semibold'
+                    : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
                 }`}
               >
-                <Icon className={`mr-3 w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                <Icon className={`mr-3 w-4 h-4 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-zinc-500'}`} />
                 <span>{item.label}</span>
 
                 {item.badge !== undefined && item.badge > 0 && (
@@ -660,8 +660,8 @@ export default function App() {
                       item.id === 'responses'
                         ? 'bg-rose-500 text-white'
                         : isActive
-                        ? 'bg-indigo-200 text-indigo-800'
-                        : 'bg-slate-100 text-slate-600'
+                        ? 'bg-indigo-200 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300'
+                        : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'
                     }`}
                   >
                     {item.badge}
@@ -673,18 +673,18 @@ export default function App() {
         </nav>
 
         {/* Sidebar Bottom: Gmail Status Card */}
-        <div className="p-4 mt-auto border-t border-slate-100">
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-            <div className="flex items-center justify-between mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <div className="p-4 mt-auto border-t border-slate-100 dark:border-zinc-850">
+          <div className="bg-slate-50 dark:bg-zinc-900/70 p-3 rounded-xl border border-slate-200/60 dark:border-zinc-800">
+            <div className="flex items-center justify-between mb-2 text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
               <span>Gmail Status</span>
               <div
                 className={`w-2 h-2 rounded-full ${
-                  gmailStatus.isConnected ? 'bg-emerald-500' : 'bg-slate-300'
+                  gmailStatus.isConnected ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-zinc-600'
                 }`}
               />
             </div>
             <div
-              className="text-sm font-medium text-slate-700 truncate"
+              className="text-sm font-medium text-slate-700 dark:text-zinc-200 truncate"
               title={gmailStatus.email || 'Not connected'}
             >
               {gmailStatus.email || 'No account connected'}
@@ -700,7 +700,7 @@ export default function App() {
               className={`mt-3 w-full py-2 text-xs border rounded-lg transition-colors font-semibold shadow-2xs cursor-pointer ${
                 gmailStatus.needsReauth
                   ? 'bg-amber-600 hover:bg-amber-500 text-white border-amber-600'
-                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                  : 'border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200'
               }`}
             >
               {gmailStatus.needsReauth
@@ -712,15 +712,15 @@ export default function App() {
 
             {/* OutreachOS Session info & Sign Out */}
             {session.user && (
-              <div className="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-zinc-800 flex items-center justify-between text-xs">
                 <div className="truncate mr-2 min-w-0">
-                  <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">OutreachOS User</div>
-                  <div className="font-semibold text-slate-700 truncate">{session.user.email}</div>
+                  <div className="text-[10px] text-slate-400 dark:text-zinc-500 font-semibold uppercase tracking-wider">OutreachOS User</div>
+                  <div className="font-semibold text-slate-700 dark:text-zinc-200 truncate">{session.user.email}</div>
                 </div>
                 <button
                   onClick={handleLogout}
                   title="Sign out of OutreachOS"
-                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors shrink-0"
+                  className="p-1.5 text-slate-400 dark:text-zinc-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg cursor-pointer transition-colors shrink-0"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -731,7 +731,7 @@ export default function App() {
       </aside>
 
       {/* Main Column */}
-      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-slate-50 dark:bg-black">
         {/* Sleek Top Header */}
         <Header
           gmailStatus={gmailStatus}

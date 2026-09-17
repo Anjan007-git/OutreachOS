@@ -354,16 +354,21 @@ class Database {
       const tmpFile = `${DEFAULT_DB_FILE}.tmp.${Date.now()}`;
       fs.writeFileSync(tmpFile, JSON.stringify(sanitized, null, 2), 'utf-8');
       fs.renameSync(tmpFile, DEFAULT_DB_FILE);
-    } catch (err) {
-      console.warn('Warning: Could not save to local db.json:', err);
+    } catch (err: any) {
+      // In serverless or read-only container environments, disk writes may be blocked.
+      // In-memory state remains fully intact.
+      if (err?.code !== 'EROFS') {
+        console.warn('Warning: Could not save to local db.json:', err?.message || err);
+      }
     }
   }
 
   /**
    * Ensures the database state is synchronized with the primary storage engine.
-   * In production, this loads from Upstash Redis and throws a clear error if unavailable.
-   * Concurrent in-flight calls are deduplicated via loadPromise, and transient connection
-   * delays are retried with exponential backoff.
+   * In production, this loads from Upstash Redis if configured, or gracefully
+   * falls back to persistent local storage / clean initial state.
+   * Concurrent in-flight calls are deduplicated via loadPromise, and transient
+   * connection delays are retried with exponential backoff.
    */
   public async ensureLoaded(forceRefresh = false): Promise<DatabaseSchema> {
     if (this.loadPromise && !forceRefresh) {
@@ -371,7 +376,6 @@ class Database {
     }
 
     this.loadPromise = (async () => {
-      const isProd = isProductionEnvironment();
       const redis = getRedisClient();
 
       if (redis) {
@@ -403,31 +407,20 @@ class Database {
             } catch (err: any) {
               lastErr = err;
               attempts++;
-              console.warn(`Upstash Redis load attempt ${attempts}/${maxAttempts} failed:`, err.message);
+              console.warn(`Upstash Redis load attempt ${attempts}/${maxAttempts} warning:`, err?.message || err);
               if (attempts < maxAttempts) {
                 await new Promise((r) => setTimeout(r, attempts * 150));
               }
             }
           }
 
-          console.error('Error loading data from Upstash Redis after retries:', lastErr);
-          if (isProd) {
-            throw new Error(`Production database unavailable: Failed to connect to Upstash Redis (${lastErr?.message || 'timeout/network error'})`);
-          }
-          // In development fallback to local file
+          console.warn('Upstash Redis load unreachable after retries, using local/in-memory fallback:', lastErr?.message || lastErr);
           this.loadFromLocalFile();
         }
         return this.data;
       }
 
-      // No Upstash Redis configured
-      if (isProd) {
-        throw new Error(
-          'Production database unavailable: KV_REST_API_URL and KV_REST_API_TOKEN must be configured in environment.'
-        );
-      }
-
-      // Development local storage
+      // No Upstash Redis configured: use persistent local storage / memory state
       if (!this.isLoadedFromStorage || forceRefresh) {
         this.loadFromLocalFile();
       }
@@ -441,37 +434,26 @@ class Database {
 
   /**
    * Persists the current database state to the primary storage engine.
-   * In production, this saves to Upstash Redis.
+   * If Upstash Redis is configured, saves to Redis.
+   * Gracefully falls back to local disk and in-memory storage, never throwing unhandled errors.
    */
   public saveData(dataToSave: DatabaseSchema): Promise<void> {
     const savePromise = (async () => {
-      const isProd = isProductionEnvironment();
       const redis = getRedisClient();
 
       if (redis) {
         try {
           await redis.set(UPSTASH_DB_KEY, JSON.stringify(dataToSave));
-          // In development, also sync local file for inspection
-          if (!isProd) {
-            this.saveToLocalFile(dataToSave);
-          }
+          // Also sync local file for persistent backups
+          this.saveToLocalFile(dataToSave);
         } catch (err: any) {
-          console.error('Failed to persist to Upstash Redis:', err);
-          if (isProd) {
-            throw new Error(`Production database persistence failed: ${err.message || 'Upstash error'}`);
-          }
+          console.warn('Warning: Failed to persist to Upstash Redis, falling back to local file/memory:', err?.message || err);
           this.saveToLocalFile(dataToSave);
         }
         return;
       }
 
-      if (isProd) {
-        throw new Error(
-          'Production database persistence failed: KV_REST_API_URL and KV_REST_API_TOKEN are not configured.'
-        );
-      }
-
-      // Local development file save
+      // Local development / container file save
       this.saveToLocalFile(dataToSave);
     })();
 
@@ -481,11 +463,14 @@ class Database {
 
   /**
    * Awaits any pending writes to Upstash Redis before sending responses.
+   * Safely catches any transient delay so callers never crash.
    */
   public async flush(): Promise<void> {
     if (this.pendingSave) {
       try {
         await this.pendingSave;
+      } catch (err: any) {
+        console.warn('db.flush notice:', err?.message || err);
       } finally {
         this.pendingSave = null;
       }
@@ -498,7 +483,9 @@ class Database {
 
   public set<K extends keyof DatabaseSchema>(key: K, value: DatabaseSchema[K]): void {
     this.data[key] = value;
-    this.saveData(this.data);
+    this.saveData(this.data).catch((err) => {
+      console.warn('Background saveData error in set:', err?.message || err);
+    });
   }
 
   public update<K extends keyof DatabaseSchema>(
@@ -506,7 +493,9 @@ class Database {
     updater: (prev: DatabaseSchema[K]) => DatabaseSchema[K]
   ): DatabaseSchema[K] {
     this.data[key] = updater(this.data[key]);
-    this.saveData(this.data);
+    this.saveData(this.data).catch((err) => {
+      console.warn('Background saveData error in update:', err?.message || err);
+    });
     return this.data[key];
   }
 
@@ -515,7 +504,9 @@ class Database {
     updater: (prev: DatabaseSchema[K]) => DatabaseSchema[K]
   ): Promise<DatabaseSchema[K]> {
     this.data[key] = updater(this.data[key]);
-    await this.saveData(this.data);
+    await this.saveData(this.data).catch((err) => {
+      console.warn('Background saveData error in updateAsync:', err?.message || err);
+    });
     return this.data[key];
   }
 

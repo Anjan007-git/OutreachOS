@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { Sparkles, Mail, Clock, ShieldCheck, MessageSquareText } from 'lucide-react';
 
 export const TrustStrip: React.FC = () => {
@@ -31,28 +32,33 @@ export const TrustStrip: React.FC = () => {
   ];
 
   return (
-    <section className="border-y border-slate-200/80 bg-slate-50/70 py-6 sm:py-8">
+    <section className="border-y border-slate-200/80 dark:border-zinc-850 bg-slate-50/70 dark:bg-black py-6 sm:py-8 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
           {items.map((item, index) => {
             const Icon = item.icon;
             return (
-              <div
+              <motion.div
                 key={index}
-                className="flex items-center gap-3 p-2.5 rounded-xl bg-white/70 border border-slate-200/60 shadow-2xs hover:bg-white transition-colors"
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.2 }}
+                transition={{ duration: 0.4, delay: index * 0.08 }}
+                whileHover={{ y: -2 }}
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-white/70 dark:bg-zinc-950 border border-slate-200/60 dark:border-zinc-850 shadow-2xs hover:bg-white dark:hover:bg-zinc-900 transition-all"
               >
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/80">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-zinc-900 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100/80 dark:border-zinc-800">
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-900 truncate">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
                     {item.label}
                   </div>
-                  <div className="text-[11px] text-slate-500 truncate">
+                  <div className="text-[11px] text-slate-500 dark:text-zinc-400 truncate">
                     {item.sublabel}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

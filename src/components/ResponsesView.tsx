@@ -31,47 +31,47 @@ const classificationBadgeConfig: Record<
 > = {
   'Interview Request': {
     label: 'Interview Request',
-    color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    color: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
     icon: Calendar,
   },
   'Meeting Request': {
     label: 'Meeting Request',
-    color: 'bg-blue-50 text-blue-700 border-blue-200',
+    color: 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
     icon: Calendar,
   },
   Positive: {
     label: 'Positive / Interested',
-    color: 'bg-teal-50 text-teal-700 border-teal-200',
+    color: 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800',
     icon: CheckCircle2,
   },
   'Request for Information': {
     label: 'Request for Info',
-    color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    color: 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
     icon: HelpCircle,
   },
   'Application Confirmation': {
     label: 'Application Received',
-    color: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    color: 'bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800',
     icon: CheckCircle2,
   },
   Rejection: {
     label: 'Rejection',
-    color: 'bg-slate-100 text-slate-600 border-slate-200',
+    color: 'bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800',
     icon: XCircle,
   },
   'Follow-up Required': {
     label: 'Follow-up Required',
-    color: 'bg-amber-50 text-amber-700 border-amber-200',
+    color: 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
     icon: Clock,
   },
   'Automated Reply': {
     label: 'Out of Office / Auto',
-    color: 'bg-amber-50 text-amber-700 border-amber-200',
+    color: 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
     icon: Clock,
   },
   Unclear: {
     label: 'Neutral / Review',
-    color: 'bg-slate-50 text-slate-600 border-slate-200',
+    color: 'bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800',
     icon: HelpCircle,
   },
 };
@@ -111,8 +111,8 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Incoming Responses & Reply Monitor</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Incoming Responses & Reply Monitor</h1>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
             Real-time Gmail inbox matching, automated Gemini classification, and follow-up halting.
           </p>
         </div>
@@ -121,7 +121,7 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
           <select
             value={filterClass}
             onChange={(e) => setFilterClass(e.target.value)}
-            className="text-xs py-2 px-3.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-2xs"
+            className="text-xs py-2 px-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 font-medium text-slate-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-2xs"
           >
             <option value="ALL">All Categories ({responses.length})</option>
             <option value="Interview Request">Interview Requests</option>
@@ -147,10 +147,10 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
       {/* Response Cards / Table */}
       <div className="grid grid-cols-1 gap-4">
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 shadow-sm">
-            <MessageSquareReply className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-            <p className="font-semibold text-slate-700">No incoming replies yet</p>
-            <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+          <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-12 text-center text-slate-400 dark:text-zinc-500 shadow-sm">
+            <MessageSquareReply className="w-8 h-8 mx-auto text-slate-300 dark:text-zinc-600 mb-2" />
+            <p className="font-semibold text-slate-700 dark:text-zinc-300">No incoming replies yet</p>
+            <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1 max-w-md mx-auto">
               Replies from recruiters and university contacts to your outreach will be detected and classified here.
             </p>
           </div>
@@ -164,26 +164,26 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
             return (
               <div
                 key={r.id}
-                className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-slate-300 transition-all"
+                className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 p-6 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all"
               >
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-3">
                   <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-slate-700 text-xs border border-slate-200">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-zinc-900 flex items-center justify-center font-bold text-slate-700 dark:text-zinc-300 text-xs border border-slate-200 dark:border-zinc-800">
                       {(r.contactName || 'Recipient').slice(0, 2).toUpperCase()}
                     </div>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className="font-bold text-slate-900 text-sm">
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">
                           {r.contactName || r.contactEmail}
                         </span>
-                        <span className="text-slate-400 font-mono text-xs">&lt;{r.contactEmail}&gt;</span>
+                        <span className="text-slate-400 dark:text-zinc-500 font-mono text-xs">&lt;{r.contactEmail}&gt;</span>
                       </div>
-                      <div className="text-xs text-slate-500 flex items-center space-x-2 mt-0.5">
+                      <div className="text-xs text-slate-500 dark:text-zinc-400 flex items-center space-x-2 mt-0.5">
                         <span>{r.organization || 'Target Organization'}</span>
                         {r.campaignName && (
                           <>
                             <span>&bull;</span>
-                            <span className="text-indigo-600 font-medium">Campaign: {r.campaignName}</span>
+                            <span className="text-indigo-600 dark:text-indigo-400 font-medium">Campaign: {r.campaignName}</span>
                           </>
                         )}
                       </div>
@@ -208,7 +208,7 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
                           e.target.value as 'PENDING' | 'DRAFTED' | 'SENT' | 'IGNORED'
                         )
                       }
-                      className="text-xs py-1.5 px-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium cursor-pointer"
+                      className="text-xs py-1.5 px-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 font-medium cursor-pointer"
                     >
                       <option value="PENDING">Pending Reply</option>
                       <option value="DRAFTED">Drafted</option>
@@ -220,16 +220,16 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
 
                 {/* Subject & Snippet */}
                 <div className="space-y-1.5 mb-3.5">
-                  <div className="font-semibold text-slate-800 text-xs">{r.subject}</div>
-                  <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 font-sans">
+                  <div className="font-semibold text-slate-800 dark:text-zinc-100 text-xs">{r.subject}</div>
+                  <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed line-clamp-3 bg-slate-50/80 dark:bg-zinc-900/60 p-3.5 rounded-xl border border-slate-100 dark:border-zinc-850 font-sans">
                     {r.snippet || r.bodyText}
                   </p>
                 </div>
 
                 {/* Classification Explanation & Matched Outreach */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100 gap-2">
-                  <div className="flex items-center space-x-1.5 text-slate-500 text-[11px]">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 dark:text-zinc-400 pt-3 border-t border-slate-100 dark:border-zinc-850 gap-2">
+                  <div className="flex items-center space-x-1.5 text-slate-500 dark:text-zinc-400 text-[11px]">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
                     <span>AI Reasoning: {r.classificationReason || 'Analyzed intent from reply body.'}</span>
                   </div>
 
@@ -239,7 +239,7 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
                         setSelectedResponse(r);
                         setGeneratedDraft(null);
                       }}
-                      className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                      className="px-3.5 py-1.5 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5" />
                       <span>Inspect Thread</span>
@@ -262,18 +262,18 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
 
       {/* Response & AI Draft Inspection Modal */}
       {selectedResponse && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-black rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-zinc-850 max-h-[90vh] overflow-y-auto space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-zinc-850">
               <div>
-                <h3 className="text-base font-bold text-slate-900">Email Response Inspector</h3>
-                <span className="text-xs text-slate-500">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Email Response Inspector</h3>
+                <span className="text-xs text-slate-500 dark:text-zinc-400">
                   Received from {selectedResponse.contactName} &bull; {selectedResponse.contactEmail}
                 </span>
               </div>
               <button
                 onClick={() => setSelectedResponse(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                className="text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -281,11 +281,11 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
 
             {/* Matched Original Outreach Snippet */}
             {selectedResponse.originalOutreachSnippet && (
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
-                <span className="font-bold text-slate-700 block mb-1">
+              <div className="bg-slate-50 dark:bg-zinc-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs">
+                <span className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                   Original Sent Outreach (Matched Thread):
                 </span>
-                <p className="text-slate-600 italic line-clamp-3">
+                <p className="text-slate-600 dark:text-zinc-400 italic line-clamp-3">
                   "{selectedResponse.originalOutreachSnippet}..."
                 </p>
               </div>
@@ -293,19 +293,19 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
 
             {/* Incoming Reply Full Text */}
             <div className="space-y-1">
-              <span className="text-xs font-bold text-slate-800">
+              <span className="text-xs font-bold text-slate-800 dark:text-zinc-100">
                 Incoming Reply: "{selectedResponse.subject}"
               </span>
-              <div className="p-4 bg-white border border-slate-200 rounded-xl whitespace-pre-wrap font-sans text-xs text-slate-800 leading-relaxed max-h-56 overflow-y-auto">
+              <div className="p-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl whitespace-pre-wrap font-sans text-xs text-slate-800 dark:text-zinc-100 leading-relaxed max-h-56 overflow-y-auto">
                 {selectedResponse.bodyText || selectedResponse.snippet}
               </div>
             </div>
 
             {/* AI Assistant Generate Draft */}
-            <div className="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100 space-y-3">
+            <div className="p-4 bg-indigo-50/60 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-900/60 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-1.5 text-xs font-bold text-indigo-950">
-                  <Sparkles className="w-4 h-4 text-indigo-600" />
+                <div className="flex items-center space-x-1.5 text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                  <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   <span>Gemini Suggested Response</span>
                 </div>
                 <button
@@ -321,7 +321,7 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
 
               {generatedDraft && (
                 <div className="space-y-2">
-                  <div className="p-3.5 bg-white border border-indigo-200 rounded-xl text-xs font-sans text-slate-800 whitespace-pre-wrap">
+                  <div className="p-3.5 bg-white dark:bg-black border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-sans text-slate-800 dark:text-zinc-100 whitespace-pre-wrap">
                     {generatedDraft}
                   </div>
                   <button
@@ -339,10 +339,10 @@ export const ResponsesView: React.FC<ResponsesViewProps> = ({
               )}
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
+            <div className="pt-3 border-t border-slate-100 dark:border-zinc-850 flex justify-end">
               <button
                 onClick={() => setSelectedResponse(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer"
+                className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Close
               </button>

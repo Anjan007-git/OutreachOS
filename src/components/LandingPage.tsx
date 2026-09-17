@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'motion/react';
 import {
   Navbar,
   Hero,
@@ -14,6 +13,8 @@ import {
   UseCasesSection,
   FinalCTA,
   Footer,
+  AwesomeScrollSection,
+  ScrollProgressBar,
 } from './landing';
 
 interface LandingPageProps {
@@ -21,21 +22,6 @@ interface LandingPageProps {
   onNavigateLogin: () => void;
   onNavigateDashboard: () => void;
 }
-
-const FadeUpSection: React.FC<{ children: React.ReactNode; className?: string }> = ({
-  children,
-  className = '',
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 24 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.08, margin: '0px 0px -30px 0px' }}
-    transition={{ duration: 0.55, ease: [0.21, 0.47, 0.32, 0.98] }}
-    className={className}
-  >
-    {children}
-  </motion.div>
-);
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   isAuthenticated,
@@ -58,7 +44,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-white dark:bg-black text-slate-900 dark:text-zinc-100 font-sans selection:bg-indigo-100 dark:selection:bg-indigo-950 selection:text-indigo-900 dark:selection:text-indigo-200 transition-colors">
+      {/* Dynamic Scroll Progress Bar */}
+      <ScrollProgressBar />
+
       {/* 1. Navbar */}
       <Navbar
         isAuthenticated={isAuthenticated}
@@ -66,7 +55,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         onNavigateDashboard={onNavigateDashboard}
       />
 
-      <main>
+      <main className="overflow-x-hidden">
         {/* 2. Hero Section */}
         <Hero
           isAuthenticated={isAuthenticated}
@@ -75,58 +64,58 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         />
 
         {/* 3. Hero Product Visual (Realistic OutreachOS Workspace) */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="scale" glowColor="indigo" delay={0.05}>
           <HeroProductVisual />
-        </FadeUpSection>
+        </AwesomeScrollSection>
 
         {/* 4. Trust / Value Strip */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="up" glowColor="cyan" delay={0.1}>
           <TrustStrip />
-        </FadeUpSection>
+        </AwesomeScrollSection>
 
         {/* 5. Editorial Problem & Solution Comparison */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="up" glowColor="indigo" delay={0.1}>
           <ProblemSolution />
-        </FadeUpSection>
+        </AwesomeScrollSection>
 
         {/* 6. System Capabilities Bento Grid */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="scale" glowColor="indigo" delay={0.1}>
           <FeatureBento />
-        </FadeUpSection>
+        </AwesomeScrollSection>
 
         {/* 7. OutreachOS AI Editorial Section */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="up" glowColor="indigo" delay={0.1}>
           <AIAssistantSection onExploreAI={handleGetStarted} />
-        </FadeUpSection>
+        </AwesomeScrollSection>
 
         {/* 8. How It Works Timeline */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="scale" glowColor="cyan" delay={0.1}>
           <WorkflowTimeline />
-        </FadeUpSection>
+        </AwesomeScrollSection>
 
         {/* 9. Context & Grounding Section */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="up" glowColor="emerald" delay={0.1}>
           <ContextPersonalization />
-        </FadeUpSection>
+        </AwesomeScrollSection>
 
         {/* 10. Security & Privacy Architecture */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="scale" glowColor="cyan" delay={0.1}>
           <SecuritySection />
-        </FadeUpSection>
+        </AwesomeScrollSection>
 
         {/* 11. Tailored Use Cases */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="up" glowColor="indigo" delay={0.1}>
           <UseCasesSection onSelectUseCase={handleGetStarted} />
-        </FadeUpSection>
+        </AwesomeScrollSection>
 
         {/* 12. Closing High-Impact CTA */}
-        <FadeUpSection>
+        <AwesomeScrollSection direction="scale" glowColor="indigo" delay={0.1}>
           <FinalCTA
             isAuthenticated={isAuthenticated}
             onGetStarted={handleGetStarted}
             onSignIn={onNavigateLogin}
           />
-        </FadeUpSection>
+        </AwesomeScrollSection>
       </main>
 
       {/* 13. Multi-Column Comprehensive Footer */}

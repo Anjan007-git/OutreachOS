@@ -12,7 +12,6 @@ export const Footer: React.FC<FooterProps> = ({
   onNavigateLogin,
   onNavigateDashboard,
 }) => {
-  // Configurable URLs (generic/placeholder until officially configured)
   const githubUrl = 'https://github.com/Anjan007-git';
   const linkedinUrl = 'https://linkedin.com/in/anjanprajapati';
   const contactEmail = 'anjantrends@gmail.com';
@@ -26,7 +25,7 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   return (
-    <footer className="bg-white border-t border-slate-200 text-slate-600 text-xs">
+    <footer className="bg-white dark:bg-black border-t border-slate-200 dark:border-zinc-850 text-slate-600 dark:text-zinc-400 text-xs transition-colors">
       {/* Top Multi-Column Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="grid grid-cols-2 md:grid-cols-12 gap-8 sm:gap-10">
@@ -36,16 +35,16 @@ export const Footer: React.FC<FooterProps> = ({
               <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-2xs">
                 O
               </div>
-              <span className="text-lg font-bold tracking-tight text-slate-900">
-                Outreach<span className="text-indigo-600">OS</span>
+              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+                Outreach<span className="text-indigo-600 dark:text-indigo-400">OS</span>
               </span>
             </div>
 
-            <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm leading-relaxed">
               AI-powered professional outreach, built around Gmail, intelligent personalization, scheduling, and secure document workflows.
             </p>
 
-            <div className="text-[11px] font-semibold text-slate-400">
+            <div className="text-[11px] font-semibold text-slate-400 dark:text-zinc-500">
               Built for thoughtful outreach.
             </div>
 
@@ -57,7 +56,7 @@ export const Footer: React.FC<FooterProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="GitHub Repository"
-                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <Github className="w-4 h-4" />
                 </a>
@@ -68,7 +67,7 @@ export const Footer: React.FC<FooterProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn Profile"
-                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <Linkedin className="w-4 h-4" />
                 </a>
@@ -77,7 +76,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href={`mailto:${contactEmail}`}
                   aria-label="Contact via Email"
-                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <Mail className="w-4 h-4" />
                 </a>
@@ -87,7 +86,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Product Links (Span 2) */}
           <div className="col-span-1 md:col-span-2 space-y-3">
-            <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            <div className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Product
             </div>
             <ul className="space-y-2">
@@ -95,7 +94,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href="#features"
                   onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   AI Personalization
                 </a>
@@ -104,7 +103,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href="#features"
                   onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   Gmail Sending
                 </a>
@@ -113,7 +112,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href="#features"
                   onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   Smart Scheduling
                 </a>
@@ -122,7 +121,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href="#features"
                   onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   Campaigns
                 </a>
@@ -131,7 +130,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href="#features"
                   onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   Follow-Ups
                 </a>
@@ -140,7 +139,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href="#features"
                   onClick={(e) => scrollToSection(e, 'features')}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   Documents
                 </a>
@@ -150,7 +149,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Resources (Span 2) */}
           <div className="col-span-1 md:col-span-2 space-y-3">
-            <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            <div className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Resources
             </div>
             <ul className="space-y-2">
@@ -158,7 +157,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href="#how-it-works"
                   onClick={(e) => scrollToSection(e, 'how-it-works')}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   How It Works
                 </a>
@@ -167,7 +166,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href="#security"
                   onClick={(e) => scrollToSection(e, 'security')}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   Security Architecture
                 </a>
@@ -176,18 +175,17 @@ export const Footer: React.FC<FooterProps> = ({
                 <a
                   href="#use-cases"
                   onClick={(e) => scrollToSection(e, 'use-cases')}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   Use Cases
                 </a>
               </li>
               <li>
                 <a
-                  href="#ai-assistant"
-                  onClick={(e) => scrollToSection(e, 'ai-assistant')}
-                  className="hover:text-indigo-600 transition-colors"
+                  href={`mailto:${contactEmail}`}
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
-                  OutreachOS AI
+                  Technical Support
                 </a>
               </li>
             </ul>
@@ -195,23 +193,23 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Company (Span 2) */}
           <div className="col-span-1 md:col-span-2 space-y-3">
-            <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            <div className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Company
             </div>
             <ul className="space-y-2">
               <li>
-                <span className="text-slate-400">About OutreachOS</span>
+                <span className="text-slate-400 dark:text-zinc-500">About OutreachOS</span>
               </li>
               <li>
-                <span className="text-slate-400">Privacy Policy</span>
+                <span className="text-slate-400 dark:text-zinc-500">Privacy Policy</span>
               </li>
               <li>
-                <span className="text-slate-400">Terms of Service</span>
+                <span className="text-slate-400 dark:text-zinc-500">Terms of Service</span>
               </li>
               <li>
                 <a
                   href={`mailto:${contactEmail}`}
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 >
                   Support
                 </a>
@@ -221,7 +219,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Account / Action Column (Span 2) */}
           <div className="col-span-1 md:col-span-2 space-y-3">
-            <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            <div className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Account
             </div>
             <ul className="space-y-2">
@@ -230,7 +228,7 @@ export const Footer: React.FC<FooterProps> = ({
                   <li>
                     <button
                       onClick={onNavigateDashboard}
-                      className="hover:text-indigo-600 transition-colors cursor-pointer text-left font-semibold text-indigo-600"
+                      className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-left font-semibold text-indigo-600 dark:text-indigo-400"
                     >
                       Open Dashboard
                     </button>
@@ -238,7 +236,7 @@ export const Footer: React.FC<FooterProps> = ({
                   <li>
                     <button
                       onClick={onNavigateDashboard}
-                      className="hover:text-indigo-600 transition-colors cursor-pointer text-left text-slate-500"
+                      className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-left text-slate-500 dark:text-zinc-400"
                     >
                       Workspace Settings
                     </button>
@@ -249,7 +247,7 @@ export const Footer: React.FC<FooterProps> = ({
                   <li>
                     <button
                       onClick={onNavigateLogin}
-                      className="hover:text-indigo-600 transition-colors cursor-pointer text-left"
+                      className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-left"
                     >
                       Sign In
                     </button>
@@ -257,7 +255,7 @@ export const Footer: React.FC<FooterProps> = ({
                   <li>
                     <button
                       onClick={onNavigateLogin}
-                      className="hover:text-indigo-600 transition-colors cursor-pointer text-left text-indigo-600 font-semibold"
+                      className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-left text-indigo-600 dark:text-indigo-400 font-semibold"
                     >
                       Get Started Free
                     </button>
@@ -270,14 +268,14 @@ export const Footer: React.FC<FooterProps> = ({
       </div>
 
       {/* Footer Bottom Bar */}
-      <div className="border-t border-slate-200/80 bg-slate-50/80 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-xs">
+      <div className="border-t border-slate-200/80 dark:border-zinc-850 bg-slate-50/80 dark:bg-black py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 dark:text-zinc-400 text-xs">
           <div>
             © 2026 OutreachOS. All rights reserved.
           </div>
 
           {/* Required Exact Developer & Powered By Credit */}
-          <div className="text-slate-600 font-medium flex items-center gap-1.5">
+          <div className="text-slate-600 dark:text-zinc-300 font-medium flex items-center gap-1.5">
             <span>Developed by Anjan • Powered by TRIFECTA TRENDS</span>
           </div>
         </div>

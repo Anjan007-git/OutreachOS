@@ -8,6 +8,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { NotificationItem, UserRole } from '../types';
+import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   gmailStatus: { isConnected: boolean; needsReauth?: boolean; email: string | null; displayName: string | null; lastSyncTime: string | null };
@@ -63,23 +64,23 @@ export const Header: React.FC<HeaderProps> = ({
   const isLimitReached = !isAdmin && typeof dailyLimit === 'number' && sentToday >= dailyLimit;
 
   return (
-    <header className="h-16 border-b border-slate-200 bg-white px-6 md:px-8 flex items-center justify-between shrink-0 sticky top-0 z-30">
+    <header className="h-16 border-b border-slate-200 dark:border-zinc-850 bg-white dark:bg-black px-6 md:px-8 flex items-center justify-between shrink-0 sticky top-0 z-30 transition-colors">
       {/* Left: Mobile Toggle & Page Title */}
       <div className="flex items-center gap-3">
         {onToggleMobileNav && (
           <button
             onClick={onToggleMobileNav}
-            className="md:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+            className="md:hidden p-2 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-850 rounded-lg transition-colors cursor-pointer"
             title="Toggle Menu"
           >
             <Menu className="w-5 h-5" />
           </button>
         )}
         <div className="flex items-center gap-2.5">
-          <h1 className="text-lg font-semibold text-slate-800 tracking-tight">{currentPageTitle}</h1>
+          <h1 className="text-lg font-semibold text-slate-800 dark:text-zinc-100 tracking-tight">{currentPageTitle}</h1>
           {isAdmin && (
             <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-extrabold uppercase tracking-wider"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 text-indigo-700 dark:text-indigo-300 text-[10px] font-extrabold uppercase tracking-wider"
               title="Administrator Account: Unlimited system sending and full data management access"
             >
               <Shield className="w-2.5 h-2.5" />
@@ -89,16 +90,19 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Right: Actions, Counter, Profile */}
-      <div className="flex items-center gap-3 md:gap-4">
+      {/* Right: Actions, Counter, Theme, Profile */}
+      <div className="flex items-center gap-2.5 md:gap-3.5">
+        {/* Theme Toggle Switch */}
+        <ThemeToggle />
+
         {/* Daily Sending Limit Pill */}
         <div
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
             isAdmin
-              ? 'bg-indigo-50/70 border-indigo-200/80 text-indigo-900'
+              ? 'bg-indigo-50/70 dark:bg-zinc-900 border-indigo-200/80 dark:border-zinc-800 text-indigo-900 dark:text-zinc-200'
               : isLimitReached
-              ? 'bg-rose-50 border-rose-200 text-rose-700'
-              : 'bg-slate-100 text-slate-600 border-slate-200/60'
+              ? 'bg-rose-50 dark:bg-zinc-900 border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400'
+              : 'bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-300 border-slate-200/60 dark:border-zinc-800'
           }`}
           title={isAdmin ? 'Admin account: Unlimited outreach limit' : 'Daily sending limit counter'}
         >
@@ -110,15 +114,15 @@ export const Header: React.FC<HeaderProps> = ({
           <span>
             {isAdmin ? (
               <>
-                Sending Limit: <strong className="text-indigo-700 font-bold">Unlimited (Admin)</strong>
+                Sending: <strong className="text-indigo-700 dark:text-indigo-400 font-bold">Unlimited</strong>
               </>
             ) : isLimitReached ? (
               <>
-                <strong className="font-bold">Daily Limit Reached ({sentToday}/{dailyLimit})</strong>
+                <strong className="font-bold">Limit Reached ({sentToday}/{dailyLimit})</strong>
               </>
             ) : (
               <>
-                Sending Limit: <strong className="text-slate-900 font-semibold">{sentToday}/{dailyLimit}</strong> Daily
+                Limit: <strong className="text-slate-900 dark:text-zinc-100 font-semibold">{sentToday}/{dailyLimit}</strong>
               </>
             )}
           </span>
@@ -142,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
             id="btn-sync-replies-header"
             onClick={onSyncReplies}
             disabled={isSyncing}
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors relative cursor-pointer"
+            className="p-2 text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-850 rounded-lg transition-colors relative cursor-pointer"
             title="Sync Gmail replies & thread updates"
           >
             <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-indigo-600' : ''}`} />
@@ -159,39 +163,39 @@ export const Header: React.FC<HeaderProps> = ({
                 onMarkNotificationsRead();
               }
             }}
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors relative cursor-pointer"
+            className="p-2 text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-850 rounded-lg transition-colors relative cursor-pointer"
             title="Notifications"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-black" />
             )}
           </button>
 
           {showNotifs && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-black rounded-2xl shadow-xl border border-slate-200 dark:border-zinc-850 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-zinc-850 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200 uppercase tracking-wider">
                   Activity Notifications
                 </span>
                 {unreadCount > 0 && (
                   <button
                     onClick={onMarkNotificationsRead}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
+                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium cursor-pointer"
                   >
                     Mark all read
                   </button>
                 )}
               </div>
-              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-850">
                 {safeNotifications.length === 0 ? (
-                  <div className="p-5 text-center text-xs text-slate-400">No new notifications</div>
+                  <div className="p-5 text-center text-xs text-slate-400 dark:text-zinc-500">No new notifications</div>
                 ) : (
                   safeNotifications.slice(0, 10).map((n) => (
-                    <div key={n.id} className={`p-3 text-xs ${n.read ? 'bg-white' : 'bg-indigo-50/50'}`}>
-                      <div className="font-semibold text-slate-800 mb-0.5">{n.title}</div>
-                      <div className="text-slate-600 leading-relaxed">{n.message}</div>
-                      <div className="text-slate-400 mt-1 text-[10px]">
+                    <div key={n.id} className={`p-3 text-xs ${n.read ? 'bg-white dark:bg-black' : 'bg-indigo-50/50 dark:bg-zinc-900/60'}`}>
+                      <div className="font-semibold text-slate-800 dark:text-zinc-200 mb-0.5">{n.title}</div>
+                      <div className="text-slate-600 dark:text-zinc-400 leading-relaxed">{n.message}</div>
+                      <div className="text-slate-400 dark:text-zinc-500 mt-1 text-[10px]">
                         {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
@@ -214,7 +218,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onConnectGmail();
               }
             }}
-            className="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 border border-slate-300 text-slate-700 font-bold text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs relative"
+            className="w-8 h-8 rounded-full bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 font-bold text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs relative"
             title={
               isAdmin
                 ? `Admin: ${gmailStatus.email || 'anjanp93722@gmail.com'}`
@@ -226,8 +230,8 @@ export const Header: React.FC<HeaderProps> = ({
             {userInitial}
           </button>
           <span
-            className={`w-2.5 h-2.5 rounded-full ring-2 ring-white absolute -bottom-0.5 -right-0.5 pointer-events-none ${
-              gmailStatus.isConnected ? 'bg-emerald-500' : 'bg-slate-300'
+            className={`w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-black absolute -bottom-0.5 -right-0.5 pointer-events-none ${
+              gmailStatus.isConnected ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-zinc-600'
             }`}
             title={gmailStatus.isConnected ? 'Gmail connected' : 'Gmail not connected'}
           />
@@ -236,36 +240,36 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Gmail Account Modal */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-black rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-zinc-850">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-800">Gmail Integration Active</h3>
-                <p className="text-xs text-slate-500">Connected via Google Workspace OAuth</p>
+                <h3 className="text-base font-bold text-slate-800 dark:text-white">Gmail Integration Active</h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">Connected via Google Workspace OAuth</p>
               </div>
             </div>
 
-            <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs mb-5">
+            <div className="space-y-3 bg-slate-50 dark:bg-zinc-900/60 p-4 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs mb-5">
               {userSession && (
-                <div className="flex justify-between pb-2 border-b border-slate-200">
-                  <span className="text-slate-500">OutreachOS Session:</span>
-                  <span className="font-semibold text-indigo-700">{userSession.email}</span>
+                <div className="flex justify-between pb-2 border-b border-slate-200 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">OutreachOS Session:</span>
+                  <span className="font-semibold text-indigo-700 dark:text-indigo-400">{userSession.email}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-slate-500">Gmail Sending Account:</span>
-                <span className="font-semibold text-slate-800">{gmailStatus.email || 'Not connected'}</span>
+                <span className="text-slate-500 dark:text-zinc-400">Gmail Sending Account:</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">{gmailStatus.email || 'Not connected'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Active Permissions:</span>
-                <span className="font-semibold text-slate-800">Send, Read, Drive, Sheets</span>
+                <span className="text-slate-500 dark:text-zinc-400">Active Permissions:</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">Send, Read, Drive, Sheets</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Last Synced:</span>
-                <span className="text-slate-700">
+                <span className="text-slate-500 dark:text-zinc-400">Last Synced:</span>
+                <span className="text-slate-700 dark:text-zinc-300">
                   {gmailStatus.lastSyncTime
                     ? new Date(gmailStatus.lastSyncTime).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }) + ' IST'
                     : 'Just now'}
@@ -280,7 +284,7 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowAuthModal(false);
                     onLogout();
                   }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-850 border border-slate-200 dark:border-zinc-800 cursor-pointer"
                 >
                   Sign Out of App
                 </button>
@@ -288,7 +292,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex space-x-2">
                 <button
                   onClick={() => setShowAuthModal(false)}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-850 border border-slate-200 dark:border-zinc-800 cursor-pointer"
                 >
                   Close
                 </button>
@@ -298,7 +302,7 @@ export const Header: React.FC<HeaderProps> = ({
                       onDisconnectGmail();
                       setShowAuthModal(false);
                     }}
-                    className="px-4 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 cursor-pointer"
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 cursor-pointer"
                   >
                     Disconnect Gmail
                   </button>

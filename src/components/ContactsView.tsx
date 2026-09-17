@@ -212,8 +212,8 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
       {/* Top Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Contacts Directory</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Contacts Directory</h1>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
             Manage target HR leads, recruiters, hiring managers, and university admissions contacts.
           </p>
         </div>
@@ -222,17 +222,17 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
           <button
             id="btn-import-contacts-csv"
             onClick={() => setIsImportModalOpen(true)}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer"
+            className="px-3.5 py-2 bg-white dark:bg-black hover:bg-slate-50 dark:hover:bg-zinc-900 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer"
           >
-            <Upload className="w-3.5 h-3.5 text-slate-500" />
+            <Upload className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
             <span>Import CSV</span>
           </button>
           <button
             id="btn-export-contacts-csv"
             onClick={handleExportCsv}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer"
+            className="px-3.5 py-2 bg-white dark:bg-black hover:bg-slate-50 dark:hover:bg-zinc-900 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5 text-slate-500" />
+            <Download className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
             <span>Export CSV</span>
           </button>
           <button
@@ -247,21 +247,21 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-white dark:bg-black p-4 rounded-2xl border border-slate-200 dark:border-zinc-850 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             id="input-search-contacts"
             type="text"
             placeholder="Search by name, email, company, tag..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50"
+            className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -269,12 +269,12 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
         </div>
 
         <div className="flex items-center space-x-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-          <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <Filter className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-500 shrink-0" />
           <select
             id="select-filter-org-type"
             value={selectedOrgType}
             onChange={(e) => setSelectedOrgType(e.target.value)}
-            className="text-xs py-2 px-3.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-2xs"
+            className="text-xs py-2 px-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 font-medium text-slate-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-2xs"
           >
             <option value="ALL">All Categories ({contacts.length})</option>
             <option value="RECRUITER">Technical Recruiters</option>
@@ -290,10 +290,10 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
       </div>
 
       {/* Contacts Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-black rounded-2xl border border-slate-200 dark:border-zinc-850 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-[11px] text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100">
+            <thead className="bg-slate-50 dark:bg-zinc-950 text-[11px] text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider border-b border-slate-100 dark:border-zinc-850">
               <tr>
                 <th className="py-3.5 px-6">Contact</th>
                 <th className="py-3.5 px-6">Organization & Role</th>
@@ -303,15 +303,15 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                 <th className="py-3.5 px-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-zinc-850">
               {contacts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-16 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mx-auto mb-3">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mx-auto mb-3">
                       <Users className="w-6 h-6" />
                     </div>
-                    <h3 className="text-sm font-bold text-slate-800">No contacts in database</h3>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-100">No contacts in database</h3>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto mt-1 mb-4">
                       Build your outreach network by adding recruiter or admissions contacts manually, or importing them in bulk via CSV.
                     </p>
                     <div className="flex items-center justify-center gap-2.5">
@@ -324,9 +324,9 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                       </button>
                       <button
                         onClick={() => setIsImportModalOpen(true)}
-                        className="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-semibold shadow-2xs inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
+                        className="px-3.5 py-1.5 bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-900 rounded-xl text-xs font-semibold shadow-2xs inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
                       >
-                        <Upload className="w-3.5 h-3.5 text-slate-500" />
+                        <Upload className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
                         <span>Import CSV</span>
                       </button>
                     </div>
@@ -334,10 +334,10 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                 </tr>
               ) : filteredContacts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    <Users className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                    <p className="font-semibold text-slate-700">No contacts match your filters</p>
-                    <p className="text-[11px] text-slate-400 mt-1">Try changing the search keyword or category filter.</p>
+                  <td colSpan={6} className="py-12 text-center text-slate-400 dark:text-zinc-500">
+                    <Users className="w-8 h-8 mx-auto text-slate-300 dark:text-zinc-600 mb-2" />
+                    <p className="font-semibold text-slate-700 dark:text-zinc-300">No contacts match your filters</p>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1">Try changing the search keyword or category filter.</p>
                   </td>
                 </tr>
               ) : (
@@ -350,17 +350,17 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                   ].includes(c.organizationType);
 
                   return (
-                    <tr key={c.id} className="hover:bg-slate-50 transition-colors group">
+                    <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-zinc-900/60 transition-colors group">
                       {/* Name & Email */}
                       <td className="py-4 px-6">
-                        <div className="font-bold text-slate-900 text-sm">{c.name}</div>
-                        <div className="text-slate-500 font-mono text-[11px] mt-0.5">{c.email}</div>
+                        <div className="font-bold text-slate-900 dark:text-white text-sm">{c.name}</div>
+                        <div className="text-slate-500 dark:text-zinc-400 font-mono text-[11px] mt-0.5">{c.email}</div>
                         {c.tags && c.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1.5">
                             {c.tags.map((t, i) => (
                               <span
                                 key={i}
-                                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] bg-slate-100 text-slate-600 font-medium"
+                                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] bg-slate-100 dark:bg-zinc-850 text-slate-600 dark:text-zinc-300 font-medium"
                               >
                                 {t}
                               </span>
@@ -371,7 +371,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
                       {/* Organization & Role */}
                       <td className="py-4 px-6">
-                        <div className="font-semibold text-slate-800 flex items-center space-x-1.5 text-xs">
+                        <div className="font-semibold text-slate-800 dark:text-zinc-200 flex items-center space-x-1.5 text-xs">
                           {isAdmissions ? (
                             <GraduationCap className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                           ) : (
@@ -379,7 +379,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                           )}
                           <span>{c.organization}</span>
                         </div>
-                        <div className="text-slate-500 text-[11px] mt-0.5">{c.role || '—'}</div>
+                        <div className="text-slate-500 dark:text-zinc-400 text-[11px] mt-0.5">{c.role || '—'}</div>
                       </td>
 
                       {/* Category Badge */}
@@ -387,8 +387,8 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                         <span
                           className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
                             isAdmissions
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'bg-indigo-100 text-indigo-700'
+                              ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300'
+                              : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'
                           }`}
                         >
                           {orgTypeLabels[c.organizationType] || c.organizationType}
@@ -396,9 +396,9 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                       </td>
 
                       {/* Location */}
-                      <td className="py-4 px-6 text-slate-600">
+                      <td className="py-4 px-6 text-slate-600 dark:text-zinc-300">
                         <div className="flex items-center space-x-1 text-xs">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-500" />
                           <span>{[c.city, c.country].filter(Boolean).join(', ') || '—'}</span>
                         </div>
                       </td>
@@ -408,12 +408,12 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                         <span
                           className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
                             c.responseStatus === 'REPLIED'
-                              ? 'bg-emerald-100 text-emerald-700'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
                               : c.responseStatus === 'BOUNCED'
-                              ? 'bg-rose-100 text-rose-700'
+                              ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
                               : c.lastContactedDate
-                              ? 'bg-slate-100 text-slate-700'
-                              : 'bg-slate-50 text-slate-500 border border-slate-200/60'
+                              ? 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300'
+                              : 'bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 border border-slate-200/60 dark:border-zinc-800'
                           }`}
                         >
                           {c.responseStatus === 'REPLIED'
@@ -434,7 +434,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                             id={`btn-compose-to-${c.id}`}
                             onClick={() => onComposeToContact(c)}
                             title="Compose Outreach to this contact"
-                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 rounded-lg transition-colors cursor-pointer"
                           >
                             <Send className="w-3.5 h-3.5" />
                           </button>
@@ -442,7 +442,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                             id={`btn-edit-contact-${c.id}`}
                             onClick={() => handleOpenEdit(c)}
                             title="Edit Contact"
-                            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -454,7 +454,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                               }
                             }}
                             title="Delete Contact"
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 dark:text-zinc-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -471,15 +471,15 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
       {/* Add / Edit Contact Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-black rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 dark:border-zinc-800">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 {editingContact ? 'Edit Contact' : 'Add New Contact'}
               </h3>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -488,24 +488,24 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
             <form onSubmit={handleSaveContact} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Full Name *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
                     value={formData.name || ''}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                     placeholder="e.g. Sarah Jenkins"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Email Address *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Email Address *</label>
                   <input
                     type="email"
                     required
                     value={formData.email || ''}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                     placeholder="sjenkins@company.com"
                   />
                 </div>
@@ -513,24 +513,24 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Organization / University *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Organization / University *</label>
                   <input
                     type="text"
                     required
                     value={formData.organization || ''}
                     onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                     placeholder="e.g. Acme Cloud Corp"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Organization Category</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Organization Category</label>
                   <select
                     value={formData.organizationType || 'Recruiter'}
                     onChange={(e) =>
                       setFormData({ ...formData, organizationType: e.target.value as OrganizationType })
                     }
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100"
                   >
                     {Object.entries(orgTypeLabels).map(([key, label]) => (
                       <option key={key} value={key}>
@@ -543,22 +543,22 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Role / Job Title</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Role / Job Title</label>
                   <input
                     type="text"
                     value={formData.role || ''}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                     placeholder="e.g. Senior Technical Recruiter"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Department</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Department</label>
                   <input
                     type="text"
                     value={formData.department || ''}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                     placeholder="e.g. Infrastructure Talent"
                   />
                 </div>
@@ -566,29 +566,29 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Country</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Country</label>
                   <input
                     type="text"
                     value={formData.country || ''}
                     onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                     placeholder="e.g. United States"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">City</label>
+                  <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">City</label>
                   <input
                     type="text"
                     value={formData.city || ''}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                     placeholder="e.g. San Francisco"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Tags</label>
+                <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Tags</label>
                 <div className="flex items-center space-x-2">
                   <input
                     type="text"
@@ -605,7 +605,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                       }
                     }}
                     placeholder="Press enter to add tag (e.g. Cloud, Kubernetes)"
-                    className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                   />
                   <button
                     type="button"
@@ -616,7 +616,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                         setTagInput('');
                       }
                     }}
-                    className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-semibold"
+                    className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 rounded-lg hover:bg-slate-200 dark:hover:bg-zinc-700 font-semibold"
                   >
                     Add
                   </button>
@@ -626,7 +626,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                     {formData.tags.map((t, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] bg-slate-100 text-slate-700"
+                        className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300"
                       >
                         {t}
                         <button
@@ -637,7 +637,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                               tags: formData.tags?.filter((_, i) => i !== idx),
                             });
                           }}
-                          className="ml-1 text-slate-400 hover:text-slate-600"
+                          className="ml-1 text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-200"
                         >
                           &times;
                         </button>
@@ -648,21 +648,21 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Internal Notes</label>
+                <label className="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Internal Notes</label>
                 <textarea
                   rows={2}
                   value={formData.notes || ''}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                   placeholder="Notes about candidate fit, research, or mutual connection..."
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end space-x-2">
+              <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-700 hover:bg-slate-100 font-medium cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 font-medium cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -680,24 +680,24 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
       {/* CSV Import Modal */}
       {isImportModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-black rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-zinc-800">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center space-x-2">
-                <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-                <h3 className="text-base font-bold text-slate-900">Import Contacts from CSV</h3>
+                <FileSpreadsheet className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Import Contacts from CSV</h3>
               </div>
               <button
                 onClick={() => setIsImportModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 mb-3 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-zinc-400 mb-3 leading-relaxed">
               Paste comma-separated rows below. The first row should contain column headers (e.g.{' '}
-              <code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-[11px] text-slate-800">
+              <code className="bg-slate-100 dark:bg-zinc-850 px-1.5 py-0.5 rounded font-mono text-[11px] text-slate-800 dark:text-zinc-200">
                 Name, Email, Organization, Role, Country, Type
               </code>
               ).
@@ -708,17 +708,17 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
               value={csvText}
               onChange={(e) => setCsvText(e.target.value)}
               placeholder={`Name,Email,Organization,Role,Country,Type\nElena Rostova,elena.r@innovate.tech,InnovateTech,Talent Acquisition,Germany,RECRUITER\nDr. Marcus Vance,m.vance@tum.de,Technical University of Munich,Admissions Director,Germany,UNIVERSITY_ADMISSIONS`}
-              className="w-full p-3 font-mono text-[11px] rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50"
+              className="w-full p-3 font-mono text-[11px] rounded-xl border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50 dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
             />
 
             {importStatus && (
-              <div className="mt-2 text-xs font-semibold text-rose-600">{importStatus}</div>
+              <div className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-400">{importStatus}</div>
             )}
 
-            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end space-x-2">
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex justify-end space-x-2">
               <button
                 onClick={() => setIsImportModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
               >
                 Cancel
               </button>

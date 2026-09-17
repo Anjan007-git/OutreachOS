@@ -124,9 +124,9 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
 
       {/* Slide-out Drawer Panel */}
       {isOpen && (
-        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[440px] bg-white shadow-2xl border-l border-slate-200 flex flex-col animate-in slide-in-from-right duration-200">
+        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[440px] bg-white dark:bg-black shadow-2xl border-l border-slate-200 dark:border-zinc-850 flex flex-col animate-in slide-in-from-right duration-200">
           {/* Drawer Header */}
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-900 to-indigo-950 text-white">
+          <div className="px-5 py-4 border-b border-slate-800 dark:border-zinc-850 flex items-center justify-between bg-gradient-to-r from-slate-900 to-indigo-950 dark:from-black dark:to-zinc-950 text-white">
             <div className="flex items-center space-x-2.5">
               <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-indigo-300" />
@@ -138,7 +138,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                     Gemini 3.5
                   </span>
                 </h3>
-                <p className="text-[11px] text-slate-300">Live Cold Outreach & Strategy Co-Pilot</p>
+                <p className="text-[11px] text-slate-300 dark:text-zinc-400">Live Cold Outreach & Strategy Co-Pilot</p>
               </div>
             </div>
 
@@ -156,14 +156,14 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                   ])
                 }
                 title="Reset Conversation"
-                className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                className="p-1.5 text-slate-300 dark:text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                className="p-1.5 text-slate-300 dark:text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 title="Close Drawer"
               >
                 <X className="w-4 h-4" />
@@ -172,8 +172,8 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           </div>
 
           {/* Quick Prompts Bar */}
-          <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 overflow-x-auto scrollbar-none flex items-center space-x-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider shrink-0">
+          <div className="px-4 py-2.5 bg-slate-50 dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-850 overflow-x-auto scrollbar-none flex items-center space-x-2">
+            <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider shrink-0">
               Suggestions:
             </span>
             {QUICK_PROMPTS.map((prompt, idx) => (
@@ -182,7 +182,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                 type="button"
                 disabled={isLoading}
                 onClick={() => handleSendMessage(prompt)}
-                className="shrink-0 px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200 text-[11px] font-medium text-slate-700 transition-colors cursor-pointer"
+                className="shrink-0 px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-700 dark:hover:text-indigo-300 hover:border-indigo-200 dark:hover:border-indigo-800 border border-slate-200 dark:border-zinc-800 text-[11px] font-medium text-slate-700 dark:text-zinc-200 transition-colors cursor-pointer"
               >
                 {prompt.length > 36 ? prompt.slice(0, 36) + '...' : prompt}
               </button>
@@ -190,7 +190,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           </div>
 
           {/* Chat Messages List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50 dark:bg-black">
             {messages.map((m) => {
               const isAssistant = m.role === 'assistant';
               return (
@@ -199,7 +199,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                   className={`flex items-start space-x-2.5 ${isAssistant ? 'justify-start' : 'justify-end'}`}
                 >
                   {isAssistant && (
-                    <div className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-1">
+                    <div className="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 flex items-center justify-center shrink-0 mt-1">
                       <Bot className="w-3.5 h-3.5" />
                     </div>
                   )}
@@ -207,7 +207,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                   <div
                     className={`max-w-[85%] rounded-2xl p-3.5 text-xs font-sans leading-relaxed shadow-xs ${
                       isAssistant
-                        ? 'bg-white border border-slate-200 text-slate-800'
+                        ? 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-zinc-100'
                         : 'bg-indigo-600 text-white ml-auto'
                     }`}
                   >
@@ -215,7 +215,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
 
                     <div
                       className={`flex items-center justify-between mt-2 pt-1 text-[10px] ${
-                        isAssistant ? 'text-slate-400 border-t border-slate-100' : 'text-indigo-200'
+                        isAssistant ? 'text-slate-400 dark:text-zinc-500 border-t border-slate-100 dark:border-zinc-800' : 'text-indigo-200'
                       }`}
                     >
                       <span>{m.timestamp}</span>
@@ -225,13 +225,13 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                           <button
                             type="button"
                             onClick={() => handleCopyText(m.id, m.content)}
-                            className="flex items-center space-x-1 hover:text-slate-700 cursor-pointer"
+                            className="flex items-center space-x-1 hover:text-slate-700 dark:hover:text-zinc-300 cursor-pointer"
                             title="Copy reply text"
                           >
                             {copiedId === m.id ? (
                               <>
-                                <Check className="w-3 h-3 text-emerald-600" />
-                                <span className="text-emerald-600 font-semibold">Copied</span>
+                                <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copied</span>
                               </>
                             ) : (
                               <>
@@ -248,7 +248,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                                 onNavigateToComposeWithDraft({ body: m.content });
                                 setIsOpen(false);
                               }}
-                              className="flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
+                              className="flex items-center space-x-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-semibold cursor-pointer"
                             >
                               <span>Use in Compose</span>
                               <ArrowRight className="w-3 h-3" />
@@ -260,7 +260,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                   </div>
 
                   {!isAssistant && (
-                    <div className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0 mt-1">
+                    <div className="w-6 h-6 rounded-lg bg-slate-900 dark:bg-zinc-800 text-white flex items-center justify-center shrink-0 mt-1">
                       <UserIcon className="w-3.5 h-3.5" />
                     </div>
                   )}
@@ -269,7 +269,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
             })}
 
             {isLoading && (
-              <div className="flex items-center space-x-2.5 text-xs text-indigo-600 font-medium bg-indigo-50/70 p-3 rounded-xl border border-indigo-100">
+              <div className="flex items-center space-x-2.5 text-xs text-indigo-600 dark:text-indigo-300 font-medium bg-indigo-50/70 dark:bg-indigo-950/40 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/60">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 <span>Gemini is generating executive advice...</span>
               </div>
@@ -279,7 +279,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           </div>
 
           {/* Chat Input Field */}
-          <div className="p-4 border-t border-slate-200 bg-white">
+          <div className="p-4 border-t border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -293,7 +293,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask advice, draft emails, or analyze strategy..."
                 disabled={isLoading}
-                className="flex-1 text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50 text-slate-800 placeholder:text-slate-400 font-medium"
+                className="flex-1 text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50/50 dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 font-medium"
               />
               <button
                 type="submit"

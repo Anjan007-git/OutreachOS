@@ -93,52 +93,52 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
   const getFileTypeBadge = (mime: string, name: string) => {
     const lowerName = name.toLowerCase();
     if (mime.includes('pdf') || lowerName.endsWith('.pdf')) {
-      return { label: 'PDF', bg: 'bg-rose-50 text-rose-700 border-rose-200' };
+      return { label: 'PDF', bg: 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800' };
     }
     if (mime.includes('word') || lowerName.endsWith('.doc') || lowerName.endsWith('.docx')) {
-      return { label: 'DOCX', bg: 'bg-blue-50 text-blue-700 border-blue-200' };
+      return { label: 'DOCX', bg: 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' };
     }
     if (mime.includes('google-apps.document')) {
-      return { label: 'Google Doc', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+      return { label: 'Google Doc', bg: 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800' };
     }
-    return { label: 'Document', bg: 'bg-slate-50 text-slate-700 border-slate-200' };
+    return { label: 'Document', bg: 'bg-slate-50 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border-slate-200 dark:border-zinc-700' };
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-black rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 dark:border-zinc-850 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
         {/* Modal Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-5 border-b border-slate-100 dark:border-zinc-850 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
               <HardDrive className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">{title}</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">{title}</h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
                 Browse PDF, Word, and Google Docs from your connected Google Drive
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors"
+            className="text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-900 cursor-pointer transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 bg-slate-50/70 border-b border-slate-100">
+        <div className="p-4 bg-slate-50/70 dark:bg-zinc-900/60 border-b border-slate-100 dark:border-zinc-850">
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search Google Drive documents (e.g., Resume, CV, Portfolio)..."
-                className="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium text-slate-800"
+                className="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
               />
             </div>
             <button
@@ -153,33 +153,33 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
               onClick={() => fetchFiles(searchQuery)}
               disabled={isLoading}
               title="Refresh files"
-              className="p-2.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer transition-colors"
+              className="p-2.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl cursor-pointer transition-colors"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-indigo-600' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-indigo-600 dark:text-indigo-400' : ''}`} />
             </button>
           </form>
         </div>
 
         {/* Error Alert */}
         {errorMessage && (
-          <div className="mx-4 mt-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start space-x-2">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+          <div className="mx-4 mt-3 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start space-x-2">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
             <div className="flex-1">{errorMessage}</div>
           </div>
         )}
 
         {/* Document List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2 divide-y divide-slate-100">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 divide-y divide-slate-100 dark:divide-zinc-850">
           {isLoading ? (
             <div className="py-16 text-center">
-              <RefreshCw className="w-6 h-6 animate-spin text-indigo-600 mx-auto mb-2" />
-              <span className="text-xs text-slate-500 font-medium">Accessing your Google Drive...</span>
+              <RefreshCw className="w-6 h-6 animate-spin text-indigo-600 dark:text-indigo-400 mx-auto mb-2" />
+              <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Accessing your Google Drive...</span>
             </div>
           ) : driveFiles.length === 0 ? (
-            <div className="py-16 text-center text-slate-400">
-              <File className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-              <p className="text-xs font-semibold text-slate-600">No matching documents found in Google Drive</p>
-              <p className="text-[11px] text-slate-400 mt-1">
+            <div className="py-16 text-center text-slate-400 dark:text-zinc-500">
+              <File className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-zinc-600" />
+              <p className="text-xs font-semibold text-slate-600 dark:text-zinc-300">No matching documents found in Google Drive</p>
+              <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1">
                 Make sure your PDF or DOC files are in your Drive root or shared folders.
               </p>
             </div>
@@ -195,27 +195,27 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
                   onClick={() => setSelectedFileId(file.id)}
                   className={`pt-2.5 pb-2.5 px-3 rounded-xl flex items-center justify-between cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-indigo-50/70 border border-indigo-200 shadow-2xs'
-                      : 'hover:bg-slate-50 border border-transparent'
+                      ? 'bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 shadow-2xs'
+                      : 'hover:bg-slate-50 dark:hover:bg-zinc-900 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center space-x-3 min-w-0 pr-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50/80 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
                       <FileText className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-semibold text-slate-900 truncate" title={file.name}>
+                      <div className="text-xs font-semibold text-slate-900 dark:text-white truncate" title={file.name}>
                         {file.name}
                       </div>
                       <div className="flex items-center space-x-2 mt-0.5">
                         <span className={`text-[10px] px-1.5 py-0.5 rounded border font-semibold ${badge.bg}`}>
                           {badge.label}
                         </span>
-                        <span className="text-[11px] text-slate-400">
+                        <span className="text-[11px] text-slate-400 dark:text-zinc-500">
                           {formatFileSize(file.size)}
                         </span>
                         {file.modifiedTime && (
-                          <span className="text-[10px] text-slate-400 hidden sm:inline">
+                          <span className="text-[10px] text-slate-400 dark:text-zinc-500 hidden sm:inline">
                             &bull; {new Date(file.modifiedTime).toLocaleDateString()}
                           </span>
                         )}
@@ -234,7 +234,7 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                         isSelected
                           ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-2xs'
-                          : 'bg-white hover:bg-indigo-50 text-indigo-600 border border-slate-200 hover:border-indigo-200'
+                          : 'bg-white dark:bg-zinc-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-zinc-800 hover:border-indigo-200 dark:hover:border-indigo-800'
                       }`}
                     >
                       {isProcessing ? 'Importing...' : 'Select'}
@@ -247,10 +247,10 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-          <div className="text-[11px] text-slate-500">
+        <div className="p-4 bg-slate-50 dark:bg-zinc-900/60 border-t border-slate-100 dark:border-zinc-850 flex items-center justify-between">
+          <div className="text-[11px] text-slate-500 dark:text-zinc-400">
             {selectedFile ? (
-              <span className="font-semibold text-slate-700 truncate block max-w-xs sm:max-w-md">
+              <span className="font-semibold text-slate-700 dark:text-zinc-300 truncate block max-w-xs sm:max-w-md">
                 Selected: {selectedFile.name}
               </span>
             ) : (
@@ -261,7 +261,7 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"
+              className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:text-slate-800 dark:hover:text-white bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer"
             >
               Cancel
             </button>

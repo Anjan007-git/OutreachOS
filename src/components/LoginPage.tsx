@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { signInWithGoogleBasic } from '../lib/auth';
 import { api } from '../lib/api';
+import { ThemeToggle } from './ThemeToggle';
 
 interface LoginPageProps {
   onLoginSuccess: (user: { email: string; name: string; role: string; isAdmin: boolean }) => void;
@@ -102,22 +103,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-black flex flex-col justify-between text-slate-900 dark:text-zinc-100 font-sans selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-200">
       {/* Top Simple Navigation */}
       <header className="px-6 py-5 max-w-7xl mx-auto w-full flex items-center justify-between">
         <button
           onClick={onNavigateHome}
-          className="inline-flex items-center gap-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors group cursor-pointer"
+          className="inline-flex items-center gap-2.5 text-sm font-medium text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors group cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-0.5 transition-transform" />
+          <ArrowLeft className="w-4 h-4 text-slate-400 dark:text-zinc-500 group-hover:-translate-x-0.5 transition-transform" />
           <span>Back to Homepage</span>
         </button>
 
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-2xs">
-            O
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-2xs">
+              O
+            </div>
+            <span className="text-base font-bold tracking-tight text-slate-800 dark:text-white">OutreachOS</span>
           </div>
-          <span className="text-base font-bold tracking-tight text-slate-800">OutreachOS</span>
         </div>
       </header>
 
@@ -126,23 +130,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         <div className="w-full max-w-md space-y-8">
           {/* Header Card */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
               <span>Professional Outreach Workspace</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
               Sign In to OutreachOS
             </h1>
-            <p className="text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-zinc-400 max-w-sm mx-auto leading-relaxed">
               Access your automated campaigns, personalized drafts, and intelligent outreach tools.
             </p>
           </div>
 
           {/* Core Sign-In Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-7 sm:p-8 space-y-6">
+          <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-slate-200/80 dark:border-zinc-850 shadow-xs p-7 sm:p-8 space-y-6">
             {/* Error Message */}
             {errorMessage && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
+              <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
                 <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                 <div className="flex-1 leading-relaxed">{errorMessage}</div>
               </div>
@@ -154,7 +158,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
-                className="w-full h-11 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-sm transition-all duration-150 flex items-center justify-center gap-3 shadow-2xs cursor-pointer hover:border-slate-400 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-850 text-slate-800 dark:text-zinc-200 font-semibold text-sm transition-all duration-150 flex items-center justify-center gap-3 shadow-2xs cursor-pointer hover:border-slate-400 dark:hover:border-zinc-600 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 text-indigo-600 animate-spin" />
@@ -204,8 +208,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
             {/* Subtle Divider */}
             <div className="relative flex items-center justify-center">
-              <div className="border-t border-slate-200 w-full" />
-              <span className="bg-white px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 shrink-0">
+              <div className="border-t border-slate-200 dark:border-zinc-800 w-full" />
+              <span className="bg-white dark:bg-zinc-950 px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-zinc-500 shrink-0">
                 Or sign in with email
               </span>
             </div>
@@ -215,12 +219,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               <div>
                 <label
                   htmlFor="email-address"
-                  className="block text-xs font-semibold text-slate-700 mb-1.5"
+                  className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5"
                 >
                   Work or Personal Email
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-zinc-500">
                     <Mail className="w-4 h-4" />
                   </div>
                   <input
@@ -231,7 +235,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     onChange={(e) => setEmailInput(e.target.value)}
                     placeholder="you@company.com"
                     disabled={isLoading}
-                    className="w-full h-10 pl-10 pr-3.5 rounded-xl border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-colors bg-white disabled:bg-slate-50"
+                    className="w-full h-10 pl-10 pr-3.5 rounded-xl border border-slate-300 dark:border-zinc-700 text-sm text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-colors bg-white dark:bg-zinc-900 disabled:bg-slate-50 dark:disabled:bg-zinc-850"
                   />
                 </div>
               </div>
@@ -239,7 +243,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-10 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs transition-colors flex items-center justify-center gap-2 shadow-2xs cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full h-10 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white font-medium text-xs transition-colors flex items-center justify-center gap-2 shadow-2xs cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
@@ -250,12 +254,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </form>
 
             {/* Logical Separation Clarification Banner */}
-            <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200/70 space-y-1.5">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+            <div className="rounded-xl bg-slate-50 dark:bg-zinc-900/60 p-3.5 border border-slate-200/70 dark:border-zinc-800 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-zinc-200">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>Account Login & Gmail Separation</span>
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed">
                 Application login simply authenticates your OutreachOS workspace. You can connect,
                 switch, or verify your Gmail sending account inside <strong>Settings</strong> at any
                 time without re-authenticating here.
@@ -264,12 +268,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
 
           {/* Security Assurance Footer */}
-          <div className="text-center space-y-2 text-xs text-slate-500">
-            <div className="inline-flex items-center gap-1.5 text-slate-600">
-              <Lock className="w-3.5 h-3.5 text-slate-400" />
+          <div className="text-center space-y-2 text-xs text-slate-500 dark:text-zinc-400">
+            <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-zinc-400">
+              <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-500" />
               <span>Official Google OAuth 2.0 & encrypted Upstash Redis storage</span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-400 dark:text-zinc-500">
               By signing in, you agree to the OutreachOS terms and privacy policies.
             </p>
           </div>
@@ -277,7 +281,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       </main>
 
       {/* Bottom Footer */}
-      <footer className="py-6 border-t border-slate-200/60 text-center text-xs text-slate-500">
+      <footer className="py-6 border-t border-slate-200/60 dark:border-zinc-850 text-center text-xs text-slate-500 dark:text-zinc-400">
         <p>© 2026 OutreachOS. The Outreach Operating System.</p>
       </footer>
     </div>

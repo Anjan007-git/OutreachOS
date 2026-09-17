@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import {
   XCircle,
   CheckCircle2,
@@ -73,34 +74,46 @@ export const ProblemSolution: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 sm:py-28 bg-white">
+    <section className="py-20 sm:py-28 bg-white dark:bg-black transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200/80 mb-4 inline-block">
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
+          <span className="text-xs uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-300 border border-slate-200/80 dark:border-zinc-800 mb-4 inline-block">
             The Engineered Advantage
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight mb-4">
             A System Engineered for Modern Professional Outreach.
           </h2>
-          <p className="text-base text-slate-600 leading-relaxed">
+          <p className="text-base text-slate-600 dark:text-zinc-400 leading-relaxed">
             Stop juggling fragmented tools and unorganized mailboxes. Replace friction with an intelligent, end-to-end outreach engine.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Comparison Split Cards */}
+        {/* Comparison Split Cards with scroll slide-in animations */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 relative items-stretch">
           {/* LEFT: Without OutreachOS */}
-          <div className="rounded-2xl border border-rose-200/70 bg-rose-50/20 p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, x: -35 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, amount: 0.15 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-2xl border border-rose-200/70 dark:border-rose-950/60 bg-rose-50/20 dark:bg-zinc-950 p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden"
+          >
             <div className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-rose-100">
+              <div className="flex items-center justify-between pb-4 border-b border-rose-100 dark:border-zinc-850">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                  <h3 className="text-lg font-bold text-slate-900">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                     Without OutreachOS
                   </h3>
                 </div>
-                <span className="text-[11px] font-semibold text-rose-700 bg-rose-100/80 px-2.5 py-0.5 rounded-full border border-rose-200">
+                <span className="text-[11px] font-semibold text-rose-700 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-950 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-900">
                   Fragmented & Manual
                 </span>
               </div>
@@ -110,15 +123,15 @@ export const ProblemSolution: React.FC = () => {
                   const Icon = item.icon;
                   return (
                     <div key={idx} className="flex items-start gap-3.5 group">
-                      <div className="mt-0.5 p-1.5 rounded-lg bg-white border border-rose-200/80 text-rose-500 shrink-0 shadow-2xs">
+                      <div className="mt-0.5 p-1.5 rounded-lg bg-white dark:bg-black border border-rose-200/80 dark:border-rose-900/50 text-rose-500 dark:text-rose-400 shrink-0 shadow-2xs">
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                        <div className="text-sm font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-1.5">
                           <span>{item.title}</span>
                           <XCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
                           {item.description}
                         </p>
                       </div>
@@ -128,27 +141,33 @@ export const ProblemSolution: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-6 mt-6 border-t border-rose-100/80 text-xs text-rose-700/80 font-medium italic">
+            <div className="pt-6 mt-6 border-t border-rose-100/80 dark:border-zinc-850 text-xs text-rose-700/80 dark:text-rose-300/80 font-medium italic">
               Result: Low response rates, missed opportunities, and hours wasted on repetitive busywork.
             </div>
-          </div>
+          </motion.div>
 
-          {/* RIGHT: With OutreachOS (Visually Stronger) */}
-          <div className="rounded-2xl border-2 border-indigo-500/80 bg-white p-6 sm:p-8 shadow-xl shadow-indigo-100/40 flex flex-col justify-between relative overflow-hidden ring-1 ring-indigo-500/20">
+          {/* RIGHT: With OutreachOS */}
+          <motion.div
+            initial={{ opacity: 0, x: 35 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, amount: 0.15 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-2xl border-2 border-indigo-500/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 shadow-xl shadow-indigo-100/40 dark:shadow-none flex flex-col justify-between relative overflow-hidden ring-1 ring-indigo-500/20 dark:ring-zinc-800"
+          >
             {/* Top Accent Pill */}
             <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] uppercase font-bold tracking-wider px-3.5 py-1 rounded-bl-xl shadow-2xs">
               Engineered Architecture
             </div>
 
             <div className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-indigo-100">
+              <div className="flex items-center justify-between pb-4 border-b border-indigo-100 dark:border-zinc-850">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
-                  <h3 className="text-lg font-bold text-slate-900">
+                  <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                     With OutreachOS
                   </h3>
                 </div>
-                <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                <span className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-zinc-900 px-2.5 py-0.5 rounded-full border border-indigo-200 dark:border-zinc-800">
                   Intelligent & Native
                 </span>
               </div>
@@ -158,15 +177,15 @@ export const ProblemSolution: React.FC = () => {
                   const Icon = item.icon;
                   return (
                     <div key={idx} className="flex items-start gap-3.5">
-                      <div className="mt-0.5 p-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 shrink-0 shadow-2xs">
+                      <div className="mt-0.5 p-1.5 rounded-lg bg-indigo-50 dark:bg-zinc-900 border border-indigo-200 dark:border-zinc-800 text-indigo-600 dark:text-indigo-400 shrink-0 shadow-2xs">
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                           <span>{item.title}</span>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         </div>
-                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                        <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
                           {item.description}
                         </p>
                       </div>
@@ -176,11 +195,11 @@ export const ProblemSolution: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-6 mt-6 border-t border-indigo-100 text-xs text-indigo-900 font-semibold flex items-center justify-between">
+            <div className="pt-6 mt-6 border-t border-indigo-100 dark:border-zinc-850 text-xs text-indigo-900 dark:text-zinc-300 font-semibold flex items-center justify-between">
               <span>Result: Authentic high-converting conversations sent with surgical precision.</span>
-              <ArrowRight className="w-4 h-4 text-indigo-600 shrink-0 ml-2" />
+              <ArrowRight className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 ml-2" />
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
