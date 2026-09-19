@@ -283,7 +283,7 @@ export default function App() {
   // Preselection for Compose view
   const [composeContact, setComposeContact] = useState<Contact | null>(null);
   const [composeCampaign, setComposeCampaign] = useState<Campaign | null>(null);
-  const [aiDraft, setAiDraft] = useState<{ subject?: string; body?: string } | null>(null);
+  const [aiDraft, setAiDraft] = useState<{ subject?: string; body?: string; attachments?: AttachmentRef[] } | null>(null);
 
   const showToast = (type: 'success' | 'error' | 'info' | 'warning', text: string) => {
     setToast({ type, text });
@@ -660,12 +660,12 @@ export default function App() {
 
       {/* Sleek Left Sidebar Navigation (Matching Sleek Interface theme) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-slate-200 dark:border-zinc-850 bg-white dark:bg-black flex flex-col transition-transform duration-200 ease-in-out md:static md:translate-x-0 shrink-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-slate-200 dark:border-[#171717] bg-white dark:bg-[#000000] flex flex-col transition-transform duration-200 ease-in-out md:static md:translate-x-0 shrink-0 ${
           isMobileNavOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Brand Logo & Title */}
-        <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-zinc-850">
+        <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-[#171717]">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-base shadow-sm">
               O
@@ -700,13 +700,13 @@ export default function App() {
                   navigateToPage(item.id);
                   setIsMobileNavOpen(false);
                 }}
-                className={`w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                className={`w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer border ${
                   isActive
-                    ? 'bg-indigo-50 dark:bg-zinc-900 text-indigo-700 dark:text-indigo-300 font-semibold'
-                    : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
+                    ? 'bg-indigo-50 dark:bg-[#111111] text-indigo-700 dark:text-[#FFFFFF] border-indigo-100 dark:border-[#1A1A1A] font-semibold'
+                    : 'text-slate-600 dark:text-[#A1A1AA] hover:bg-slate-50 dark:hover:bg-[#080808] hover:text-slate-900 dark:hover:text-[#FFFFFF] border-transparent'
                 }`}
               >
-                <Icon className={`mr-3 w-4 h-4 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-zinc-500'}`} />
+                <Icon className={`mr-3 w-4 h-4 ${isActive ? 'text-indigo-600 dark:text-[#FFFFFF]' : 'text-slate-400 dark:text-[#71717A]'}`} />
                 <span>{item.label}</span>
 
                 {item.badge !== undefined && item.badge > 0 && (
@@ -715,8 +715,8 @@ export default function App() {
                       item.id === 'responses'
                         ? 'bg-rose-500 text-white'
                         : isActive
-                        ? 'bg-indigo-200 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300'
-                        : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'
+                        ? 'bg-indigo-200 dark:bg-[#1C1C1F] text-indigo-800 dark:text-[#FFFFFF]'
+                        : 'bg-slate-100 dark:bg-[#161616] text-slate-600 dark:text-[#A1A1AA]'
                     }`}
                   >
                     {item.badge}
@@ -728,9 +728,9 @@ export default function App() {
         </nav>
 
         {/* Sidebar Bottom: Gmail Status Card */}
-        <div className="p-4 mt-auto border-t border-slate-100 dark:border-zinc-850">
-          <div className="bg-slate-50 dark:bg-zinc-900/70 p-3 rounded-xl border border-slate-200/60 dark:border-zinc-800">
-            <div className="flex items-center justify-between mb-2 text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+        <div className="p-4 mt-auto border-t border-slate-100 dark:border-[#171717]">
+          <div className="bg-slate-50 dark:bg-[#080808] p-3 rounded-xl border border-slate-200/60 dark:border-[#1A1A1A]">
+            <div className="flex items-center justify-between mb-2 text-xs font-semibold text-slate-400 dark:text-[#71717A] uppercase tracking-wider">
               <span>Gmail Status</span>
               <div
                 className={`w-2 h-2 rounded-full ${
@@ -739,7 +739,7 @@ export default function App() {
               />
             </div>
             <div
-              className="text-sm font-medium text-slate-700 dark:text-zinc-200 truncate"
+              className="text-sm font-medium text-slate-700 dark:text-[#A1A1AA] truncate"
               title={gmailStatus.email || 'Not connected'}
             >
               {gmailStatus.email || 'No account connected'}
@@ -755,7 +755,7 @@ export default function App() {
               className={`mt-3 w-full py-2 text-xs border rounded-lg transition-colors font-semibold shadow-2xs cursor-pointer ${
                 gmailStatus.needsReauth
                   ? 'bg-amber-600 hover:bg-amber-500 text-white border-amber-600'
-                  : 'border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200'
+                  : 'border-slate-200 dark:border-[#1F1F1F] bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#111111] text-slate-700 dark:text-[#FFFFFF]'
               }`}
             >
               {gmailStatus.needsReauth
@@ -767,15 +767,15 @@ export default function App() {
 
             {/* OutreachOS Session info & Sign Out */}
             {session.user && (
-              <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-zinc-800 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-[#171717] flex items-center justify-between text-xs">
                 <div className="truncate mr-2 min-w-0">
-                  <div className="text-[10px] text-slate-400 dark:text-zinc-500 font-semibold uppercase tracking-wider">OutreachOS User</div>
-                  <div className="font-semibold text-slate-700 dark:text-zinc-200 truncate">{session.user.email}</div>
+                  <div className="text-[10px] text-slate-400 dark:text-[#71717A] font-semibold uppercase tracking-wider">OutreachOS User</div>
+                  <div className="font-semibold text-slate-700 dark:text-[#FFFFFF] truncate">{session.user.email}</div>
                 </div>
                 <button
                   onClick={handleLogout}
                   title="Sign out of OutreachOS"
-                  className="p-1.5 text-slate-400 dark:text-zinc-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg cursor-pointer transition-colors shrink-0"
+                  className="p-1.5 text-slate-400 dark:text-[#71717A] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-[#111111] rounded-lg cursor-pointer transition-colors shrink-0"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -848,7 +848,7 @@ export default function App() {
             ) : isLoading ? (
               <div className="flex flex-col items-center justify-center min-h-[400px] space-y-3">
                 <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-                <span className="text-xs text-slate-500 font-medium">Loading OutreachOS Workspace...</span>
+                <span className="text-xs text-slate-500 dark:text-[#A1A1AA] font-medium">Loading OutreachOS Workspace...</span>
               </div>
             ) : (
               <>
@@ -1022,8 +1022,12 @@ export default function App() {
                         name: sent.recipientName,
                         email: sent.recipientEmail,
                         organization: 'Target Organization',
-                        organizationType: 'RECRUITER',
+                        organizationType: 'Recruiter',
+                        role: 'Outreach Contact',
                         country: 'United States',
+                        tags: ['Outreach'],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
                       }
                     );
                     setComposeCampaign(campaigns.find((c) => c.id === sent.campaignId) || null);
@@ -1071,8 +1075,12 @@ export default function App() {
                       name: incoming.contactName,
                       email: incoming.contactEmail,
                       organization: incoming.organization || 'Target Organization',
-                      organizationType: 'RECRUITER',
+                      organizationType: 'Recruiter',
+                      role: 'Outreach Contact',
                       country: 'United States',
+                      tags: ['Reply'],
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString(),
                     });
                     setComposeCampaign(campaigns.find((c) => c.id === incoming.campaignId) || null);
                     navigateToPage('compose');

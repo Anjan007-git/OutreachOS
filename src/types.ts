@@ -3,13 +3,15 @@ export type UserRole = 'ADMIN' | 'USER';
 export type OrganizationType =
   | 'HR'
   | 'Recruiter'
+  | 'RECRUITER'
   | 'Hiring Manager'
   | 'Company'
   | 'University'
   | 'Admissions'
   | 'International Office'
   | 'Scholarship Office'
-  | 'Other';
+  | 'Other'
+  | string;
 
 export interface Contact {
   id: string;
@@ -29,7 +31,9 @@ export interface Contact {
   notes?: string;
   tags: string[];
   status?: string;
+  responseStatus?: string;
   lastContactedAt?: string;
+  lastContactedDate?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,6 +82,7 @@ export interface Campaign {
   sentCount?: number;
   replyCount?: number;
   templateId?: string;
+  sendingTimeWindow?: any;
   status: 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
   createdAt: string;
   updatedAt: string;
@@ -214,6 +219,7 @@ export interface Template {
   body: string;
   variables: string[];
   isGlobal?: boolean;
+  isDefault?: boolean;
   createdAt: string;
   updatedAt?: string;
 }
